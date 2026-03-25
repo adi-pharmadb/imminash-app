@@ -1,0 +1,421 @@
+round_date,visa_subclass,total_invited_round,tie_break_yyyymm,occupation,min_points
+2025-11-13,189,10000,2025-11,Actuary,85
+2025-11-13,189,10000,2025-11,Agricultural Consultant,85
+2025-11-13,189,10000,2025-11,Agricultural Scientist,85
+2025-11-13,189,10000,2025-11,Airconditioning and Mechanical Services Plumber,65
+2025-11-13,491_family,300,2025-10,Airconditioning and Mechanical Services Plumber,70
+2025-11-13,189,10000,2025-11,Architect,85
+2025-11-13,189,10000,2025-11,Artistic Director,85
+2025-11-13,189,10000,2025-11,Arts Administrator or Manager,85
+2025-11-13,189,10000,2025-11,Audiologist,75
+2025-11-13,491_family,300,2025-10,Audiologist,80
+2025-11-13,189,10000,2025-11,Automotive Electrician,85
+2025-11-13,189,10000,2025-11,Barrister,90
+2025-11-13,189,10000,2025-11,Biochemist,85
+2025-11-13,189,10000,2025-11,Biotechnologist,85
+2025-11-13,189,10000,2025-11,Boat Builder and Repairer,85
+2025-11-13,189,10000,2025-11,Botanist,85
+2025-11-13,189,10000,2025-11,Bricklayer,65
+2025-11-13,491_family,300,2025-10,Bricklayer,70
+2025-11-13,189,10000,2025-11,Cabinetmaker,85
+2025-11-13,189,10000,2025-11,Cardiologist,80
+2025-11-13,491_family,300,2025-10,Cardiologist,80
+2025-11-13,189,10000,2025-11,Carpenter,65
+2025-11-13,491_family,300,2025-10,Carpenter,65
+2025-11-13,189,10000,2025-11,Carpenter and Joiner,65
+2025-11-13,491_family,300,2025-10,Carpenter and Joiner,95
+2025-11-13,189,10000,2025-11,Cartographer,90
+2025-11-13,189,10000,2025-11,Chemical Engineer,85
+2025-11-13,189,10000,2025-11,Chemist,85
+2025-11-13,189,10000,2025-11,Child Care Centre Manager,75
+2025-11-13,189,10000,2025-11,Chiropractor,85
+2025-11-13,189,10000,2025-11,Civil Engineering Draftsperson,85
+2025-11-13,189,10000,2025-11,Civil Engineering Technician,85
+2025-11-13,189,10000,2025-11,Clinical Psychologist,80
+2025-11-13,189,10000,2025-11,Construction Project Manager,85
+2025-11-13,189,10000,2025-11,Dermatologist,100
+2025-11-13,189,10000,2025-11,Diagnostic and Interventional Radiologist,80
+2025-11-13,189,10000,2025-11,Drainer,70
+2025-11-13,189,10000,2025-11,Early Childhood (Pre-primary School) Teacher,85
+2025-11-13,491_family,300,2025-10,Early Childhood (Pre-primary School) Teacher,90
+2025-11-13,189,10000,2025-11,Economist,85
+2025-11-13,189,10000,2025-11,Electrical Engineering Draftsperson,85
+2025-11-13,189,10000,2025-11,Electrical Engineering Technician,85
+2025-11-13,189,10000,2025-11,Electrician (General),65
+2025-11-13,491_family,300,2025-10,Electrician (General),65
+2025-11-13,189,10000,2025-11,Electrician (Special Class),70
+2025-11-13,189,10000,2025-11,Electronic Equipment Trades Worker,85
+2025-11-13,189,10000,2025-11,Electronic Instrument Trades Worker (General),95
+2025-11-13,189,10000,2025-11,Electronic Instrument Trades Worker (Special Class),95
+2025-11-13,189,10000,2025-11,Emergency Medicine Specialist,75
+2025-11-13,189,10000,2025-11,Engineering Manager,85
+2025-11-13,189,10000,2025-11,Environmental Consultant,85
+2025-11-13,189,10000,2025-11,Environmental Manager,85
+2025-11-13,189,10000,2025-11,Environmental Research Scientist,85
+2025-11-13,189,10000,2025-11,Environmental Scientists nec,85
+2025-11-13,189,10000,2025-11,Fibrous Plasterer,65
+2025-11-13,491_family,300,2025-10,Fibrous Plasterer,65
+2025-11-13,189,10000,2025-11,Fitter (General),85
+2025-11-13,189,10000,2025-11,Food Technologist,85
+2025-11-13,189,10000,2025-11,Forester,85
+2025-11-13,189,10000,2025-11,Gasfitter,65
+2025-11-13,491_family,300,2025-10,Gasfitter,80
+2025-11-13,189,10000,2025-11,General Practitioner,75
+2025-11-13,491_family,300,2025-10,General Practitioner,85
+2025-11-13,189,10000,2025-11,Geophysicist,85
+2025-11-13,189,10000,2025-11,Glazier,65
+2025-11-13,189,10000,2025-11,Hydrogeologist,90
+2025-11-13,189,10000,2025-11,Intensive Care Specialist,80
+2025-11-13,189,10000,2025-11,Joiner,65
+2025-11-13,189,10000,2025-11,Land Economist,85
+2025-11-13,189,10000,2025-11,Landscape Architect,85
+2025-11-13,189,10000,2025-11,Life Scientist (General),85
+2025-11-13,189,10000,2025-11,Life Scientists nec,85
+2025-11-13,189,10000,2025-11,Management Consultant,85
+2025-11-13,189,10000,2025-11,Marine Biologist,85
+2025-11-13,189,10000,2025-11,Materials Engineer,85
+2025-11-13,189,10000,2025-11,Medical Diagnostic Radiographer,75
+2025-11-13,491_family,300,2025-10,Medical Diagnostic Radiographer,85
+2025-11-13,189,10000,2025-11,Medical Laboratory Scientist,85
+2025-11-13,189,10000,2025-11,Medical Oncologist,80
+2025-11-13,189,10000,2025-11,Medical Practitioners nec,75
+2025-11-13,491_family,300,2025-10,Medical Practitioners nec,90
+2025-11-13,189,10000,2025-11,Medical Radiation Therapist,75
+2025-11-13,189,10000,2025-11,Metal Fabricator,85
+2025-11-13,189,10000,2025-11,Metal Machinist (First Class),95
+2025-11-13,189,10000,2025-11,Metallurgist,85
+2025-11-13,189,10000,2025-11,Microbiologist,85
+2025-11-13,189,10000,2025-11,Midwife,75
+2025-11-13,491_family,300,2025-10,Midwife,75
+2025-11-13,189,10000,2025-11,Mining Engineer (excluding Petroleum),85
+2025-11-13,189,10000,2025-11,Motorcycle Mechanic,85
+2025-11-13,189,10000,2025-11,Multimedia Specialist,90
+2025-11-13,189,10000,2025-11,Musician (Instrumental),90
+2025-11-13,189,10000,2025-11,Natural and Physical Science Professionals nec,85
+2025-11-13,189,10000,2025-11,Neurologist,80
+2025-11-13,189,10000,2025-11,Nurse Practitioner,80
+2025-11-13,189,10000,2025-11,Obstetrician and Gynaecologist,75
+2025-11-13,189,10000,2025-11,Occupational Therapist,75
+2025-11-13,491_family,300,2025-10,Occupational Therapist,80
+2025-11-13,189,10000,2025-11,Ophthalmologist,80
+2025-11-13,189,10000,2025-11,Optometrist,75
+2025-11-13,491_family,300,2025-10,Optometrist,85
+2025-11-13,189,10000,2025-11,Organisational Psychologist,80
+2025-11-13,189,10000,2025-11,Orthopaedic Surgeon,85
+2025-11-13,189,10000,2025-11,Osteopath,100
+2025-11-13,189,10000,2025-11,Other Spatial Scientist,85
+2025-11-13,189,10000,2025-11,Paediatrician,75
+2025-11-13,189,10000,2025-11,Painting Trades Worker,70
+2025-11-13,491_family,300,2025-10,Painting Trades Worker,70
+2025-11-13,189,10000,2025-11,Pathologist,75
+2025-11-13,189,10000,2025-11,Petroleum Engineer,85
+2025-11-13,189,10000,2025-11,Physicist,85
+2025-11-13,189,10000,2025-11,Physiotherapist,75
+2025-11-13,491_family,300,2025-10,Physiotherapist,75
+2025-11-13,189,10000,2025-11,Plumber (General),65
+2025-11-13,491_family,300,2025-10,Plumber (General),70
+2025-11-13,189,10000,2025-11,Podiatrist,75
+2025-11-13,189,10000,2025-11,Primary Health Organisation Manager,85
+2025-11-13,189,10000,2025-11,Psychiatrist,75
+2025-11-13,189,10000,2025-11,Psychologists nec,75
+2025-11-13,491_family,300,2025-10,Radiation Oncologist,85
+2025-11-13,189,10000,2025-11,Registered Nurse (Aged Care),75
+2025-11-13,491_family,300,2025-10,Registered Nurse (Aged Care),80
+2025-11-13,189,10000,2025-11,Registered Nurse (Child and Family Health),75
+2025-11-13,189,10000,2025-11,Registered Nurse (Community Health),75
+2025-11-13,491_family,300,2025-10,Registered Nurse (Community Health),80
+2025-11-13,189,10000,2025-11,Registered Nurse (Critical Care and Emergency),75
+2025-11-13,491_family,300,2025-10,Registered Nurse (Critical Care and Emergency),75
+2025-11-13,189,10000,2025-11,Registered Nurse (Developmental Disability),80
+2025-11-13,491_family,300,2025-10,Registered Nurse (Developmental Disability),80
+2025-11-13,189,10000,2025-11,Registered Nurse (Disability and Rehabilitation),75
+2025-11-13,189,10000,2025-11,Registered Nurse (Medical Practice),75
+2025-11-13,491_family,300,2025-10,Registered Nurse (Medical Practice),75
+2025-11-13,189,10000,2025-11,Registered Nurse (Medical),75
+2025-11-13,491_family,300,2025-10,Registered Nurse (Medical),75
+2025-11-13,189,10000,2025-11,Registered Nurse (Mental Health),75
+2025-11-13,491_family,300,2025-10,Registered Nurse (Mental Health),80
+2025-11-13,189,10000,2025-11,Registered Nurse (Paediatrics),75
+2025-11-13,491_family,300,2025-10,Registered Nurse (Paediatrics),75
+2025-11-13,189,10000,2025-11,Registered Nurse (Perioperative),75
+2025-11-13,491_family,300,2025-10,Registered Nurse (Perioperative),80
+2025-11-13,189,10000,2025-11,Registered Nurse (Surgical),75
+2025-11-13,491_family,300,2025-10,Registered Nurse (Surgical),80
+2025-11-13,189,10000,2025-11,Registered Nurses nec,75
+2025-11-13,491_family,300,2025-10,Registered Nurses nec,75
+2025-11-13,189,10000,2025-11,Roof Plumber,70
+2025-11-13,189,10000,2025-11,Secondary School Teacher,75
+2025-11-13,491_family,300,2025-10,Secondary School Teacher,85
+2025-11-13,189,10000,2025-11,Social Worker,75
+2025-11-13,491_family,300,2025-10,Social Worker,85
+2025-11-13,189,10000,2025-11,Solicitor,85
+2025-11-13,189,10000,2025-11,Solid Plasterer,65
+2025-11-13,491_family,300,2025-10,Solid Plasterer,65
+2025-11-13,189,10000,2025-11,Sonographer,75
+2025-11-13,189,10000,2025-11,Special Education Teachers nec,75
+2025-11-13,189,10000,2025-11,Special Needs Teacher,75
+2025-11-13,491_family,300,2025-10,Special Needs Teacher,90
+2025-11-13,189,10000,2025-11,Specialist Physician (General Medicine),80
+2025-11-13,189,10000,2025-11,Specialist Physicians nec,85
+2025-11-13,189,10000,2025-11,Speech Pathologist,75
+2025-11-13,491_family,300,2025-10,Speech Pathologist,85
+2025-11-13,189,10000,2025-11,Statistician,85
+2025-11-13,189,10000,2025-11,Stonemason,65
+2025-11-13,189,10000,2025-11,Surgeon (General),80
+2025-11-13,189,10000,2025-11,Surveyor,85
+2025-11-13,189,10000,2025-11,Telecommunications Engineer,90
+2025-11-13,189,10000,2025-11,Telecommunications Field Engineer,90
+2025-11-13,189,10000,2025-11,Telecommunications Network Engineer,90
+2025-11-13,189,10000,2025-11,Telecommunications Network Planner,90
+2025-11-13,189,10000,2025-11,Telecommunications Technical Officer or Technologist,90
+2025-11-13,189,10000,2025-11,Tennis Coach,85
+2025-11-13,189,10000,2025-11,Thoracic Medicine Specialist,80
+2025-11-13,189,10000,2025-11,Urologist,80
+2025-11-13,189,10000,2025-11,Valuer,85
+2025-11-13,189,10000,2025-11,Vascular Surgeon,75
+2025-11-13,189,10000,2025-11,Veterinarian,85
+2025-11-13,189,10000,2025-11,Wall and Floor Tiler,65
+2025-11-13,491_family,300,2025-10,Wall and Floor Tiler,75
+2025-11-13,189,10000,2025-11,Welder (First Class),85
+2025-11-13,189,10000,2025-11,Welfare Centre Manager,85
+2025-11-13,189,10000,2025-11,Zoologist,85
+2025-08-21,189,6887,2025-08,Agricultural Consultant,90
+2025-08-21,189,6887,2025-08,Airconditioning and Mechanical Services Plumber,65
+2025-08-21,189,6887,2025-08,Arts Administrator or Manager,90
+2025-08-21,189,6887,2025-08,80,65
+2025-08-21,189,6887,2025-08,Barrister,95
+2025-08-21,189,6887,2025-08,Biotechnologist,90
+2025-08-21,189,6887,2025-08,Bricklayer,65
+2025-08-21,189,6887,2025-08,80,80
+2025-08-21,189,6887,2025-08,Carpenter,65
+2025-08-21,189,6887,2025-08,Cartographer,90
+2025-08-21,189,6887,2025-08,Chemist,90
+2025-08-21,189,6887,2025-08,Civil Engineering Draftsperson,90
+2025-08-21,189,6887,2025-08,Clinical Psychologist,75
+2025-08-21,189,6887,2025-08,Construction Project Manager,90
+2025-08-21,189,6887,2025-08,Diagnostic and Interventional Radiologist,85
+2025-08-21,189,6887,2025-08,Early Childhood (Pre-primary School) Teacher,85
+2025-08-21,189,6887,2025-08,Educational Psychologist,85
+2025-08-21,189,6887,2025-08,Electrical Engineering Technician,90
+2025-08-21,189,6887,2025-08,65,75
+2025-08-21,189,6887,2025-08,Electrician (Special Class),65
+2025-08-21,189,6887,2025-08,Electronic Instrument Trades Worker (Special Class),95
+2025-08-21,189,6887,2025-08,Emergency Medicine Specialist,80
+2025-08-21,189,6887,2025-08,Environmental Consultant,90
+2025-08-21,189,6887,2025-08,Environmental Research Scientist,90
+2025-08-21,189,6887,2025-08,Fibrous Plasterer,90
+2025-08-21,189,6887,2025-08,Forester,90
+2025-08-21,189,6887,2025-08,65,80
+2025-08-21,189,6887,2025-08,Gastroenterologist,80
+2025-08-21,189,6887,2025-08,Geophysicist,90
+2025-08-21,189,6887,2025-08,Hydrogeologist,90
+2025-08-21,189,6887,2025-08,Joiner,65
+2025-08-21,189,6887,2025-08,Landscape Architect,90
+2025-08-21,189,6887,2025-08,Life Scientists nec,90
+2025-08-21,189,6887,2025-08,Marine Biologist,90
+2025-08-21,189,6887,2025-08,Medical Diagnostic Radiographer,80
+2025-08-21,189,6887,2025-08,Medical Practitioners nec,80
+2025-08-21,189,6887,2025-08,Metal Fabricator,105
+2025-08-21,189,6887,2025-08,Metallurgist,90
+2025-08-21,189,6887,2025-08,Microbiologist,90
+2025-08-21,189,6887,2025-08,80,75
+2025-08-21,189,6887,2025-08,Mining Engineer (excluding Petroleum),90
+2025-08-21,189,6887,2025-08,Natural and Physical Science Professionals nec,90
+2025-08-21,189,6887,2025-08,Nuclear Medicine Technologist,80
+2025-08-21,189,6887,2025-08,Obstetrician and Gynaecologist,80
+2025-08-21,189,6887,2025-08,Ophthalmologist,80
+2025-08-21,189,6887,2025-08,Orthopaedic Surgeon,85
+2025-08-21,189,6887,2025-08,Other Spatial Scientist,90
+2025-08-21,189,6887,2025-08,Paediatrician,85
+2025-08-21,189,6887,2025-08,Panelbeater,90
+2025-08-21,189,6887,2025-08,Physicist,90
+2025-08-21,189,6887,2025-08,80,80
+2025-08-21,189,6887,2025-08,Plumber (General),65
+2025-08-21,189,6887,2025-08,Primary Health Organisation Manager,90
+2025-08-21,189,6887,2025-08,Psychologists nec,85
+2025-08-21,189,6887,2025-08,80,80
+2025-08-21,189,6887,2025-08,Registered Nurse (Child and Family Health),80
+2025-08-21,189,6887,2025-08,Registered Nurse (Critical Care and Emergency),80
+2025-08-21,189,6887,2025-08,Registered Nurse (Disability and Rehabilitation),80
+2025-08-21,189,6887,2025-08,Registered Nurse (Medical),80
+2025-08-21,189,6887,2025-08,80,90
+2025-08-21,189,6887,2025-08,Registered Nurse (Paediatrics),80
+2025-08-21,189,6887,2025-08,80,85
+2025-08-21,189,6887,2025-08,Registered Nurse (Surgical),80
+2025-08-21,189,6887,2025-08,80,5
+2025-08-21,189,6887,2025-08,Roof Plumber,65
+2025-08-21,189,6887,2025-08,85,80
+2025-08-21,189,6887,2025-08,Social Worker,85
+2025-08-21,189,6887,2025-08,Solid Plasterer,65
+2025-08-21,189,6887,2025-08,Special Needs Teacher,85
+2025-08-21,189,6887,2025-08,Specialist Physicians nec,80
+2025-08-21,189,6887,2025-08,80,65
+2025-08-21,189,6887,2025-08,Statistician,90
+2025-08-21,189,6887,2025-08,Surveyor,90
+2025-08-21,189,6887,2025-08,Thoracic Medicine Specialist,80
+2025-08-21,189,6887,2025-08,85,80
+2025-08-21,189,6887,2025-08,Urologist,80
+2025-08-21,189,6887,2025-08,Veterinarian,90
+2025-08-21,189,6887,2025-08,65,75
+2025-08-21,189,6887,2025-08,Welder (First Class),90
+2024-11-07,189,15000,2022-12,Accountant (General),95
+2024-11-07,189,15000,2022-12,Actuary,85
+2024-11-07,189,15000,2022-12,Aeronautical Engineer,85
+2024-11-07,189,15000,2022-12,Agricultural Consultant,85
+2024-11-07,189,15000,2022-12,Agricultural Engineer,90
+2024-11-07,189,15000,2022-12,Agricultural Scientist,90
+2024-11-07,189,15000,2022-12,Airconditioning and Mechanical Services Plumber,70
+2024-11-07,189,15000,2022-12,Analyst Programmer,85
+2024-11-07,189,15000,2022-12,Architect,70
+2024-11-07,189,15000,2022-12,Arts Administrator or Manager,90
+2024-11-07,189,15000,2022-12,Audiologist,75
+2024-11-07,189,15000,2022-12,Biochemist,90
+2024-11-07,189,15000,2022-12,Biomedical Engineer,85
+2024-11-07,189,15000,2022-12,Biotechnologist,85
+2024-11-07,189,15000,2022-12,Boat Builder and Repairer,90
+2024-11-07,189,15000,2022-12,Bricklayer,65
+2024-11-07,189,15000,2022-12,Cabinetmaker,65
+2024-11-07,189,15000,2022-12,Cardiothoracic Surgeon,85
+2024-11-07,189,15000,2022-12,Carpenter,65
+2024-11-07,189,15000,2022-12,Carpenter and Joiner,65
+2024-11-07,189,15000,2022-12,Chef,85
+2024-11-07,189,15000,2022-12,Chemical Engineer,85
+2024-11-07,189,15000,2022-12,Chemist,90
+2024-11-07,189,15000,2022-12,Child Care Centre Manager,75
+2024-11-07,189,15000,2022-12,Chiropractor,75
+2024-11-07,189,15000,2022-12,Civil Engineer,85
+2024-11-07,189,15000,2022-12,Civil Engineering Draftsperson,70
+2024-11-07,189,15000,2022-12,Civil Engineering Technician,70
+2024-11-07,189,15000,2022-12,Clinical Psychologist,75
+2024-11-07,189,15000,2022-12,Computer Network and Systems Engineer,95
+2024-11-07,189,15000,2022-12,Construction Project Manager,70
+2024-11-07,189,15000,2022-12,Dancer or Choreographer,90
+2024-11-07,189,15000,2022-12,Dermatologist,75
+2024-11-07,189,15000,2022-12,Developer Programmer,95
+2024-11-07,189,15000,2022-12,Diagnostic and Interventional Radiologist,80
+2024-11-07,189,15000,2022-12,Diesel Motor Mechanic,95
+2024-11-07,189,15000,2022-12,Early Childhood (Pre-primary School) Teacher,70
+2024-11-07,189,15000,2022-12,Economist,90
+2024-11-07,189,15000,2022-12,Educational psychologist,75
+2024-11-07,189,15000,2022-12,Electrical Engineer,85
+2024-11-07,189,15000,2022-12,Electrical Engineering Draftsperson,90
+2024-11-07,189,15000,2022-12,Electrical Engineering Technician,90
+2024-11-07,189,15000,2022-12,Electrician (General),65
+2024-11-07,189,15000,2022-12,Electronic Instrument Trades Worker (Special Class),90
+2024-11-07,189,15000,2022-12,Electronics Engineer,95
+2024-11-07,189,15000,2022-12,Emergency Medicine Specialist,75
+2024-11-07,189,15000,2022-12,Engineering Manager,90
+2024-11-07,189,15000,2022-12,Engineering Professionals nec,85
+2024-11-07,189,15000,2022-12,Engineering Technologist,85
+2024-11-07,189,15000,2022-12,Environmental Consultant,90
+2024-11-07,189,15000,2022-12,Environmental Engineer,85
+2024-11-07,189,15000,2022-12,Environmental Manager,90
+2024-11-07,189,15000,2022-12,Environmental Research Scientist,90
+2024-11-07,189,15000,2022-12,Environmental Scientists nec,90
+2024-11-07,189,15000,2022-12,External Auditor,85
+2024-11-07,189,15000,2022-12,Fibrous Plasterer,65
+2024-11-07,189,15000,2022-12,Food Technologist,90
+2024-11-07,189,15000,2022-12,Forester,90
+2024-11-07,189,15000,2022-12,General Practitioner,75
+2024-11-07,189,15000,2022-12,Geophysicist,90
+2024-11-07,189,15000,2022-12,Geotechnical Engineer,70
+2024-11-07,189,15000,2022-12,Hydrogeologist,90
+2024-11-07,189,15000,2022-12,ICT Business Analyst,95
+2024-11-07,189,15000,2022-12,ICT Security Specialist,95
+2024-11-07,189,15000,2022-12,Industrial Engineer,85
+2024-11-07,189,15000,2022-12,Intensive Care Specialist,75
+2024-11-07,189,15000,2022-12,Internal Auditor,90
+2024-11-07,189,15000,2022-12,Landscape Architect,70
+2024-11-07,189,15000,2022-12,Life Scientist (General),90
+2024-11-07,189,15000,2022-12,Life Scientists nec,90
+2024-11-07,189,15000,2022-12,Lift Mechanic,65
+2024-11-07,189,15000,2022-12,Management Accountant,95
+2024-11-07,189,15000,2022-12,Management Consultant,85
+2024-11-07,189,15000,2022-12,Marine Biologist,90
+2024-11-07,189,15000,2022-12,Materials Engineer,85
+2024-11-07,189,15000,2022-12,Mechanical Engineer,85
+2024-11-07,189,15000,2022-12,Medical Diagnostic Radiographer,75
+2024-11-07,189,15000,2022-12,Medical Laboratory Scientist,75
+2024-11-07,189,15000,2022-12,Medical Practitioners nec,75
+2024-11-07,189,15000,2022-12,Medical Radiation Therapist,75
+2024-11-07,189,15000,2022-12,Metal Fabricator,75
+2024-11-07,189,15000,2022-12,Metal Machinist (First Class),90
+2024-11-07,189,15000,2022-12,Metallurgist,90
+2024-11-07,189,15000,2022-12,Meteorologist,90
+2024-11-07,189,15000,2022-12,Microbiologist,90
+2024-11-07,189,15000,2022-12,Midwife,70
+2024-11-07,189,15000,2022-12,Mining Engineer (excluding Petroleum),90
+2024-11-07,189,15000,2022-12,Motor Mechanic (General),85
+2024-11-07,189,15000,2022-12,Multimedia Specialist,85
+2024-11-07,189,15000,2022-12,Music Director,90
+2024-11-07,189,15000,2022-12,Musician (Instrumental),90
+2024-11-07,189,15000,2022-12,Natural and Physical Science Professionals nec,90
+2024-11-07,189,15000,2022-12,Naval Architect,90
+2024-11-07,189,15000,2022-12,Neurologist,75
+2024-11-07,189,15000,2022-12,Nuclear Medicine Technologist,75
+2024-11-07,189,15000,2022-12,Nurse Practitioner,80
+2024-11-07,189,15000,2022-12,Nursing Clinical Director,115
+2024-11-07,189,15000,2022-12,Obstetrician and Gynaecologist,90
+2024-11-07,189,15000,2022-12,Occupational Therapist,75
+2024-11-07,189,15000,2022-12,Optometrist,75
+2024-11-07,189,15000,2022-12,Orthopaedic Surgeon,75
+2024-11-07,189,15000,2022-12,Orthotist or Prosthetist,75
+2024-11-07,189,15000,2022-12,Osteopath,75
+2024-11-07,189,15000,2022-12,Other Spatial Scientist,90
+2024-11-07,189,15000,2022-12,Paediatrician,75
+2024-11-07,189,15000,2022-12,Painting Trades Worker,65
+2024-11-07,189,15000,2022-12,Pathologist,75
+2024-11-07,189,15000,2022-12,Petroleum Engineer,85
+2024-11-07,189,15000,2022-12,Physicist,90
+2024-11-07,189,15000,2022-12,Physiotherapist,75
+2024-11-07,189,15000,2022-12,Plumber (General),65
+2024-11-07,189,15000,2022-12,Podiatrist,75
+2024-11-07,189,15000,2022-12,Primary Health Organisation Manager,95
+2024-11-07,189,15000,2022-12,Production or Plant Engineer,85
+2024-11-07,189,15000,2022-12,Psychiatrist,75
+2024-11-07,189,15000,2022-12,Psychologists nec,75
+2024-11-07,189,15000,2022-12,Quantity Surveyor,70
+2024-11-07,189,15000,2022-12,Registered Nurse (Aged Care),70
+2024-11-07,189,15000,2022-12,Registered Nurse (Child and Family Health),75
+2024-11-07,189,15000,2022-12,Registered Nurse (Community Health),75
+2024-11-07,189,15000,2022-12,Registered Nurse (Critical Care and Emergency),70
+2024-11-07,189,15000,2022-12,Registered Nurse (Developmental Disability),75
+2024-11-07,189,15000,2022-12,Registered Nurse (Disability and Rehabilitation),75
+2024-11-07,189,15000,2022-12,Registered Nurse (Medical Practice),75
+2024-11-07,189,15000,2022-12,Registered Nurse (Medical),70
+2024-11-07,189,15000,2022-12,Registered Nurse (Mental Health),75
+2024-11-07,189,15000,2022-12,Registered Nurse (Paediatrics),70
+2024-11-07,189,15000,2022-12,Registered Nurse (Perioperative),75
+2024-11-07,189,15000,2022-12,Registered Nurse (Surgical),75
+2024-11-07,189,15000,2022-12,Registered Nurses nec,70
+2024-11-07,189,15000,2022-12,Secondary School Teacher,70
+2024-11-07,189,15000,2022-12,Sheetmetal Trades Worker,70
+2024-11-07,189,15000,2022-12,Social Worker,70
+2024-11-07,189,15000,2022-12,Software and Applications Programmers nec,85
+2024-11-07,189,15000,2022-12,Software Engineer,95
+2024-11-07,189,15000,2022-12,Solicitor,85
+2024-11-07,189,15000,2022-12,Solid Plasterer,70
+2024-11-07,189,15000,2022-12,Sonographer,75
+2024-11-07,189,15000,2022-12,Special Education Teachers nec,75
+2024-11-07,189,15000,2022-12,Special Needs Teacher,70
+2024-11-07,189,15000,2022-12,Specialist Physician (General Medicine),75
+2024-11-07,189,15000,2022-12,Specialist Physicians nec,75
+2024-11-07,189,15000,2022-12,Speech Pathologist,75
+2024-11-07,189,15000,2022-12,Statistician,90
+2024-11-07,189,15000,2022-12,Structural Engineer,70
+2024-11-07,189,15000,2022-12,Surveyor,90
+2024-11-07,189,15000,2022-12,Systems Analyst,95
+2024-11-07,189,15000,2022-12,Taxation Accountant,85
+2024-11-07,189,15000,2022-12,Telecommunications Engineer,85
+2024-11-07,189,15000,2022-12,Telecommunications Field Engineer,85
+2024-11-07,189,15000,2022-12,Telecommunications Network Engineer,85
+2024-11-07,189,15000,2022-12,Telecommunications Network Planner,90
+2024-11-07,189,15000,2022-12,Telecommunications Technical Officer or Technologist,90
+2024-11-07,189,15000,2022-12,Thoracic Medicine Specialist,75
+2024-11-07,189,15000,2022-12,Transport Engineer,70
+2024-11-07,189,15000,2022-12,University Lecturer,90
+2024-11-07,189,15000,2022-12,Valuer,90
+2024-11-07,189,15000,2022-12,Veterinarian,85
+2024-11-07,189,15000,2022-12,Wall and Floor Tiler,65
+2024-11-07,189,15000,2022-12,Welder (First Class),70
+2024-11-07,189,15000,2022-12,Zoologist,90
