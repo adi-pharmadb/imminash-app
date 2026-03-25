@@ -44,50 +44,64 @@ export default function AssessmentPage() {
     const skillsMatches = result?.matchedOccupations ?? [];
     const employerMatches: typeof skillsMatches = [];
 
-    // POST to /api/leads
+    // POST to /api/leads — retry once on failure
     let leadId: string | null = null;
-    try {
-      const leadRes = await fetch("/api/leads", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          email,
-          first_name: formData.firstName ?? null,
-          visa_status: formData.visaStatus ?? null,
-          job_title: formData.jobTitle ?? null,
-        }),
-      });
-      if (leadRes.ok) {
-        const leadData = await leadRes.json();
-        leadId = leadData.lead_id;
+    for (let attempt = 0; attempt < 2; attempt++) {
+      try {
+        const leadRes = await fetch("/api/leads", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            email,
+            first_name: formData.firstName ?? null,
+            visa_status: formData.visaStatus ?? null,
+            job_title: formData.jobTitle ?? null,
+          }),
+        });
+        if (leadRes.ok) {
+          const leadData = await leadRes.json();
+          leadId = leadData.lead_id;
+          break;
+        }
+      } catch {
+        // Retry on next iteration
       }
-    } catch {
-      // Non-blocking: lead save failure should not block the user
+      if (attempt === 0) await new Promise((r) => setTimeout(r, 500));
+    }
+    if (!leadId) {
+      console.error("Failed to create lead for", email);
     }
 
-    // POST to /api/assessments
+    // POST to /api/assessments — retry once on failure
     let assessmentId: string | null = null;
-    try {
-      const assessRes = await fetch("/api/assessments", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          profile_data: formData,
-          points_breakdown: breakdown,
-          total_points: breakdown.total,
-          matched_occupations: {
-            skillsMatches,
-            employerMatches,
-          },
-          lead_id: leadId,
-        }),
-      });
-      if (assessRes.ok) {
-        const assessData = await assessRes.json();
-        assessmentId = assessData.assessment_id;
+    for (let attempt = 0; attempt < 2; attempt++) {
+      try {
+        const assessRes = await fetch("/api/assessments", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            profile_data: formData,
+            points_breakdown: breakdown,
+            total_points: breakdown.total,
+            matched_occupations: {
+              skillsMatches,
+              employerMatches,
+            },
+            lead_id: leadId,
+          }),
+        });
+        if (assessRes.ok) {
+          const assessData = await assessRes.json();
+          assessmentId = assessData.assessment_id;
+          break;
+        }
+      } catch {
+        // Retry on next iteration
       }
-    } catch {
-      // Non-blocking
+      if (attempt === 0) await new Promise((r) => setTimeout(r, 500));
+    }
+    if (!assessmentId) {
+      console.error("Failed to create assessment for", email);
     }
 
     // Store results data for the results page

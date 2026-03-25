@@ -108,7 +108,9 @@ export default function WorkspacePage() {
           .single();
 
         if (assessmentError || !assessment) {
-          router.push("/results");
+          // No assessment found for this user — send them to start the assessment
+          // (not /results, which would redirect back here and create a loop)
+          router.push("/assessment");
           return;
         }
 
