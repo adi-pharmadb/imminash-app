@@ -173,13 +173,13 @@ function EmptyPathwayState() {
       </div>
       <div className="space-y-2">
         <h2 className="font-display text-xl italic text-foreground">
-          No Clear Visa Pathway Identified
+          Points-tested visas are a stretch right now
         </h2>
         <p className="mx-auto max-w-md text-sm text-muted-foreground leading-relaxed">
-          Based on your current profile, we could not identify a strong points-tested
-          visa pathway. This does not mean your options are exhausted. A registered
-          migration agent can assess your full circumstances and identify alternative
-          routes, including employer-sponsored options, that may be available to you.
+          Based on your profile, none of the 189/190/491 routes look strong.
+          That does not mean you are out of options. Employer-sponsored visas,
+          further study, or improving your English score could change things.
+          A migration agent can map out what works for your specific situation.
         </p>
       </div>
       <a
@@ -335,9 +335,8 @@ export default function PathwayPage() {
               : "Your Visa Pathway Roadmap"}
           </h1>
           <p className="text-sm text-muted-foreground leading-relaxed">
-            Personalised visa pathway recommendations based on your points score,
-            occupation lists, and state nomination data. Processing times last
-            updated {LAST_UPDATED}.
+            Based on your points, occupation list status, and which states are
+            currently nominating. Processing times last updated {LAST_UPDATED}.
           </p>
         </div>
 
@@ -461,7 +460,7 @@ export default function PathwayPage() {
               <div className="animate-reveal-up delay-600">
                 <div className="glass-card rounded-2xl p-6 space-y-4">
                   <h3 className="font-display text-lg italic text-foreground">
-                    Employer Sponsored Backup
+                    Employer Sponsored Route
                   </h3>
                   <p className="text-sm text-muted-foreground leading-relaxed">
                     {primaryAnalysis.employerPathway.reasoning}

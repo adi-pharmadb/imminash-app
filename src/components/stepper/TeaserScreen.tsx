@@ -83,10 +83,11 @@ export function TeaserScreen({ points, matchedOccupations, firstName, onUnlock }
           {/* Editorial heading */}
           <div className="space-y-3 animate-reveal-up">
             <h2 className="font-display text-3xl italic text-foreground sm:text-4xl">
-              {firstName ? `${firstName}, your` : "Your"} assessment roadmap is ready
+              {firstName ? `${firstName}, here's` : "Here's"} what we found
             </h2>
             <p className="text-muted-foreground leading-relaxed">
-              We have matched your profile to ANZSCO occupations and identified your assessment pathway.
+              We matched your background against 574 ANZSCO occupations and ran
+              a full points calculation.
             </p>
           </div>
 

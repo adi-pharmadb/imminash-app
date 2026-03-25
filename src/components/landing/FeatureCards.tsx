@@ -3,30 +3,30 @@ import { Search, BarChart3, TrendingUp, FileText } from "lucide-react";
 const features = [
   {
     icon: Search,
-    title: "Occupation Matching",
+    title: "Which occupation fits you?",
     description:
-      "AI matches your experience and qualifications to the most relevant ANZSCO occupation codes.",
+      "Tell us your job and qualifications. We will find the ANZSCO codes you actually qualify for.",
     delay: "delay-100" as const,
   },
   {
     icon: BarChart3,
-    title: "Points Calculation",
+    title: "What's your points score?",
     description:
-      "Instantly estimate your DHA points score across all 10 scoring categories with precision.",
+      "Get an instant estimate across all 10 DHA categories. Know exactly where you stand.",
     delay: "delay-200" as const,
   },
   {
     icon: TrendingUp,
-    title: "Pathway Mapping",
+    title: "189, 190, or 491?",
     description:
-      "See which visa subclasses and state nomination programs align with your profile.",
+      "See which visa subclass is your best shot, which states will nominate you, and what the gaps are.",
     delay: "delay-300" as const,
   },
   {
     icon: FileText,
-    title: "Document Preparation",
+    title: "Get your docs ready",
     description:
-      "AI-guided skill assessment document creation tailored to your assessing authority.",
+      "We will help you prepare your skill assessment application for ACS, VETASSESS, or Engineers Australia.",
     delay: "delay-400" as const,
   },
 ] as const;

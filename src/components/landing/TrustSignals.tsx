@@ -3,19 +3,19 @@ import { Database, Sparkles, Users, ShieldCheck } from "lucide-react";
 const signals = [
   {
     icon: Database,
-    label: "Official ANZSCO Data",
+    label: "Real DHA Data",
   },
   {
     icon: Sparkles,
-    label: "AI-Powered Matching",
+    label: "AI Occupation Matching",
   },
   {
     icon: Users,
-    label: "2,400+ Profiles Analyzed",
+    label: "2,400+ Assessments Run",
   },
   {
     icon: ShieldCheck,
-    label: "DHA-Aligned Scoring",
+    label: "Points Tested & Verified",
   },
 ] as const;
 

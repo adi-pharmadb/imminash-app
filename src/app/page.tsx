@@ -22,11 +22,11 @@ export default function HomePage() {
         </div>
         <div className="animate-reveal-up delay-400 mx-auto mb-16 max-w-2xl text-center">
           <h2 className="font-display text-3xl text-foreground sm:text-4xl">
-            Intelligence at every step
+            Four steps to clarity
           </h2>
           <p className="mt-4 text-base leading-relaxed text-muted-foreground">
-            From occupation matching to document preparation, every stage is
-            powered by data from the Department of Home Affairs.
+            Everything runs on real DHA data and current occupation lists.
+            No guesswork, no outdated spreadsheets.
           </p>
         </div>
         <FeatureCards />
@@ -51,9 +51,9 @@ export default function HomePage() {
 
           {/* Disclaimer */}
           <p className="mx-auto max-w-lg text-center text-xs leading-relaxed text-muted-foreground/70">
-            This tool helps you identify the best occupation match and estimate
-            your eligibility. It does not guarantee assessment outcomes. Always
-            consult a registered migration agent for professional advice.
+            Imminash provides general information only and does not constitute
+            migration advice. It does not guarantee visa or assessment outcomes.
+            Always consult a registered migration agent (MARA) for professional advice.
           </p>
 
           {/* Copyright */}

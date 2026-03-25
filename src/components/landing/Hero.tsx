@@ -40,17 +40,18 @@ export function Hero() {
 
         {/* Main headline */}
         <h1 className="animate-reveal-up delay-100 font-display text-5xl leading-[1.1] tracking-tight text-foreground sm:text-6xl lg:text-7xl">
-          Your migration
+          Find out if you
           <br />
-          <span className="italic text-primary">intelligence</span>
+          <span className="italic text-primary">qualify for PR</span>
           <br />
-          starts here.
+          in 2 minutes.
         </h1>
 
         {/* Subheading */}
         <p className="animate-reveal-up delay-200 mx-auto max-w-xl text-lg leading-relaxed text-muted-foreground sm:text-xl">
-          Match your profile to the right ANZSCO occupation, estimate your
-          points score, and map your pathway to Australian permanent residency.
+          Answer a few questions about your background. We will match you to
+          the right occupation, calculate your points, and show you exactly
+          which visa gets you there.
         </p>
 
         {/* CTA */}
@@ -62,11 +63,11 @@ export function Hero() {
             render={<Link href="/assessment" />}
             data-testid="hero-cta"
           >
-            Check My Eligibility
+            Start Free Assessment
             <ArrowRight className="ml-1 size-4 transition-transform group-hover/button:translate-x-0.5" />
           </Button>
           <span className="text-xs text-muted-foreground/50">
-            Free assessment. No account required.
+            Takes 2 minutes. No sign-up needed.
           </span>
         </div>
       </div>

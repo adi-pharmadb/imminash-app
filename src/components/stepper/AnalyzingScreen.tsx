@@ -6,10 +6,10 @@ import { estimatePoints, MAX_POINTS } from "@/lib/points-calculator";
 import type { UserProfile } from "@/types/assessment";
 
 const STEP_MESSAGES = [
-  "Matching your profile to ANZSCO occupations...",
-  "Identifying your assessing authority...",
-  "Estimating your points score...",
-  "Building your skills assessment roadmap...",
+  "Finding your best occupation matches...",
+  "Checking which assessing body you need...",
+  "Calculating your points score...",
+  "Mapping out your visa options...",
 ] as const;
 
 const STEP_DURATION_MS = 1200;
@@ -176,7 +176,7 @@ export function AnalyzingScreen({ formData, onComplete }: AnalyzingScreenProps) 
             Analyzing your profile{formData.firstName ? `, ${formData.firstName}` : ""}
           </h2>
           <p className="mt-2 text-sm text-muted-foreground">
-            This takes a few moments. We are cross-referencing your background against current migration data.
+            Hang tight. We are running your profile against current occupation lists and invitation data.
           </p>
         </div>
 

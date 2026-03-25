@@ -343,11 +343,11 @@ export default function ResultsPage() {
                 className="font-display text-lg font-semibold italic"
                 style={{ color: "oklch(0.78 0.12 70)" }}
               >
-                See Your Visa Pathways
+                Which visa should you go for?
               </p>
               <p className="text-sm text-muted-foreground">
-                Compare 189, 190, 491 and employer-sponsored routes with
-                personalised recommendations.
+                See how 189, 190, and 491 stack up for your profile, including
+                state nominations and points gaps.
               </p>
             </div>
             <ArrowRight

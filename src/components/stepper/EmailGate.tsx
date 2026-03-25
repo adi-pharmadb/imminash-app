@@ -10,9 +10,9 @@ interface EmailGateProps {
 const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
 const UNLOCK_ITEMS = [
-  { icon: BarChart3, text: "Detailed points breakdown" },
-  { icon: Map, text: "Assessment stream & document checklist" },
-  { icon: TrendingUp, text: "PR & employer sponsored visa pathways" },
+  { icon: BarChart3, text: "Full points breakdown by category" },
+  { icon: Map, text: "Which visa subclass fits you best" },
+  { icon: TrendingUp, text: "State nominations and next steps" },
 ] as const;
 
 /**
@@ -37,11 +37,11 @@ export function EmailGate({ onSubmit }: EmailGateProps) {
           {/* Editorial heading */}
           <div className="space-y-3 animate-reveal-up delay-100">
             <h2 className="font-display text-3xl italic text-foreground">
-              Unlock Your Full Assessment Roadmap
+              Your results are ready
             </h2>
             <p className="text-sm leading-relaxed text-muted-foreground">
-              Enter your email to access your complete skills assessment
-              roadmap and document preparation tools.
+              Drop your email and we will show you your full breakdown,
+              visa options, and what to do next.
             </p>
           </div>
 
@@ -87,7 +87,7 @@ export function EmailGate({ onSubmit }: EmailGateProps) {
           <div className="flex items-center justify-center gap-2 text-xs text-muted-foreground animate-reveal-up delay-400">
             <Users className="h-3.5 w-3.5" />
             <span data-testid="social-proof">
-              Join 2,400+ others preparing their skills assessment
+              2,400+ people have already checked their eligibility
             </span>
           </div>
 
