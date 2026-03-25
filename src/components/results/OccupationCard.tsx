@@ -92,7 +92,7 @@ export function OccupationCard({
                     color: "oklch(0.13 0.01 260)",
                   }
                 : {
-                    background: "oklch(0.22 0.015 260)",
+                    background: "var(--bar-track)",
                     color: "oklch(0.60 0.02 260)",
                   }
             }
@@ -169,8 +169,8 @@ export function OccupationCard({
         <div
           className="rounded-xl p-4 flex items-center gap-3"
           style={{
-            background: "oklch(0.18 0.012 260 / 0.8)",
-            border: "1px solid oklch(0.28 0.015 260 / 0.4)",
+            background: "var(--surface-1)",
+            border: "1px solid var(--surface-border-subtle)",
           }}
           data-testid="invitation-round"
         >
@@ -206,8 +206,8 @@ export function OccupationCard({
           <div
             className="rounded-xl p-4"
             style={{
-              background: "oklch(0.18 0.012 260 / 0.8)",
-              border: "1px solid oklch(0.28 0.015 260 / 0.4)",
+              background: "var(--surface-1)",
+              border: "1px solid var(--surface-border-subtle)",
             }}
           >
             <p className="mb-1.5 text-[11px] font-semibold uppercase tracking-widest text-muted-foreground">

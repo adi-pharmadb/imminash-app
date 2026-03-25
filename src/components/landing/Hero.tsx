@@ -20,9 +20,9 @@ export function Hero() {
         aria-hidden="true"
       />
 
-      {/* Subtle decorative lines */}
+      {/* Subtle decorative line - positioned below the headline area */}
       <div
-        className="pointer-events-none absolute top-1/2 left-0 h-px w-full -translate-y-1/2 opacity-[0.06]"
+        className="pointer-events-none absolute bottom-[30%] left-0 h-px w-full opacity-[0.06]"
         style={{
           background:
             "linear-gradient(90deg, transparent, oklch(0.78 0.12 70), transparent)",
@@ -74,11 +74,7 @@ export function Hero() {
 
       {/* Bottom fade */}
       <div
-        className="pointer-events-none absolute right-0 bottom-0 left-0 h-32"
-        style={{
-          background:
-            "linear-gradient(to top, oklch(0.13 0.01 260), transparent)",
-        }}
+        className="pointer-events-none absolute right-0 bottom-0 left-0 h-32 bg-gradient-to-t from-background to-transparent"
         aria-hidden="true"
       />
     </section>

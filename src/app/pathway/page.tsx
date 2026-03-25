@@ -503,8 +503,8 @@ export default function PathwayPage() {
         <div
           className="border-t backdrop-blur-xl"
           style={{
-            background: "oklch(0.13 0.01 260 / 0.85)",
-            borderColor: "oklch(0.30 0.015 260 / 0.5)",
+            background: "var(--background)",
+            borderColor: "var(--surface-border)",
           }}
         >
           <div className="mx-auto flex max-w-3xl items-center justify-center gap-3 px-6 py-4">

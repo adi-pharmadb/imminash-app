@@ -46,7 +46,7 @@ export function PointsBreakdownCard({
               </div>
               <div
                 className="h-1 w-full rounded-full overflow-hidden"
-                style={{ background: "oklch(0.22 0.015 260)" }}
+                style={{ background: "var(--bar-track)" }}
               >
                 <div
                   className="h-full rounded-full transition-all duration-700 ease-out"

@@ -140,7 +140,7 @@ export function AnalyzingScreen({ formData, onComplete }: AnalyzingScreenProps) 
               cy="60"
               r="54"
               fill="none"
-              stroke="oklch(0.22 0.015 260)"
+              stroke="var(--bar-track)"
               strokeWidth="4"
             />
             {/* Amber progress arc */}

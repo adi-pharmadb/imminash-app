@@ -199,7 +199,7 @@ function UploadHistorySection({ data }: { data: ACSApplicationData }) {
         <div
           key={i}
           className="flex items-center gap-3 rounded-lg px-3 py-2.5"
-          style={{ background: "oklch(0.16 0.01 260 / 0.5)" }}
+          style={{ background: "var(--surface-1)" }}
         >
           <div className="shrink-0">
             {item.status === "ready" || item.status === "uploaded" ? (
@@ -255,7 +255,7 @@ function QualificationsSection({ data }: { data: ACSApplicationData }) {
           key={i}
           className="rounded-xl p-4 space-y-1"
           style={{
-            background: "oklch(0.16 0.01 260 / 0.5)",
+            background: "var(--surface-1)",
             border: "1px solid oklch(0.25 0.015 260 / 0.3)",
           }}
         >
@@ -312,7 +312,7 @@ function EmploymentSection({ data }: { data: ACSApplicationData }) {
           key={i}
           className="rounded-xl p-4 space-y-1"
           style={{
-            background: "oklch(0.16 0.01 260 / 0.5)",
+            background: "var(--surface-1)",
             border: "1px solid oklch(0.25 0.015 260 / 0.3)",
           }}
         >
@@ -409,7 +409,7 @@ function SummarySection({ data }: { data: ACSApplicationData }) {
               <li
                 key={i}
                 className="flex items-start gap-2 rounded-lg px-3 py-2 text-sm text-foreground/80 leading-relaxed"
-                style={{ background: "oklch(0.16 0.01 260 / 0.5)" }}
+                style={{ background: "var(--surface-1)" }}
               >
                 <span className="mt-0.5 text-primary">*</span>
                 <span>{rec}</span>
@@ -472,7 +472,7 @@ export function ACSApplicationPanel({
       <div
         className="flex items-center gap-3 border-b px-5 py-3"
         style={{
-          background: "oklch(0.15 0.01 260)",
+          background: "var(--surface-1)",
           borderColor: "oklch(0.25 0.015 260 / 0.5)",
         }}
       >
@@ -580,7 +580,7 @@ export function ACSApplicationPanel({
       <div
         className="border-t px-5 py-3 text-center"
         style={{
-          background: "oklch(0.14 0.01 260 / 0.8)",
+          background: "var(--surface-1)",
           borderColor: "oklch(0.25 0.015 260 / 0.3)",
         }}
       >

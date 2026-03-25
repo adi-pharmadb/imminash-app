@@ -18,8 +18,8 @@ export function MobileToggle({ activeView, onToggle, rightLabel = "Docs" }: Mobi
     <div
       className="flex gap-0.5 rounded-full p-0.5 md:hidden"
       style={{
-        background: "oklch(0.18 0.012 260 / 0.8)",
-        border: "1px solid oklch(0.28 0.015 260 / 0.4)",
+        background: "var(--surface-1)",
+        border: "1px solid var(--surface-border-subtle)",
       }}
       data-testid="mobile-toggle"
     >

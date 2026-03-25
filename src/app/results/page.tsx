@@ -366,8 +366,8 @@ export default function ResultsPage() {
         <div
           className="border-t backdrop-blur-xl"
           style={{
-            background: "oklch(0.13 0.01 260 / 0.85)",
-            borderColor: "oklch(0.30 0.015 260 / 0.5)",
+            background: "var(--background)",
+            borderColor: "var(--surface-border)",
           }}
         >
           <div className="mx-auto flex max-w-3xl items-center justify-center px-6 py-4">
@@ -384,7 +384,7 @@ export default function ResultsPage() {
                 <button
                   className="w-full rounded-xl py-4 font-semibold transition-all duration-300 cursor-not-allowed opacity-50"
                   style={{
-                    background: "oklch(0.25 0.015 260)",
+                    background: "var(--surface-2)",
                     color: "oklch(0.50 0.02 260)",
                   }}
                   disabled

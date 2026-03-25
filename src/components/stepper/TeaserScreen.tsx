@@ -108,7 +108,7 @@ export function TeaserScreen({ points, matchedOccupations, firstName, onUnlock }
                   cy="60"
                   r="54"
                   fill="none"
-                  stroke="oklch(0.22 0.015 260)"
+                  stroke="var(--bar-track)"
                   strokeWidth="6"
                 />
                 <circle

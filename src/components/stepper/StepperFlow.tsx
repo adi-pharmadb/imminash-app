@@ -218,7 +218,7 @@ export function StepperFlow({ onComplete }: StepperFlowProps) {
           ))}
           {/* Glowing dot on current segment */}
           <div
-            className="pointer-events-none absolute top-1/2 -translate-y-1/2 transition-all duration-700 ease-out"
+            className="pointer-events-none absolute top-1/2 transition-all duration-700 ease-out"
             style={{
               left: `${((currentIndex + 1) / totalPages) * 100}%`,
               transform: "translate(-50%, -50%)",

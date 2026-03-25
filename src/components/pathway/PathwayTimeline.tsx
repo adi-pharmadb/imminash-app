@@ -104,7 +104,7 @@ export function PathwayTimeline({ visa, processingTime, timelineToPR }: PathwayT
               {!isLast && (
                 <div
                   className="h-0.5 w-6 mt-4 shrink-0"
-                  style={{ background: "oklch(0.30 0.015 260 / 0.5)" }}
+                  style={{ background: "var(--surface-border)" }}
                 />
               )}
             </div>

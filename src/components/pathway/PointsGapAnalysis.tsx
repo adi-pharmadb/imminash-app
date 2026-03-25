@@ -71,7 +71,7 @@ export function PointsGapAnalysis({
         </div>
         <div
           className="relative h-3 w-full rounded-full overflow-hidden"
-          style={{ background: "oklch(0.22 0.015 260)" }}
+          style={{ background: "var(--bar-track)" }}
         >
           <div
             className="absolute left-0 top-0 h-full rounded-full transition-all duration-700 ease-out"
@@ -83,7 +83,7 @@ export function PointsGapAnalysis({
           {/* Target marker at right edge (100%) */}
           <div
             className="absolute top-0 right-0 h-full w-0.5"
-            style={{ background: "oklch(0.93 0.01 80 / 0.6)" }}
+            style={{ background: "var(--bar-marker)" }}
           />
         </div>
       </div>
@@ -138,10 +138,10 @@ export function PointsGapAnalysis({
                   key={i}
                   className="rounded-xl p-3 flex items-start justify-between gap-3"
                   style={{
-                    background: "oklch(0.18 0.012 260 / 0.8)",
+                    background: "var(--surface-1)",
                     border: suggestion.bridgesGap
                       ? "1px solid oklch(0.72 0.17 155 / 0.3)"
-                      : "1px solid oklch(0.28 0.015 260 / 0.4)",
+                      : "1px solid var(--surface-border-subtle)",
                   }}
                   data-testid="gap-suggestion"
                 >

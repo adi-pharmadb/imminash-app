@@ -124,8 +124,8 @@ export function StateAvailabilityTable({
             key={row.state}
             className="rounded-xl p-3 flex items-center justify-between"
             style={{
-              background: "oklch(0.18 0.012 260 / 0.8)",
-              border: "1px solid oklch(0.28 0.015 260 / 0.4)",
+              background: "var(--surface-1)",
+              border: "1px solid var(--surface-border-subtle)",
             }}
             data-testid={`state-card-${row.state}`}
           >
