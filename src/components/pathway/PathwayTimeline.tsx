@@ -82,7 +82,7 @@ export function PathwayTimeline({ visa, processingTime, timelineToPR }: PathwayT
                   style={{
                     background: isLast
                       ? "oklch(0.72 0.17 155 / 0.15)"
-                      : "oklch(0.78 0.12 70 / 0.12)",
+                      : "oklch(0.62 0.17 250 / 0.12)",
                   }}
                 >
                   <StepIcon
@@ -90,7 +90,7 @@ export function PathwayTimeline({ visa, processingTime, timelineToPR }: PathwayT
                     style={{
                       color: isLast
                         ? "oklch(0.72 0.17 155)"
-                        : "oklch(0.78 0.12 70)",
+                        : "oklch(0.62 0.17 250)",
                     }}
                   />
                 </div>

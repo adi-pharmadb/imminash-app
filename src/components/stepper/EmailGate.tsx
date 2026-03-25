@@ -29,7 +29,7 @@ export function EmailGate({ onSubmit }: EmailGateProps) {
         <div className="w-full max-w-sm space-y-8 text-center">
           {/* Icon with amber glow */}
           <div className="animate-reveal-up">
-            <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-2xl glass-card glow-amber">
+            <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-2xl glass-card glow-primary">
               <Mail className="h-7 w-7 text-primary" />
             </div>
           </div>
@@ -76,7 +76,7 @@ export function EmailGate({ onSubmit }: EmailGateProps) {
             <button
               onClick={() => onSubmit(email)}
               disabled={!isValid}
-              className="w-full rounded-xl bg-primary py-4 text-base font-semibold text-primary-foreground shadow-lg glow-amber transition-all hover:shadow-xl disabled:cursor-not-allowed disabled:opacity-30 disabled:shadow-none"
+              className="w-full rounded-xl bg-primary py-4 text-base font-semibold text-primary-foreground shadow-lg glow-primary transition-all hover:shadow-xl disabled:cursor-not-allowed disabled:opacity-30 disabled:shadow-none"
               data-testid="email-submit"
             >
               View My Results

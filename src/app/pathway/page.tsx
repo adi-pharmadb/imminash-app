@@ -137,14 +137,14 @@ function StateDataErrorNote() {
     <div
       className="rounded-xl px-4 py-3 flex items-start gap-2.5 animate-reveal-up delay-100"
       style={{
-        background: "oklch(0.78 0.12 70 / 0.06)",
-        border: "1px solid oklch(0.78 0.12 70 / 0.2)",
+        background: "oklch(0.62 0.17 250 / 0.06)",
+        border: "1px solid oklch(0.62 0.17 250 / 0.2)",
       }}
       data-testid="state-data-error"
     >
       <AlertCircle
         className="h-4 w-4 shrink-0 mt-0.5"
-        style={{ color: "oklch(0.78 0.12 70)" }}
+        style={{ color: "oklch(0.62 0.17 250)" }}
       />
       <p className="text-sm text-muted-foreground leading-relaxed">
         State nomination data could not be loaded. Pathway analysis below is based on
@@ -167,9 +167,9 @@ function EmptyPathwayState() {
     >
       <div
         className="mx-auto flex h-14 w-14 items-center justify-center rounded-full"
-        style={{ background: "oklch(0.78 0.12 70 / 0.1)" }}
+        style={{ background: "oklch(0.62 0.17 250 / 0.1)" }}
       >
-        <Search className="h-7 w-7" style={{ color: "oklch(0.78 0.12 70)" }} />
+        <Search className="h-7 w-7" style={{ color: "oklch(0.62 0.17 250)" }} />
       </div>
       <div className="space-y-2">
         <h2 className="font-display text-xl italic text-foreground">
@@ -186,9 +186,9 @@ function EmptyPathwayState() {
         href="https://calendly.com/studynash"
         target="_blank"
         rel="noopener noreferrer"
-        className="inline-flex items-center gap-2 rounded-xl px-6 py-3.5 text-sm font-semibold transition-all duration-300 hover:scale-[1.02] active:scale-[0.98] glow-amber"
+        className="inline-flex items-center gap-2 rounded-xl px-6 py-3.5 text-sm font-semibold transition-all duration-300 hover:scale-[1.02] active:scale-[0.98] glow-primary"
         style={{
-          background: "oklch(0.78 0.12 70)",
+          background: "oklch(0.62 0.17 250)",
           color: "oklch(0.13 0.01 260)",
         }}
         data-testid="empty-state-consultation-cta"
@@ -313,7 +313,7 @@ export default function PathwayPage() {
       <header className="mx-auto flex w-full max-w-3xl items-center justify-between px-6 py-6">
         <span
           className="font-display text-2xl italic tracking-tight"
-          style={{ color: "oklch(0.78 0.12 70)" }}
+          style={{ color: "oklch(0.62 0.17 250)" }}
         >
           imminash
         </span>
@@ -472,7 +472,7 @@ export default function PathwayPage() {
                           key={i}
                           className="flex items-start gap-2 text-sm text-foreground leading-relaxed"
                         >
-                          <span style={{ color: "oklch(0.78 0.12 70)" }}>-</span>
+                          <span style={{ color: "oklch(0.62 0.17 250)" }}>-</span>
                           {step}
                         </li>
                       ))}
@@ -511,7 +511,7 @@ export default function PathwayPage() {
             {isACS ? (
               <button
                 onClick={() => router.push("/workspace")}
-                className="w-full max-w-md rounded-xl bg-primary py-4 font-semibold text-primary-foreground transition-all duration-300 hover:scale-[1.02] active:scale-[0.98] glow-amber"
+                className="w-full max-w-md rounded-xl bg-primary py-4 font-semibold text-primary-foreground transition-all duration-300 hover:scale-[1.02] active:scale-[0.98] glow-primary"
                 data-testid="cta-skill-assessment"
               >
                 Start Your Skill Assessment
@@ -521,9 +521,9 @@ export default function PathwayPage() {
                 href="https://calendly.com/studynash"
                 target="_blank"
                 rel="noopener noreferrer"
-                className="block w-full max-w-md rounded-xl py-4 text-center font-semibold transition-all duration-300 hover:scale-[1.02] active:scale-[0.98] glow-amber"
+                className="block w-full max-w-md rounded-xl py-4 text-center font-semibold transition-all duration-300 hover:scale-[1.02] active:scale-[0.98] glow-primary"
                 style={{
-                  background: "oklch(0.78 0.12 70)",
+                  background: "oklch(0.62 0.17 250)",
                   color: "oklch(0.13 0.01 260)",
                 }}
                 data-testid="cta-consultation"

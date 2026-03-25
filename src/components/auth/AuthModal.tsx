@@ -104,7 +104,7 @@ export function AuthModal({ open, onOpenChange, defaultEmail = "" }: AuthModalPr
             )}
 
             <Button
-              className="glow-amber w-full bg-primary font-semibold text-primary-foreground transition-all hover:brightness-110"
+              className="glow-primary w-full bg-primary font-semibold text-primary-foreground transition-all hover:brightness-110"
               onClick={handleSendMagicLink}
               disabled={loading || !email}
               data-testid="send-magic-link-btn"

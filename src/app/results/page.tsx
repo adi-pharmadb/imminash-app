@@ -146,7 +146,7 @@ export default function ResultsPage() {
       <header className="mx-auto flex w-full max-w-3xl items-center justify-between px-6 py-6">
         <span
           className="font-display text-2xl italic tracking-tight"
-          style={{ color: "oklch(0.78 0.12 70)" }}
+          style={{ color: "oklch(0.62 0.17 250)" }}
         >
           imminash
         </span>
@@ -183,7 +183,7 @@ export default function ResultsPage() {
             <button
               className={`flex-1 rounded-lg px-4 py-3 text-sm font-semibold transition-all duration-300 ${
                 activeTab === "skills"
-                  ? "bg-primary/15 text-primary glow-amber"
+                  ? "bg-primary/15 text-primary glow-primary"
                   : "text-muted-foreground hover:text-foreground hover:bg-white/5"
               }`}
               onClick={() => setActiveTab("skills")}
@@ -194,7 +194,7 @@ export default function ResultsPage() {
             <button
               className={`flex-1 rounded-lg px-4 py-3 text-sm font-semibold transition-all duration-300 ${
                 activeTab === "employer"
-                  ? "bg-primary/15 text-primary glow-amber"
+                  ? "bg-primary/15 text-primary glow-primary"
                   : "text-muted-foreground hover:text-foreground hover:bg-white/5"
               }`}
               onClick={() => setActiveTab("employer")}
@@ -333,15 +333,15 @@ export default function ResultsPage() {
         <div className="animate-reveal-up delay-300" data-testid="pathway-cta">
           <Link
             href="/pathway"
-            className="glass-card glow-amber group flex w-full items-center justify-between rounded-2xl px-6 py-5 transition-all duration-300 hover:scale-[1.01] active:scale-[0.99]"
+            className="glass-card glow-primary group flex w-full items-center justify-between rounded-2xl px-6 py-5 transition-all duration-300 hover:scale-[1.01] active:scale-[0.99]"
             style={{
-              borderColor: "oklch(0.78 0.12 70 / 0.4)",
+              borderColor: "oklch(0.62 0.17 250 / 0.4)",
             }}
           >
             <div className="space-y-1">
               <p
                 className="font-display text-lg font-semibold italic"
-                style={{ color: "oklch(0.78 0.12 70)" }}
+                style={{ color: "oklch(0.62 0.17 250)" }}
               >
                 Which visa should you go for?
               </p>
@@ -352,7 +352,7 @@ export default function ResultsPage() {
             </div>
             <ArrowRight
               className="ml-4 h-5 w-5 shrink-0 transition-transform duration-300 group-hover:translate-x-1"
-              style={{ color: "oklch(0.78 0.12 70)" }}
+              style={{ color: "oklch(0.62 0.17 250)" }}
             />
           </Link>
         </div>
@@ -373,7 +373,7 @@ export default function ResultsPage() {
           <div className="mx-auto flex max-w-3xl items-center justify-center px-6 py-4">
             {primaryAssessingBody && isACSBody(primaryAssessingBody) ? (
               <button
-                className="w-full max-w-md rounded-xl bg-primary py-4 font-semibold text-primary-foreground transition-all duration-300 hover:scale-[1.02] active:scale-[0.98] glow-amber"
+                className="w-full max-w-md rounded-xl bg-primary py-4 font-semibold text-primary-foreground transition-all duration-300 hover:scale-[1.02] active:scale-[0.98] glow-primary"
                 onClick={handleStartDocPrep}
                 data-testid="start-doc-prep-btn"
               >

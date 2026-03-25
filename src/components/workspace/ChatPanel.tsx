@@ -200,7 +200,7 @@ export function ChatPanel({
           <button
             onClick={handleSend}
             disabled={!input.trim() || isLoading}
-            className="glow-amber flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-primary text-primary-foreground transition-all hover:brightness-110 disabled:opacity-30 disabled:shadow-none"
+            className="glow-primary flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-primary text-primary-foreground transition-all hover:brightness-110 disabled:opacity-30 disabled:shadow-none"
             aria-label="Send message"
             data-testid="send-button"
           >

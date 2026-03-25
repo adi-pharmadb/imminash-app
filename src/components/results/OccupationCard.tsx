@@ -54,11 +54,11 @@ export function OccupationCard({
   return (
     <div
       className={`glass-card rounded-2xl p-6 space-y-5 transition-all duration-300 ${
-        rank === 0 ? "glow-amber" : ""
+        rank === 0 ? "glow-primary" : ""
       }`}
       style={
         rank === 0
-          ? { borderColor: "oklch(0.78 0.12 70 / 0.3)" }
+          ? { borderColor: "oklch(0.62 0.17 250 / 0.3)" }
           : undefined
       }
       data-testid="occupation-card"
@@ -88,7 +88,7 @@ export function OccupationCard({
             style={
               rank === 0
                 ? {
-                    background: "oklch(0.78 0.12 70)",
+                    background: "oklch(0.62 0.17 250)",
                     color: "oklch(0.13 0.01 260)",
                   }
                 : {
@@ -134,15 +134,15 @@ export function OccupationCard({
               key={i}
               className="rounded-lg px-3 py-2 flex items-start gap-2"
               style={{
-                background: "oklch(0.78 0.12 70 / 0.08)",
-                border: "1px solid oklch(0.78 0.12 70 / 0.2)",
+                background: "oklch(0.62 0.17 250 / 0.08)",
+                border: "1px solid oklch(0.62 0.17 250 / 0.2)",
               }}
             >
               <AlertTriangle
                 className="h-3.5 w-3.5 mt-0.5 shrink-0"
-                style={{ color: "oklch(0.78 0.12 70)" }}
+                style={{ color: "oklch(0.62 0.17 250)" }}
               />
-              <p className="text-xs" style={{ color: "oklch(0.78 0.12 70)" }}>
+              <p className="text-xs" style={{ color: "oklch(0.62 0.17 250)" }}>
                 {warning}
               </p>
             </div>
@@ -260,13 +260,13 @@ export function OccupationCard({
           href={AGENT_BOOKING_URL}
           className="block rounded-xl p-4 transition-all hover:scale-[1.01]"
           style={{
-            background: "oklch(0.78 0.12 70 / 0.08)",
-            border: "1px solid oklch(0.78 0.12 70 / 0.2)",
+            background: "oklch(0.62 0.17 250 / 0.08)",
+            border: "1px solid oklch(0.62 0.17 250 / 0.2)",
           }}
           data-testid="agent-cta"
         >
           <div className="flex items-center gap-3">
-            <MessageCircle className="h-5 w-5 shrink-0" style={{ color: "oklch(0.78 0.12 70)" }} />
+            <MessageCircle className="h-5 w-5 shrink-0" style={{ color: "oklch(0.62 0.17 250)" }} />
             <div>
               <p className="text-sm font-semibold text-foreground">
                 Need help with this occupation?

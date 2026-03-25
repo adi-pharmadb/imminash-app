@@ -93,7 +93,7 @@ export function TeaserScreen({ points, matchedOccupations, firstName, onUnlock }
 
           {/* Points ring - glass card with amber glow */}
           <div
-            className="glass-card glow-amber flex items-center gap-6 rounded-2xl p-6 animate-reveal-up delay-100"
+            className="glass-card glow-primary flex items-center gap-6 rounded-2xl p-6 animate-reveal-up delay-100"
             data-testid="points-ring"
           >
             <div className="relative h-24 w-24 shrink-0">
@@ -213,7 +213,7 @@ export function TeaserScreen({ points, matchedOccupations, firstName, onUnlock }
               <Button
                 onClick={onUnlock}
                 size="lg"
-                className="gap-2.5 rounded-xl bg-primary px-8 py-6 text-base font-semibold text-primary-foreground shadow-2xl glow-amber transition-all hover:shadow-3xl"
+                className="gap-2.5 rounded-xl bg-primary px-8 py-6 text-base font-semibold text-primary-foreground shadow-2xl glow-primary transition-all hover:shadow-3xl"
                 data-testid="unlock-button"
               >
                 <Lock className="size-4" />

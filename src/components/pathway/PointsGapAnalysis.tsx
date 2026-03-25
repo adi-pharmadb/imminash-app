@@ -11,7 +11,7 @@ interface PointsGapAnalysisProps {
 
 const FEASIBILITY_STYLES: Record<string, { bg: string; color: string }> = {
   Easy: { bg: "oklch(0.72 0.17 155 / 0.12)", color: "oklch(0.72 0.17 155)" },
-  Moderate: { bg: "oklch(0.78 0.12 70 / 0.12)", color: "oklch(0.78 0.12 70)" },
+  Moderate: { bg: "oklch(0.62 0.17 250 / 0.12)", color: "oklch(0.62 0.17 250)" },
   Hard: { bg: "oklch(0.70 0.15 50 / 0.12)", color: "oklch(0.70 0.15 50)" },
 };
 
@@ -51,7 +51,7 @@ export function PointsGapAnalysis({
       data-testid="points-gap-analysis"
     >
       <div className="flex items-center gap-2.5">
-        <TrendingUp className="h-5 w-5" style={{ color: "oklch(0.78 0.12 70)" }} />
+        <TrendingUp className="h-5 w-5" style={{ color: "oklch(0.62 0.17 250)" }} />
         <h3 className="font-display text-lg italic text-foreground">
           Points Gap Analysis
         </h3>

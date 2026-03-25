@@ -149,14 +149,14 @@ export function AnalyzingScreen({ formData, onComplete }: AnalyzingScreenProps) 
               cy="60"
               r="54"
               fill="none"
-              stroke="oklch(0.78 0.12 70)"
+              stroke="oklch(0.62 0.17 250)"
               strokeWidth="4"
               strokeLinecap="round"
               strokeDasharray={circumference}
               strokeDashoffset={offset}
               className="transition-all duration-700 ease-out"
               style={{
-                filter: "drop-shadow(0 0 8px oklch(0.78 0.12 70 / 0.4))",
+                filter: "drop-shadow(0 0 8px oklch(0.62 0.17 250 / 0.4))",
               }}
             />
           </svg>
@@ -193,7 +193,7 @@ export function AnalyzingScreen({ formData, onComplete }: AnalyzingScreenProps) 
             >
               <div className="relative flex h-6 w-6 shrink-0 items-center justify-center">
                 {i < step ? (
-                  <div className="h-2 w-2 rounded-full bg-primary" style={{ boxShadow: "0 0 8px oklch(0.78 0.12 70 / 0.5)" }} />
+                  <div className="h-2 w-2 rounded-full bg-primary" style={{ boxShadow: "0 0 8px oklch(0.62 0.17 250 / 0.5)" }} />
                 ) : i === step ? (
                   <div className="h-2.5 w-2.5 rounded-full bg-primary animate-pulse-glow" />
                 ) : (

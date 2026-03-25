@@ -110,7 +110,7 @@ export default function AdminKnowledgePage() {
       <header className="mx-auto w-full max-w-3xl px-6 py-6">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <BookOpen className="h-5 w-5" style={{ color: "oklch(0.78 0.12 70)" }} />
+            <BookOpen className="h-5 w-5" style={{ color: "oklch(0.62 0.17 250)" }} />
             <h1 className="font-display text-xl italic text-foreground">Agent Knowledge Base</h1>
           </div>
           <span className="text-xs text-muted-foreground">

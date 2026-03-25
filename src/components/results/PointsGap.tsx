@@ -25,7 +25,7 @@ export function PointsGap({ userPoints, threshold }: PointsGapProps) {
     Icon = TrendingUp;
   } else if (Math.abs(diff) <= 10) {
     label = `${Math.abs(diff)} points below threshold`;
-    color = "oklch(0.78 0.12 70)";
+    color = "oklch(0.62 0.17 250)";
     Icon = Minus;
   } else {
     label = `${Math.abs(diff)} points below threshold`;

@@ -205,8 +205,8 @@ export function WorkspaceLayout({
             <span
               className="hidden sm:inline rounded-md px-2 py-0.5 text-[10px] font-bold uppercase tracking-widest"
               style={{
-                background: "oklch(0.78 0.12 70 / 0.15)",
-                color: "oklch(0.78 0.12 70)",
+                background: "oklch(0.62 0.17 250 / 0.15)",
+                color: "oklch(0.62 0.17 250)",
               }}
             >
               ACS Assessment
@@ -226,7 +226,7 @@ export function WorkspaceLayout({
             <button
               onClick={handleDownloadAll}
               disabled={isDownloadingAll}
-              className="glow-amber inline-flex items-center gap-2 rounded-lg bg-primary px-5 py-2 text-sm font-semibold text-primary-foreground transition-all hover:brightness-110 disabled:opacity-50 disabled:shadow-none"
+              className="glow-primary inline-flex items-center gap-2 rounded-lg bg-primary px-5 py-2 text-sm font-semibold text-primary-foreground transition-all hover:brightness-110 disabled:opacity-50 disabled:shadow-none"
               data-testid="download-all-btn"
               aria-label="Download all documents as ZIP"
             >

@@ -58,7 +58,7 @@ export function StateAvailabilityTable({
   return (
     <div className="glass-card rounded-2xl p-6 space-y-4" data-testid="state-availability-table">
       <div className="flex items-center gap-2.5">
-        <MapPin className="h-5 w-5" style={{ color: "oklch(0.78 0.12 70)" }} />
+        <MapPin className="h-5 w-5" style={{ color: "oklch(0.62 0.17 250)" }} />
         <h3 className="font-display text-lg italic text-foreground">
           State Availability
         </h3>

@@ -224,7 +224,7 @@ export function StepperFlow({ onComplete }: StepperFlowProps) {
               transform: "translate(-50%, -50%)",
             }}
           >
-            <div className="h-2 w-2 rounded-full bg-primary glow-amber" />
+            <div className="h-2 w-2 rounded-full bg-primary glow-primary" />
           </div>
         </div>
       </div>
@@ -273,7 +273,7 @@ export function StepperFlow({ onComplete }: StepperFlowProps) {
                 onClick={handleNext}
                 disabled={!isValid && !currentPage.skippable}
                 size="lg"
-                className="group gap-2 rounded-xl bg-primary px-8 text-primary-foreground shadow-lg glow-amber transition-all hover:shadow-xl disabled:shadow-none disabled:opacity-40"
+                className="group gap-2 rounded-xl bg-primary px-8 text-primary-foreground shadow-lg glow-primary transition-all hover:shadow-xl disabled:shadow-none disabled:opacity-40"
               >
                 <span className="font-semibold">
                   {isLastPage ? "Analyze" : "Continue"}

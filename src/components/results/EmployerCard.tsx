@@ -82,11 +82,11 @@ export function EmployerCard({ occupation, eligibility }: EmployerCardProps) {
         <div className="flex items-start gap-3">
           <span
             className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full"
-            style={{ background: "oklch(0.78 0.12 70 / 0.12)" }}
+            style={{ background: "oklch(0.62 0.17 250 / 0.12)" }}
           >
             <Briefcase
               className="h-4 w-4"
-              style={{ color: "oklch(0.78 0.12 70)" }}
+              style={{ color: "oklch(0.62 0.17 250)" }}
             />
           </span>
           <div>
@@ -125,13 +125,13 @@ export function EmployerCard({ occupation, eligibility }: EmployerCardProps) {
           href={AGENT_BOOKING_URL}
           className="block rounded-xl p-4 transition-all hover:scale-[1.01]"
           style={{
-            background: "oklch(0.78 0.12 70 / 0.08)",
-            border: "1px solid oklch(0.78 0.12 70 / 0.2)",
+            background: "oklch(0.62 0.17 250 / 0.08)",
+            border: "1px solid oklch(0.62 0.17 250 / 0.2)",
           }}
           data-testid="agent-cta"
         >
           <div className="flex items-center gap-3">
-            <MessageCircle className="h-5 w-5 shrink-0" style={{ color: "oklch(0.78 0.12 70)" }} />
+            <MessageCircle className="h-5 w-5 shrink-0" style={{ color: "oklch(0.62 0.17 250)" }} />
             <div>
               <p className="text-sm font-semibold text-foreground">
                 Need help with this occupation?

@@ -223,7 +223,7 @@ function UploadHistorySection({ data }: { data: ACSApplicationData }) {
             style={
               item.status === "ready" || item.status === "uploaded"
                 ? { background: "oklch(0.45 0.15 155 / 0.15)", color: "oklch(0.75 0.15 155)" }
-                : { background: "oklch(0.78 0.12 70 / 0.15)", color: "oklch(0.78 0.12 70)" }
+                : { background: "oklch(0.62 0.17 250 / 0.15)", color: "oklch(0.62 0.17 250)" }
             }
           >
             {item.status}
@@ -479,7 +479,7 @@ export function ACSApplicationPanel({
         <div
           className="flex h-7 w-7 items-center justify-center rounded-md text-xs font-black"
           style={{
-            background: "oklch(0.78 0.12 70)",
+            background: "oklch(0.62 0.17 250)",
             color: "oklch(0.13 0.01 260)",
           }}
         >
@@ -526,7 +526,7 @@ export function ACSApplicationPanel({
                     background:
                       completeness === "complete"
                         ? "oklch(0.75 0.15 155)"
-                        : "oklch(0.78 0.12 70)",
+                        : "oklch(0.62 0.17 250)",
                   }}
                 />
               )}

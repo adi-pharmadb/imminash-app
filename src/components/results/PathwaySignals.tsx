@@ -19,7 +19,7 @@ export function PathwaySignals({ signals }: PathwaySignalsProps) {
       </p>
       <div
         className="space-y-2.5 pl-4"
-        style={{ borderLeft: "2px solid oklch(0.78 0.12 70 / 0.3)" }}
+        style={{ borderLeft: "2px solid oklch(0.62 0.17 250 / 0.3)" }}
       >
         {signals.map((signal, i) => (
           <div
@@ -28,7 +28,7 @@ export function PathwaySignals({ signals }: PathwaySignalsProps) {
           >
             <Info
               className="mt-0.5 h-3.5 w-3.5 shrink-0"
-              style={{ color: "oklch(0.78 0.12 70)" }}
+              style={{ color: "oklch(0.62 0.17 250)" }}
             />
             <span>{signal}</span>
           </div>

@@ -18,9 +18,9 @@ const SEVERITY_CONFIG: Record<
     Icon: AlertCircle,
   },
   warning: {
-    color: "oklch(0.78 0.12 70)",
-    bg: "oklch(0.78 0.12 70 / 0.08)",
-    border: "oklch(0.78 0.12 70 / 0.3)",
+    color: "oklch(0.62 0.17 250)",
+    bg: "oklch(0.62 0.17 250 / 0.08)",
+    border: "oklch(0.62 0.17 250 / 0.3)",
     Icon: AlertTriangle,
   },
   info: {

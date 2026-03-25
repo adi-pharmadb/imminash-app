@@ -57,7 +57,7 @@ export function PointsCounter({ points, visible }: PointsCounterProps) {
   if (!visible) return null;
 
   return (
-    <div className="relative flex items-center gap-2 rounded-full glass-card px-3.5 py-1.5 glow-amber">
+    <div className="relative flex items-center gap-2 rounded-full glass-card px-3.5 py-1.5 glow-primary">
       <Zap className="size-3.5 text-primary" />
       <span className="text-sm font-bold tabular-nums tracking-wide text-primary">
         {displayPoints}

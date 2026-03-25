@@ -31,8 +31,8 @@ const RATING_CONFIG: Record<
     label: "Strong",
   },
   Competitive: {
-    color: "oklch(0.78 0.12 70)",
-    bg: "oklch(0.78 0.12 70 / 0.12)",
+    color: "oklch(0.62 0.17 250)",
+    bg: "oklch(0.62 0.17 250 / 0.12)",
     Icon: AlertTriangle,
     label: "Competitive",
   },
@@ -220,7 +220,7 @@ export function PathwayCard({ pathway, userPoints, breakdown }: PathwayCardProps
               >
                 <ArrowRight
                   className="mt-0.5 h-3.5 w-3.5 shrink-0"
-                  style={{ color: "oklch(0.78 0.12 70)" }}
+                  style={{ color: "oklch(0.62 0.17 250)" }}
                 />
                 <span>{step}</span>
               </li>
@@ -235,7 +235,7 @@ export function PathwayCard({ pathway, userPoints, breakdown }: PathwayCardProps
           <p className="text-[11px] font-semibold uppercase tracking-widest text-muted-foreground">
             <Lightbulb
               className="inline h-3.5 w-3.5 mr-1"
-              style={{ color: "oklch(0.78 0.12 70)" }}
+              style={{ color: "oklch(0.62 0.17 250)" }}
             />
             Points Improvement Suggestions
           </p>

@@ -179,7 +179,7 @@ export default function AdminKnowledgeEditPage() {
             onClick={handleSave}
             disabled={saving}
             size="lg"
-            className="gap-2 rounded-xl bg-primary px-8 text-primary-foreground glow-amber"
+            className="gap-2 rounded-xl bg-primary px-8 text-primary-foreground glow-primary"
             data-testid="save-button"
           >
             <Save className="h-4 w-4" />

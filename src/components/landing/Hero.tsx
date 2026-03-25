@@ -11,7 +11,7 @@ export function Hero() {
       {/* Decorative gradient orbs */}
       <div
         className="pointer-events-none absolute top-[-20%] left-[-10%] size-[600px] rounded-full opacity-30 blur-[120px]"
-        style={{ background: "oklch(0.78 0.12 70 / 0.15)" }}
+        style={{ background: "oklch(0.62 0.17 250 / 0.15)" }}
         aria-hidden="true"
       />
       <div
@@ -25,7 +25,7 @@ export function Hero() {
         className="pointer-events-none absolute bottom-[30%] left-0 h-px w-full opacity-[0.06]"
         style={{
           background:
-            "linear-gradient(90deg, transparent, oklch(0.78 0.12 70), transparent)",
+            "linear-gradient(90deg, transparent, oklch(0.62 0.17 250), transparent)",
         }}
         aria-hidden="true"
       />
@@ -58,7 +58,7 @@ export function Hero() {
         <div className="animate-reveal-up delay-300 flex flex-col items-center gap-4">
           <Button
             size="lg"
-            className="glow-amber h-13 cursor-pointer px-8 text-base font-semibold transition-all duration-300 hover:scale-[1.02]"
+            className="glow-primary h-13 cursor-pointer px-8 text-base font-semibold transition-all duration-300 hover:scale-[1.02]"
             nativeButton={false}
             render={<Link href="/assessment" />}
             data-testid="hero-cta"

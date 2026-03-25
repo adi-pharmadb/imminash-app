@@ -24,10 +24,10 @@ export function PointsBreakdownCard({
           Points Breakdown
         </p>
         <span
-          className="rounded-full px-4 py-1.5 text-sm font-bold glow-amber animate-pulse-glow"
+          className="rounded-full px-4 py-1.5 text-sm font-bold glow-primary animate-pulse-glow"
           style={{
-            background: "oklch(0.78 0.12 70 / 0.15)",
-            color: "oklch(0.78 0.12 70)",
+            background: "oklch(0.62 0.17 250 / 0.15)",
+            color: "oklch(0.62 0.17 250)",
           }}
         >
           {breakdown.total} pts
@@ -55,7 +55,7 @@ export function PointsBreakdownCard({
                     background:
                       ratio >= 1
                         ? "oklch(0.72 0.17 155)"
-                        : "oklch(0.78 0.12 70)",
+                        : "oklch(0.62 0.17 250)",
                   }}
                 />
               </div>
