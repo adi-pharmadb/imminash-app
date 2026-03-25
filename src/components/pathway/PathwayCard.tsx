@@ -67,9 +67,13 @@ export function PathwayCard({ pathway, userPoints, breakdown }: PathwayCardProps
   const hasStates = invitingStates190.length > 0 || invitingStates491.length > 0;
 
   const targetPoints = pathway.cutoff ?? 65;
-  const maxBar = Math.max(targetPoints + 20, pathway.effectivePoints + 10);
-  const currentWidth = Math.min((pathway.effectivePoints / maxBar) * 100, 100);
-  const targetWidth = Math.min((targetPoints / maxBar) * 100, 100);
+  const pointsAboveTarget = pathway.effectivePoints - targetPoints;
+  const showBar = pathway.cutoff !== null;
+  // Use the target as the reference scale. Bar fills to 100% at target.
+  // Points beyond target overflow visually capped at 100%.
+  const currentPct = targetPoints > 0
+    ? Math.min((pathway.effectivePoints / targetPoints) * 100, 100)
+    : 100;
 
   return (
     <div
@@ -99,42 +103,50 @@ export function PathwayCard({ pathway, userPoints, breakdown }: PathwayCardProps
         </span>
       </div>
 
-      {/* Points bar: current vs required */}
-      {pathway.cutoff !== null && (
+      {/* Points comparison */}
+      {showBar && (
         <div className="space-y-2" data-testid="pathway-points-bar">
           <div className="flex items-center justify-between text-sm">
             <span className="text-muted-foreground">
-              Points: {pathway.effectivePoints}
+              Your points: <span className="font-semibold text-foreground">{pathway.effectivePoints}</span>
               {pathway.bonusPoints > 0 && (
                 <span style={{ color: "oklch(0.72 0.17 155)" }}>
-                  {" "}(includes +{pathway.bonusPoints} bonus)
+                  {" "}(incl. +{pathway.bonusPoints} bonus)
                 </span>
               )}
             </span>
-            <span className="font-semibold text-foreground">
-              Target: {targetPoints}
+            <span className="text-muted-foreground">
+              Min required: <span className="font-semibold text-foreground">{targetPoints}</span>
             </span>
           </div>
-          <div className="relative h-2 w-full rounded-full overflow-hidden"
-            style={{ background: "oklch(0.22 0.015 260)" }}
-          >
-            <div
-              className="absolute left-0 top-0 h-full rounded-full transition-all duration-700 ease-out"
-              style={{
-                width: `${currentWidth}%`,
-                background: pathway.effectivePoints >= targetPoints
-                  ? "oklch(0.72 0.17 155)"
-                  : "oklch(0.70 0.15 50)",
-              }}
-            />
-            <div
-              className="absolute top-0 h-full w-0.5"
-              style={{
-                left: `${targetWidth}%`,
-                background: "oklch(0.93 0.01 80 / 0.6)",
-              }}
-            />
-          </div>
+          {/* Only show the bar when there's a meaningful gap to visualize */}
+          {pointsAboveTarget < 20 ? (
+            <div className="relative h-2 w-full rounded-full overflow-hidden"
+              style={{ background: "oklch(0.22 0.015 260)" }}
+            >
+              <div
+                className="absolute left-0 top-0 h-full rounded-full transition-all duration-700 ease-out"
+                style={{
+                  width: `${currentPct}%`,
+                  background: pathway.effectivePoints >= targetPoints
+                    ? "oklch(0.72 0.17 155)"
+                    : "oklch(0.70 0.15 50)",
+                }}
+              />
+              {/* Target marker at 100% of bar (right edge) */}
+              <div
+                className="absolute top-0 right-0 h-full w-0.5"
+                style={{ background: "oklch(0.93 0.01 80 / 0.6)" }}
+              />
+            </div>
+          ) : (
+            <p
+              className="text-xs font-medium"
+              style={{ color: "oklch(0.72 0.17 155)" }}
+            >
+              +{pointsAboveTarget} points above the minimum threshold
+            </p>
+          )}
         </div>
       )}
 

@@ -27,9 +27,10 @@ export function PointsGapAnalysis({
   const gap = Math.max(0, targetPoints - currentPoints);
   if (gap === 0) return null;
 
-  const maxBar = Math.max(targetPoints + 20, currentPoints + 10);
-  const currentWidth = Math.min((currentPoints / maxBar) * 100, 100);
-  const targetWidth = Math.min((targetPoints / maxBar) * 100, 100);
+  // Use target as the 100% reference so the bar clearly shows the gap
+  const currentWidth = targetPoints > 0
+    ? Math.min((currentPoints / targetPoints) * 100, 100)
+    : 0;
 
   // Calculate cumulative points to show which suggestions bridge the gap
   let cumulative = currentPoints;
@@ -79,12 +80,10 @@ export function PointsGapAnalysis({
               background: "oklch(0.70 0.15 50)",
             }}
           />
+          {/* Target marker at right edge (100%) */}
           <div
-            className="absolute top-0 h-full w-0.5"
-            style={{
-              left: `${targetWidth}%`,
-              background: "oklch(0.93 0.01 80 / 0.6)",
-            }}
+            className="absolute top-0 right-0 h-full w-0.5"
+            style={{ background: "oklch(0.93 0.01 80 / 0.6)" }}
           />
         </div>
       </div>
