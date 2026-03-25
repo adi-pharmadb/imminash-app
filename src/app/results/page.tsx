@@ -116,12 +116,16 @@ export default function ResultsPage() {
    * Otherwise, show the auth modal. [AC-AU1]
    */
   const handleStartDocPrep = useCallback(async () => {
-    const supabase = createClient();
-    const { data: sessionData } = await supabase.auth.getSession();
+    try {
+      const supabase = createClient();
+      const { data: sessionData } = await supabase.auth.getSession();
 
-    if (sessionData.session) {
-      router.push("/workspace");
-      return;
+      if (sessionData.session) {
+        router.push("/workspace");
+        return;
+      }
+    } catch {
+      // If session check fails, fall through to auth modal
     }
 
     setAuthModalOpen(true);
