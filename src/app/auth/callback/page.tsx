@@ -46,16 +46,38 @@ export default function AuthCallbackPage() {
     }
 
     async function linkAndRedirect(userId: string, email: string) {
-      try {
-        // Call a server-side endpoint to link assessment using service role
-        await fetch("/api/auth/link", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ userId, email }),
-        });
-      } catch {
-        // Non-blocking - continue to workspace even if linking fails
+      setStatus("Setting up your workspace...");
+
+      // Try to link assessment, with retry
+      let linked = false;
+      for (let attempt = 0; attempt < 3; attempt++) {
+        try {
+          const res = await fetch("/api/auth/link", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ userId, email }),
+          });
+
+          if (res.ok) {
+            linked = true;
+            break;
+          }
+
+          // Wait briefly before retry
+          if (attempt < 2) {
+            await new Promise((r) => setTimeout(r, 1000));
+          }
+        } catch {
+          if (attempt < 2) {
+            await new Promise((r) => setTimeout(r, 1000));
+          }
+        }
       }
+
+      if (!linked) {
+        console.error("Failed to link assessment after 3 attempts");
+      }
+
       router.push("/workspace");
     }
 
