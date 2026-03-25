@@ -1,8 +1,8 @@
 "use client";
 
 /**
- * Mobile toggle button to switch between chat and document/application views.
- * Only visible on viewports < 768px. [AC-DW6]
+ * Mobile toggle to switch between chat and document/application views.
+ * Rendered inline in the workspace header on viewports < 768px. [AC-DW6]
  */
 
 import { MessageSquare, FileText } from "lucide-react";
@@ -16,31 +16,35 @@ interface MobileToggleProps {
 export function MobileToggle({ activeView, onToggle, rightLabel = "Docs" }: MobileToggleProps) {
   return (
     <div
-      className="glass-card glow-amber fixed bottom-4 left-1/2 z-50 flex -translate-x-1/2 gap-1 rounded-full p-1 shadow-lg md:hidden"
+      className="flex gap-0.5 rounded-full p-0.5 md:hidden"
+      style={{
+        background: "oklch(0.18 0.012 260 / 0.8)",
+        border: "1px solid oklch(0.28 0.015 260 / 0.4)",
+      }}
       data-testid="mobile-toggle"
     >
       <button
-        className={`flex items-center gap-1.5 rounded-full px-4 py-2 text-sm font-medium transition-all ${
+        className={`flex items-center gap-1.5 rounded-full px-3 py-1.5 text-xs font-medium transition-all ${
           activeView === "chat"
-            ? "bg-primary text-primary-foreground shadow-md"
+            ? "bg-primary text-primary-foreground shadow-sm"
             : "text-muted-foreground hover:text-foreground"
         }`}
         onClick={() => onToggle("chat")}
         aria-label="Show chat"
       >
-        <MessageSquare className="h-4 w-4" />
+        <MessageSquare className="h-3.5 w-3.5" />
         Chat
       </button>
       <button
-        className={`flex items-center gap-1.5 rounded-full px-4 py-2 text-sm font-medium transition-all ${
+        className={`flex items-center gap-1.5 rounded-full px-3 py-1.5 text-xs font-medium transition-all ${
           activeView === "documents"
-            ? "bg-primary text-primary-foreground shadow-md"
+            ? "bg-primary text-primary-foreground shadow-sm"
             : "text-muted-foreground hover:text-foreground"
         }`}
         onClick={() => onToggle("documents")}
         aria-label={`Show ${rightLabel.toLowerCase()}`}
       >
-        <FileText className="h-4 w-4" />
+        <FileText className="h-3.5 w-3.5" />
         {rightLabel}
       </button>
     </div>

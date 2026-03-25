@@ -194,7 +194,7 @@ export function WorkspaceLayout({
     <div className="flex h-screen flex-col bg-background" data-testid="workspace-layout">
       {/* Workspace header */}
       <div
-        className="glass-card flex items-center justify-between border-b border-border/50 px-5 py-2.5"
+        className="glass-card flex items-center justify-between border-b border-border/50 px-4 py-2.5 sm:px-5"
         data-testid="workspace-header"
       >
         <div className="flex items-center gap-3">
@@ -203,7 +203,7 @@ export function WorkspaceLayout({
           </span>
           {isACS && (
             <span
-              className="rounded-md px-2 py-0.5 text-[10px] font-bold uppercase tracking-widest"
+              className="hidden sm:inline rounded-md px-2 py-0.5 text-[10px] font-bold uppercase tracking-widest"
               style={{
                 background: "oklch(0.78 0.12 70 / 0.15)",
                 color: "oklch(0.78 0.12 70)",
@@ -214,22 +214,31 @@ export function WorkspaceLayout({
           )}
         </div>
 
-        {!isACS && hasDocuments && (
-          <button
-            onClick={handleDownloadAll}
-            disabled={isDownloadingAll}
-            className="glow-amber inline-flex items-center gap-2 rounded-lg bg-primary px-5 py-2 text-sm font-semibold text-primary-foreground transition-all hover:brightness-110 disabled:opacity-50 disabled:shadow-none"
-            data-testid="download-all-btn"
-            aria-label="Download all documents as ZIP"
-          >
-            {isDownloadingAll ? (
-              <Loader2 className="h-4 w-4 animate-spin" />
-            ) : (
-              <Download className="h-4 w-4" />
-            )}
-            {isDownloadingAll ? "Generating..." : "Download All"}
-          </button>
-        )}
+        <div className="flex items-center gap-3">
+          {/* Mobile view toggle - in header instead of floating */}
+          <MobileToggle
+            activeView={mobileView}
+            onToggle={setMobileView}
+            rightLabel={isACS ? "Application" : "Documents"}
+          />
+
+          {!isACS && hasDocuments && (
+            <button
+              onClick={handleDownloadAll}
+              disabled={isDownloadingAll}
+              className="glow-amber inline-flex items-center gap-2 rounded-lg bg-primary px-5 py-2 text-sm font-semibold text-primary-foreground transition-all hover:brightness-110 disabled:opacity-50 disabled:shadow-none"
+              data-testid="download-all-btn"
+              aria-label="Download all documents as ZIP"
+            >
+              {isDownloadingAll ? (
+                <Loader2 className="h-4 w-4 animate-spin" />
+              ) : (
+                <Download className="h-4 w-4" />
+              )}
+              {isDownloadingAll ? "Generating..." : "Download All"}
+            </button>
+          )}
+        </div>
       </div>
 
       {/* Main content area */}
@@ -270,12 +279,6 @@ export function WorkspaceLayout({
           )}
         </div>
 
-        {/* Mobile toggle [AC-DW6] */}
-        <MobileToggle
-          activeView={mobileView}
-          onToggle={setMobileView}
-          rightLabel={isACS ? "Application" : "Documents"}
-        />
       </div>
     </div>
   );
