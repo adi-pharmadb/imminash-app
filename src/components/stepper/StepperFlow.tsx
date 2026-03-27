@@ -206,7 +206,7 @@ export function StepperFlow({ onComplete }: StepperFlowProps) {
               className="text-xs font-medium tracking-widest uppercase text-muted-foreground"
               data-testid="page-indicator"
             >
-              {currentIndex + 1} of {totalPages}
+              Step {currentIndex + 1}
             </span>
           </div>
         </div>

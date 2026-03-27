@@ -6,6 +6,12 @@ interface MatchBadgeProps {
   confidence: number;
 }
 
+function getConfidenceLabel(confidence: number): string {
+  if (confidence >= 75) return "Strong Match";
+  if (confidence >= 50) return "Medium Match";
+  return "Weak Match";
+}
+
 export function MatchBadge({ confidence }: MatchBadgeProps) {
   const styles = getConfidenceColor(confidence);
   return (
@@ -18,7 +24,7 @@ export function MatchBadge({ confidence }: MatchBadgeProps) {
       }}
       data-testid="match-badge"
     >
-      {confidence}% Match
+      {getConfidenceLabel(confidence)}
     </span>
   );
 }

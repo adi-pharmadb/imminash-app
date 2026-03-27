@@ -101,8 +101,14 @@ export function StatGrid({
           </div>
           <p className="text-[11px] text-muted-foreground">189 Min Points</p>
         </div>
-        <p className="font-semibold text-foreground" data-testid="stat-min189">
-          {min189Points ?? "N/A"}
+        <p
+          className="font-semibold"
+          style={{
+            color: min189Points !== null ? "var(--foreground)" : "oklch(0.65 0.2 25)",
+          }}
+          data-testid="stat-min189"
+        >
+          {min189Points !== null ? min189Points : "Not on 189 list"}
         </p>
       </div>
 

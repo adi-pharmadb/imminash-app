@@ -3,16 +3,14 @@
 import { useEffect, useState, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import { Briefcase, ArrowRight } from "lucide-react";
+import { ArrowRight } from "lucide-react";
 import type { MatchResult, PointsBreakdown, StepperFormData } from "@/types/assessment";
 import type { StateEligibility } from "@/lib/state-nominations";
-import { getStateEligibility, getStateInvitingSummary, STATE_NAMES } from "@/lib/state-nominations";
-import { getPossibilityRating, getPrimaryList, getPathwaySignal } from "@/lib/pathway-signals";
-import { getEmployerEligibility } from "@/lib/employer-eligibility";
-import { estimatePoints, parseExperienceYears } from "@/lib/points-calculator";
+import { getStateEligibility, getStateInvitingSummary } from "@/lib/state-nominations";
+import { getPossibilityRating, getPathwaySignal } from "@/lib/pathway-signals";
 import { OccupationCard } from "@/components/results/OccupationCard";
-import { EmployerCard } from "@/components/results/EmployerCard";
 import { PointsBreakdownCard } from "@/components/results/PointsBreakdownCard";
+import { DualCTA } from "@/components/results/DualCTA";
 import { AuthModal } from "@/components/auth/AuthModal";
 import { OccupationPicker } from "@/components/results/OccupationPicker";
 import { createClient } from "@/lib/supabase/client";
@@ -31,13 +29,12 @@ interface ResultsData {
 }
 
 /**
- * Full results dashboard with two-tab layout (Skills Assessment / Employer Sponsored).
- * Wires "Start Document Preparation" to auth modal or direct redirect for return users.
+ * Results dashboard showing recommended occupations.
+ * Employer Sponsored tab removed per CTO Brief v2 section 2.2.
  */
 export default function ResultsPage() {
   const router = useRouter();
   const [data, setData] = useState<ResultsData | null>(null);
-  const [activeTab, setActiveTab] = useState<"skills" | "employer">("skills");
   const [stateData, setStateData] = useState<Map<string, StateEligibility[]>>(
     new Map(),
   );
@@ -113,7 +110,7 @@ export default function ResultsPage() {
   }, [data]);
 
   /**
-   * Handle "Start Skill Assessment" click.
+   * Handle "Prepare my skill assessment documents" click.
    * If there are multiple occupations, show the picker first.
    * Then authenticate if needed, then go to /workspace.
    */
@@ -168,16 +165,23 @@ export default function ResultsPage() {
     );
   }
 
-  const { formData, skillsMatches, employerMatches, breakdown } = data;
+  const { formData, skillsMatches, breakdown } = data;
 
   // Check if any matched occupation has an ACS assessing body
   const hasACSMatch = skillsMatches.some(
     (occ) => occ.assessing_authority && isACSBody(occ.assessing_authority),
   );
-  const primaryAssessingBody = skillsMatches[0]?.assessing_authority || null;
+
+  // Compute top match possibility for dual CTA secondary copy
+  const topList = skillsMatches[0]?.list ?? "CSOL";
+  const topPossibility = getPossibilityRating(
+    breakdown.total,
+    skillsMatches[0]?.min_189_points ?? null,
+    topList === "MLTSSL",
+  );
 
   return (
-    <div className="min-h-screen bg-background pb-40 gradient-mesh">
+    <div className="min-h-screen bg-background pb-20 gradient-mesh">
       {/* Brand header */}
       <header className="mx-auto flex w-full max-w-3xl items-center justify-between px-6 py-6">
         <span
@@ -193,8 +197,8 @@ export default function ResultsPage() {
         <div className="space-y-3 animate-reveal-up">
           <h1 className="font-display text-3xl font-normal italic text-foreground sm:text-4xl">
             {formData.firstName
-              ? `${formData.firstName}'s Skills Assessment Roadmap`
-              : "Your Skills Assessment Roadmap"}
+              ? `${formData.firstName}'s PR Eligibility Report`
+              : "Your PR Eligibility Report"}
           </h1>
           <p className="text-sm text-muted-foreground leading-relaxed">
             Based on official ANZSCO occupation lists, invitation rounds, and
@@ -210,162 +214,86 @@ export default function ResultsPage() {
           />
         </div>
 
-        {/* Tabs */}
+        {/* Recommended Occupations */}
         <div className="animate-reveal-up delay-200">
-          <div
-            className="glass-card rounded-xl p-1.5 flex gap-1"
-            data-testid="results-tabs"
-          >
-            <button
-              className={`flex-1 rounded-lg px-4 py-3 text-sm font-semibold transition-all duration-300 ${
-                activeTab === "skills"
-                  ? "bg-primary/15 text-primary glow-primary"
-                  : "text-muted-foreground hover:text-foreground hover:bg-white/5"
-              }`}
-              onClick={() => setActiveTab("skills")}
-              data-testid="tab-skills"
-            >
-              Skills Assessment
-            </button>
-            <button
-              className={`flex-1 rounded-lg px-4 py-3 text-sm font-semibold transition-all duration-300 ${
-                activeTab === "employer"
-                  ? "bg-primary/15 text-primary glow-primary"
-                  : "text-muted-foreground hover:text-foreground hover:bg-white/5"
-              }`}
-              onClick={() => setActiveTab("employer")}
-              data-testid="tab-employer"
-            >
-              <span className="flex items-center justify-center gap-1.5">
-                <Briefcase className="h-3.5 w-3.5" />
-                Employer Sponsored
-              </span>
-            </button>
+          <div className="space-y-2 mb-5">
+            <h2 className="font-display text-xl italic text-foreground">
+              Recommended Occupations
+            </h2>
+            <p className="text-sm text-muted-foreground leading-relaxed">
+              Your top occupation matches based on your qualifications, experience, and job duties.
+            </p>
           </div>
 
-          {/* Skills Assessment Tab */}
-          {activeTab === "skills" && (
-            <div className="space-y-5 pt-6" data-testid="skills-tab-content">
-              {skillsMatches.map((occ, i) => {
-                const list = occ.list ?? "CSOL";
-                const isMltssl = list === "MLTSSL";
-                const possibility = getPossibilityRating(
-                  breakdown.total,
-                  occ.min_189_points,
-                  isMltssl,
-                );
-                const eligibility = stateData.get(occ.anzsco_code) ?? [];
-                const nomCount190 = eligibility.filter(
-                  (e) => e.visa_190 === true,
-                ).length;
-                const nomCount491 = eligibility.filter(
-                  (e) => e.visa_491 === true,
-                ).length;
-                const stateNomCount = Math.max(nomCount190, nomCount491);
-                const stateSummary = getStateInvitingSummary(eligibility);
+          <div className="space-y-5" data-testid="skills-tab-content">
+            {skillsMatches.map((occ, i) => {
+              const list = occ.list ?? "CSOL";
+              const isMltssl = list === "MLTSSL";
+              const possibility = getPossibilityRating(
+                breakdown.total,
+                occ.min_189_points,
+                isMltssl,
+              );
+              const eligibility = stateData.get(occ.anzsco_code) ?? [];
+              const nomCount190 = eligibility.filter(
+                (e) => e.visa_190 === true,
+              ).length;
+              const nomCount491 = eligibility.filter(
+                (e) => e.visa_491 === true,
+              ).length;
+              const stateNomCount = Math.max(nomCount190, nomCount491);
+              const stateSummary = getStateInvitingSummary(eligibility);
 
-                // Build an Occupation-like object for getPathwaySignal
-                const occForSignals = {
-                  id: "",
-                  anzsco_code: occ.anzsco_code,
-                  title: occ.title,
-                  skill_level: null,
-                  assessing_authority: occ.assessing_authority,
-                  mltssl: list === "MLTSSL",
-                  stsol: list === "STSOL",
-                  csol: list === "CSOL",
-                  rol: list === "ROL",
-                  min_189_points: occ.min_189_points,
-                  qualification_level_required: null,
-                  unit_group_description: null,
-                  industry_keywords: null,
-                };
-                const signals = getPathwaySignal(occForSignals);
+              // Build an Occupation-like object for getPathwaySignal
+              const occForSignals = {
+                id: "",
+                anzsco_code: occ.anzsco_code,
+                title: occ.title,
+                skill_level: null,
+                assessing_authority: occ.assessing_authority,
+                mltssl: list === "MLTSSL",
+                stsol: list === "STSOL",
+                csol: list === "CSOL",
+                rol: list === "ROL",
+                min_189_points: occ.min_189_points,
+                qualification_level_required: null,
+                unit_group_description: null,
+                industry_keywords: null,
+              };
+              const signals = getPathwaySignal(occForSignals);
 
-                return (
-                  <div
-                    key={occ.anzsco_code}
-                    className={`animate-reveal-up delay-${Math.min((i + 1) * 100, 600)}`}
-                  >
-                    <OccupationCard
-                      occupation={occ}
-                      rank={i}
-                      userPoints={breakdown.total}
-                      listStatus={list}
-                      possibility={possibility}
-                      stateNomCount={stateNomCount}
-                      stateEligibility={eligibility}
-                      pathwaySignals={signals}
-                      stateInvitingSummary={stateSummary}
-                    />
-                  </div>
-                );
-              })}
-            </div>
-          )}
-
-          {/* Employer Sponsored Tab */}
-          {activeTab === "employer" && (
-            <div className="space-y-5 pt-6" data-testid="employer-tab-content">
-              <div className="space-y-2">
-                <h3 className="font-display text-xl italic text-foreground">
-                  Your Employer Sponsored Options
-                </h3>
-                <p className="text-sm text-muted-foreground leading-relaxed">
-                  Based on your matched occupations and experience, here are
-                  your employer-sponsored visa pathways.
-                </p>
-              </div>
-
-              {employerMatches.length === 0 ? (
-                <div className="glass-card rounded-2xl p-10 text-center space-y-3">
-                  <Briefcase className="mx-auto h-8 w-8 text-muted-foreground" />
-                  <p className="font-semibold text-foreground">
-                    No Employer Sponsored Pathways Identified
-                  </p>
-                  <p className="text-sm text-muted-foreground leading-relaxed">
-                    Based on your current experience and matched occupations,
-                    you do not currently meet the minimum requirements for
-                    employer-sponsored visas.
-                  </p>
+              return (
+                <div
+                  key={occ.anzsco_code}
+                  className={`animate-reveal-up delay-${Math.min((i + 1) * 100, 600)}`}
+                >
+                  <OccupationCard
+                    occupation={occ}
+                    rank={i}
+                    userPoints={breakdown.total}
+                    listStatus={list}
+                    possibility={possibility}
+                    stateNomCount={stateNomCount}
+                    stateEligibility={eligibility}
+                    pathwaySignals={signals}
+                    stateInvitingSummary={stateSummary}
+                  />
                 </div>
-              ) : (
-                employerMatches.map((occ, i) => {
-                  const isMltssl = occ.list === "MLTSSL";
-                  const isCsol = occ.list === "CSOL" || occ.list === "MLTSSL";
-                  const auExpYears = parseExperienceYears(
-                    formData.australianExperience ?? "",
-                  );
-                  const offshoreYears = parseExperienceYears(
-                    formData.experience ?? "",
-                  );
-                  const totalYears = auExpYears + offshoreYears;
-
-                  const eligibility = getEmployerEligibility(
-                    isMltssl,
-                    isCsol,
-                    auExpYears,
-                    totalYears,
-                  );
-
-                  return (
-                    <div
-                      key={occ.anzsco_code}
-                      className={`animate-reveal-up delay-${Math.min((i + 1) * 100, 600)}`}
-                    >
-                      <EmployerCard
-                        occupation={occ}
-                        eligibility={eligibility}
-                      />
-                    </div>
-                  );
-                })
-              )}
-            </div>
-          )}
+              );
+            })}
+          </div>
         </div>
 
-        {/* Pathway CTA - below tab content, above sticky bottom bar */}
+        {/* Dual CTA - appears after scrolling past occupation cards */}
+        <div className="animate-reveal-up delay-300">
+          <DualCTA
+            possibility={topPossibility}
+            hasACSMatch={hasACSMatch}
+            onStartDocPrep={handleStartDocPrep}
+          />
+        </div>
+
+        {/* Pathway CTA */}
         <div className="animate-reveal-up delay-300" data-testid="pathway-cta">
           <Link
             href="/pathway"
@@ -391,50 +319,6 @@ export default function ResultsPage() {
               style={{ color: "oklch(0.62 0.17 250)" }}
             />
           </Link>
-        </div>
-      </div>
-
-      {/* Sticky CTA */}
-      <div
-        className="fixed bottom-0 left-0 right-0 z-50"
-        data-testid="sticky-cta"
-      >
-        <div
-          className="border-t backdrop-blur-xl"
-          style={{
-            background: "var(--background)",
-            borderColor: "var(--surface-border)",
-          }}
-        >
-          <div className="mx-auto flex max-w-3xl items-center justify-center px-6 py-4">
-            {hasACSMatch ? (
-              <button
-                className="w-full max-w-md rounded-xl bg-primary py-4 font-semibold text-primary-foreground transition-all duration-300 hover:scale-[1.02] active:scale-[0.98] glow-primary"
-                onClick={handleStartDocPrep}
-                data-testid="start-doc-prep-btn"
-              >
-                Start Your Skill Assessment
-              </button>
-            ) : (
-              <div className="w-full max-w-md text-center space-y-2">
-                <button
-                  className="w-full rounded-xl py-4 font-semibold transition-all duration-300 cursor-not-allowed opacity-50"
-                  style={{
-                    background: "var(--surface-2)",
-                    color: "oklch(0.50 0.02 260)",
-                  }}
-                  disabled
-                  data-testid="start-doc-prep-btn"
-                >
-                  Skill Assessment Coming Soon
-                </button>
-                <p className="text-xs text-muted-foreground/60">
-                  We currently support ACS (Australian Computer Society) assessments only.
-                  More assessing bodies coming soon.
-                </p>
-              </div>
-            )}
-          </div>
         </div>
       </div>
 
