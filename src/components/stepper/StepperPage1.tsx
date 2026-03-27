@@ -77,8 +77,8 @@ export function StepperPage1({ data, onChange }: StepperPage1Props) {
   function handleExpiryChange(part: "month" | "year", value: string) {
     const m = part === "month" ? value : expiryMonth;
     const y = part === "year" ? value : expiryYear;
-    // Store as MM/YYYY to keep the same format downstream
-    onChange("visaExpiry", m && y ? `${m}/${y}` : "");
+    // Always store partial value so selections aren't wiped out
+    onChange("visaExpiry", `${m}/${y}`);
   }
 
   return (
