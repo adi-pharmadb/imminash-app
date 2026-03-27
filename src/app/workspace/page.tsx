@@ -123,11 +123,26 @@ export default function WorkspacePage() {
         )
           ? ((matchedOccupations as Record<string, unknown>).skillsMatches as Array<Record<string, unknown>>)
           : [];
-        const primaryMatch = skillsMatches[0] || {};
 
+        // Check if user selected a specific occupation (stored in sessionStorage)
+        let selectedAnzsco: string | null = null;
+        try {
+          selectedAnzsco = sessionStorage.getItem("imminash_selected_occupation");
+        } catch { /* ignore */ }
+
+        // Find the selected occupation, or fall back to the first match
+        let primaryMatch: Record<string, unknown> = skillsMatches[0] || {};
+        if (selectedAnzsco) {
+          const selected = skillsMatches.find(
+            (m) => (m.anzsco_code as string) === selectedAnzsco,
+          );
+          if (selected) primaryMatch = selected;
+        }
+
+        // DB stores snake_case keys (anzsco_code, assessing_authority)
         const occupationTitle = (primaryMatch.title as string) || "";
-        const anzscoCode = (primaryMatch.anzscoCode as string) || "";
-        const assessingAuthority = (primaryMatch.assessingAuthority as string) || "";
+        const anzscoCode = (primaryMatch.anzsco_code as string) || (primaryMatch.anzscoCode as string) || "";
+        const assessingAuthority = (primaryMatch.assessing_authority as string) || (primaryMatch.assessingAuthority as string) || "";
 
         // Load assessing body requirements
         let body: AssessingBodyRequirement | null = null;

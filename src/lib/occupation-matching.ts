@@ -493,6 +493,27 @@ export async function matchOccupations(
     .map((o) => o.title);
   const isWorking = !!(input.jobTitle && input.jobTitle.trim());
 
+  // Keyword fallback helper - always returns results if occupations exist
+  const getKeywordFallback = (): MatchOccupationsResult => ({
+    skillsMatches: keywordMatchOccupations(
+      input.fieldOfStudy, input.jobTitle, input.jobDuties,
+      input.additionalFieldOfStudy, allSkillsTitles, isWorking, 3,
+    ),
+    employerMatches: keywordMatchOccupations(
+      input.fieldOfStudy, input.jobTitle, input.jobDuties,
+      input.additionalFieldOfStudy, allEmployerTitles, isWorking, 2,
+    ),
+  });
+
+  try {
+    return await matchOccupationsInner();
+  } catch (error) {
+    console.error("matchOccupations error, falling back to keyword matching:", error);
+    return getKeywordFallback();
+  }
+
+  async function matchOccupationsInner(): Promise<MatchOccupationsResult> {
+
   // Phase 1: Pre-filter occupations by keyword relevance
   const skillsEnriched = enrichedOccupations.filter((o) => o.mltssl || o.stsol);
   const employerEnriched = enrichedOccupations.filter((o) => o.csol);
@@ -587,25 +608,6 @@ export async function matchOccupations(
   }
 
   // Keyword fallback
-  const skillsMatches = keywordMatchOccupations(
-    input.fieldOfStudy,
-    input.jobTitle,
-    input.jobDuties,
-    input.additionalFieldOfStudy,
-    allSkillsTitles,
-    isWorking,
-    3,
-  );
-
-  const employerMatches = keywordMatchOccupations(
-    input.fieldOfStudy,
-    input.jobTitle,
-    input.jobDuties,
-    input.additionalFieldOfStudy,
-    allEmployerTitles,
-    isWorking,
-    2,
-  );
-
-  return { skillsMatches, employerMatches };
+  return getKeywordFallback();
+  } // end matchOccupationsInner
 }

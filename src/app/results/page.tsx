@@ -14,6 +14,7 @@ import { OccupationCard } from "@/components/results/OccupationCard";
 import { EmployerCard } from "@/components/results/EmployerCard";
 import { PointsBreakdownCard } from "@/components/results/PointsBreakdownCard";
 import { AuthModal } from "@/components/auth/AuthModal";
+import { OccupationPicker } from "@/components/results/OccupationPicker";
 import { createClient } from "@/lib/supabase/client";
 import { isACSBody } from "@/lib/workspace-helpers";
 import type { StateNomination } from "@/types/database";
@@ -42,6 +43,7 @@ export default function ResultsPage() {
   );
   const [nominationsLoading, setNominationsLoading] = useState(false);
   const [authModalOpen, setAuthModalOpen] = useState(false);
+  const [pickerOpen, setPickerOpen] = useState(false);
   const [gateEmail, setGateEmail] = useState("");
 
   useEffect(() => {
@@ -111,11 +113,38 @@ export default function ResultsPage() {
   }, [data]);
 
   /**
-   * Handle "Start Document Preparation" click.
-   * If the user is already authenticated, skip the modal and go to /workspace. [AC-AU4]
-   * Otherwise, show the auth modal. [AC-AU1]
+   * Handle "Start Skill Assessment" click.
+   * If there are multiple occupations, show the picker first.
+   * Then authenticate if needed, then go to /workspace.
    */
-  const handleStartDocPrep = useCallback(async () => {
+  const handleStartDocPrep = useCallback(() => {
+    if (!data) return;
+
+    const acsMatches = data.skillsMatches.filter(
+      (occ) => occ.assessing_authority && isACSBody(occ.assessing_authority),
+    );
+
+    if (acsMatches.length > 1) {
+      // Multiple ACS occupations: let user choose
+      setPickerOpen(true);
+    } else if (acsMatches.length === 1) {
+      // Single ACS occupation: select it automatically and proceed
+      handleOccupationSelected(acsMatches[0]);
+    }
+  }, [data]);
+
+  /**
+   * After occupation is selected, store it and proceed to auth or workspace.
+   */
+  const handleOccupationSelected = useCallback(async (occupation: MatchResult) => {
+    // Store the selected occupation for the workspace to read
+    try {
+      sessionStorage.setItem("imminash_selected_occupation", occupation.anzsco_code);
+    } catch { /* ignore */ }
+
+    setPickerOpen(false);
+
+    // Check if already authenticated
     try {
       const supabase = createClient();
       const { data: sessionData } = await supabase.auth.getSession();
@@ -125,7 +154,7 @@ export default function ResultsPage() {
         return;
       }
     } catch {
-      // If session check fails, fall through to auth modal
+      // Fall through to auth modal
     }
 
     setAuthModalOpen(true);
@@ -141,7 +170,10 @@ export default function ResultsPage() {
 
   const { formData, skillsMatches, employerMatches, breakdown } = data;
 
-  // Determine the primary assessing body from the top match
+  // Check if any matched occupation has an ACS assessing body
+  const hasACSMatch = skillsMatches.some(
+    (occ) => occ.assessing_authority && isACSBody(occ.assessing_authority),
+  );
   const primaryAssessingBody = skillsMatches[0]?.assessing_authority || null;
 
   return (
@@ -375,7 +407,7 @@ export default function ResultsPage() {
           }}
         >
           <div className="mx-auto flex max-w-3xl items-center justify-center px-6 py-4">
-            {primaryAssessingBody && isACSBody(primaryAssessingBody) ? (
+            {hasACSMatch ? (
               <button
                 className="w-full max-w-md rounded-xl bg-primary py-4 font-semibold text-primary-foreground transition-all duration-300 hover:scale-[1.02] active:scale-[0.98] glow-primary"
                 onClick={handleStartDocPrep}
@@ -405,6 +437,16 @@ export default function ResultsPage() {
           </div>
         </div>
       </div>
+
+      {/* Occupation Picker Modal */}
+      <OccupationPicker
+        open={pickerOpen}
+        onOpenChange={setPickerOpen}
+        occupations={skillsMatches.filter(
+          (occ) => occ.assessing_authority && isACSBody(occ.assessing_authority),
+        )}
+        onSelect={handleOccupationSelected}
+      />
 
       {/* Auth Modal */}
       <AuthModal
