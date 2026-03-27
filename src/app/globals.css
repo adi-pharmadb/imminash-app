@@ -220,6 +220,15 @@
   opacity: 0;
 }
 
+/* Users with reduced motion: skip animation, show content immediately */
+@media (prefers-reduced-motion: reduce) {
+  .animate-reveal-up {
+    animation: none;
+    opacity: 1;
+    transform: none;
+  }
+}
+
 .delay-100 { animation-delay: 100ms; }
 .delay-200 { animation-delay: 200ms; }
 .delay-300 { animation-delay: 300ms; }

@@ -145,7 +145,7 @@ export default function ResultsPage() {
   const primaryAssessingBody = skillsMatches[0]?.assessing_authority || null;
 
   return (
-    <div className="min-h-screen bg-background pb-28 gradient-mesh">
+    <div className="min-h-screen bg-background pb-40 gradient-mesh">
       {/* Brand header */}
       <header className="mx-auto flex w-full max-w-3xl items-center justify-between px-6 py-6">
         <span
