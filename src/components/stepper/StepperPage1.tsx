@@ -1,5 +1,6 @@
 "use client";
 
+import { useMemo } from "react";
 import { Input } from "@/components/ui/input";
 import {
   Select,
@@ -23,10 +24,63 @@ const visaOptions = [
   { value: "Other", label: "Other" },
 ];
 
+const months = [
+  { value: "01", label: "January" },
+  { value: "02", label: "February" },
+  { value: "03", label: "March" },
+  { value: "04", label: "April" },
+  { value: "05", label: "May" },
+  { value: "06", label: "June" },
+  { value: "07", label: "July" },
+  { value: "08", label: "August" },
+  { value: "09", label: "September" },
+  { value: "10", label: "October" },
+  { value: "11", label: "November" },
+  { value: "12", label: "December" },
+];
+
+/** Parse stored "MM/YYYY" into parts. */
+function parseExpiry(val: string | undefined): { month: string; year: string } {
+  if (!val) return { month: "", year: "" };
+  const [m, y] = val.split("/");
+  return { month: m || "", year: y || "" };
+}
+
+/** Check if a MM/YYYY value is in the past. */
+function isExpiryInPast(month: string, year: string): boolean {
+  if (!month || !year || year.length < 4) return false;
+  const now = new Date();
+  const currentMonth = now.getMonth() + 1;
+  const currentYear = now.getFullYear();
+  const y = parseInt(year, 10);
+  const m = parseInt(month, 10);
+  if (isNaN(y) || isNaN(m)) return false;
+  return y < currentYear || (y === currentYear && m < currentMonth);
+}
+
 /**
  * Page 1: Basics - first name, age, visa status, visa expiry.
  */
 export function StepperPage1({ data, onChange }: StepperPage1Props) {
+  const { month: expiryMonth, year: expiryYear } = parseExpiry(data.visaExpiry);
+  const isPast = isExpiryInPast(expiryMonth, expiryYear);
+
+  // Generate year options: current year to +10
+  const yearOptions = useMemo(() => {
+    const currentYear = new Date().getFullYear();
+    return Array.from({ length: 11 }, (_, i) => {
+      const y = String(currentYear + i);
+      return { value: y, label: y };
+    });
+  }, []);
+
+  function handleExpiryChange(part: "month" | "year", value: string) {
+    const m = part === "month" ? value : expiryMonth;
+    const y = part === "year" ? value : expiryYear;
+    // Store as MM/YYYY to keep the same format downstream
+    onChange("visaExpiry", m && y ? `${m}/${y}` : "");
+  }
+
   return (
     <div className="space-y-5">
       <div className="space-y-1">
@@ -79,13 +133,43 @@ export function StepperPage1({ data, onChange }: StepperPage1Props) {
       </StepperField>
 
       <StepperField label="Visa expiry (month / year)" hint="Helps us flag any timing constraints.">
-        <Input
-          data-testid="field-visaExpiry"
-          value={data.visaExpiry ?? ""}
-          onChange={(e) => onChange("visaExpiry", e.target.value)}
-          placeholder="e.g. 03/2026"
-          className="h-10"
-        />
+        <div className="flex gap-3" data-testid="field-visaExpiry">
+          <Select
+            value={expiryMonth || null}
+            onValueChange={(val) => { if (val !== null) handleExpiryChange("month", val); }}
+          >
+            <SelectTrigger className="h-10 flex-1">
+              <SelectValue placeholder="Month" />
+            </SelectTrigger>
+            <SelectContent>
+              {months.map((m) => (
+                <SelectItem key={m.value} value={m.value}>
+                  {m.label}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+          <Select
+            value={expiryYear || null}
+            onValueChange={(val) => { if (val !== null) handleExpiryChange("year", val); }}
+          >
+            <SelectTrigger className="h-10 flex-1">
+              <SelectValue placeholder="Year" />
+            </SelectTrigger>
+            <SelectContent>
+              {yearOptions.map((y) => (
+                <SelectItem key={y.value} value={y.value}>
+                  {y.label}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
+        {isPast && (
+          <p className="mt-1.5 text-xs" style={{ color: "oklch(0.65 0.2 25)" }}>
+            This date is in the past. Please select a current or future expiry date.
+          </p>
+        )}
       </StepperField>
     </div>
   );

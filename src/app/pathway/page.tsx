@@ -120,7 +120,7 @@ function PathwayLoadingSkeleton() {
         {/* Status text */}
         <div className="animate-reveal-up delay-500">
           <p className="text-center text-sm text-muted-foreground">
-            Analyzing your visa pathways...
+            Analysing your visa pathways...
           </p>
         </div>
       </div>

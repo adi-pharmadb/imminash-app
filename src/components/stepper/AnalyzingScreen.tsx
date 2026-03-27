@@ -173,7 +173,7 @@ export function AnalyzingScreen({ formData, onComplete }: AnalyzingScreenProps) 
         {/* Editorial heading */}
         <div className="animate-reveal-up delay-100">
           <h2 className="font-display text-3xl italic text-foreground">
-            Analyzing your profile{formData.firstName ? `, ${formData.firstName}` : ""}
+            Analysing your profile{formData.firstName ? `, ${formData.firstName}` : ""}
           </h2>
           <p className="mt-2 text-sm text-muted-foreground">
             Hang tight. We are running your profile against current occupation lists and invitation data.

@@ -25,6 +25,20 @@ interface PageDef {
   isValid: (data: Partial<StepperFormData>) => boolean;
 }
 
+/** Check if a MM/YYYY visa expiry is not in the past. */
+function isVisaExpiryValid(val: string | undefined): boolean {
+  if (!val) return false;
+  const [m, y] = val.split("/");
+  if (!m || !y || y.length < 4) return false;
+  const month = parseInt(m, 10);
+  const year = parseInt(y, 10);
+  if (isNaN(month) || isNaN(year)) return false;
+  const now = new Date();
+  const currentMonth = now.getMonth() + 1;
+  const currentYear = now.getFullYear();
+  return year > currentYear || (year === currentYear && month >= currentMonth);
+}
+
 const PAGE_DEFS: PageDef[] = [
   {
     id: 1,
@@ -33,13 +47,14 @@ const PAGE_DEFS: PageDef[] = [
       d.age !== undefined &&
       d.age > 0 &&
       !!d.visaStatus?.trim() &&
-      !!d.visaExpiry?.trim(),
+      isVisaExpiryValid(d.visaExpiry),
   },
   {
     id: 2,
     isValid: (d) =>
       !!d.educationLevel?.trim() &&
       !!d.fieldOfStudy?.trim() &&
+      !!d.universityName?.trim() &&
       !!d.countryOfEducation?.trim(),
   },
   {
@@ -65,7 +80,7 @@ const PAGE_DEFS: PageDef[] = [
   },
   {
     id: 5,
-    condition: (d) => d.workingSkilled === "Yes" || d.workingSkilled === "Past",
+    // Show for all users: working, past, and "Not yet"
     isValid: (d) => (d.jobDuties?.trim().length ?? 0) >= 50,
   },
   {
@@ -276,7 +291,7 @@ export function StepperFlow({ onComplete }: StepperFlowProps) {
                 className="group gap-2 rounded-xl bg-primary px-8 text-primary-foreground shadow-lg glow-primary transition-all hover:shadow-xl disabled:shadow-none disabled:opacity-40"
               >
                 <span className="font-semibold">
-                  {isLastPage ? "Analyze" : "Continue"}
+                  {isLastPage ? "Analyse" : "Continue"}
                 </span>
                 <ArrowRight className="size-4 transition-transform group-hover:translate-x-0.5" />
               </Button>

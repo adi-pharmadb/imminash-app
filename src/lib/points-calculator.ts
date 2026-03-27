@@ -189,10 +189,23 @@ export function calcPointsSoFar(data: Partial<UserProfile>): number {
   else if (edu === "Masters" || edu === "Bachelor") pts += 15;
   else if (edu === "Diploma" || edu === "Trade") pts += 10;
 
+  // Australian experience points
+  let auPts = 0;
+  const auExp = data.australianExperience;
+  if (auExp === "1-3") auPts = 5;
+  else if (auExp === "3-5") auPts = 10;
+  else if (auExp === "5-8") auPts = 15;
+  else if (auExp === "8+") auPts = 20;
+
+  // Offshore experience points
+  let offPts = 0;
   const exp = data.experience;
-  if (exp === "1-3") pts += 5;
-  else if (exp === "3-5") pts += 10;
-  else if (exp === "5-8" || exp === "8+") pts += 15;
+  if (exp === "1-3") offPts = 5;
+  else if (exp === "3-5") offPts = 10;
+  else if (exp === "5-8" || exp === "8+") offPts = 15;
+
+  // Apply DHA combined cap: AU + offshore cannot exceed 20 points
+  pts += Math.min(auPts + offPts, COMBINED_EXPERIENCE_CAP);
 
   if (data.englishScore === "Superior") pts += 20;
   else if (data.englishScore === "Proficient") pts += 10;

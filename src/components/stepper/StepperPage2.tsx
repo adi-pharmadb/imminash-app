@@ -79,7 +79,7 @@ export function StepperPage2({ data, onChange }: StepperPage2Props) {
         />
       </StepperField>
 
-      <StepperField label="University / College name" hint="Optional - but it helps us understand your background." optional>
+      <StepperField label="University / College name" hint="Helps us identify your institution and the city you studied in.">
         <Input
           data-testid="field-universityName"
           value={data.universityName ?? ""}
