@@ -5,6 +5,7 @@ import { CheckCircle, XCircle, MinusCircle } from "lucide-react";
 
 interface StateNominationMatrixProps {
   eligibility: StateEligibility[];
+  highlightedState?: string;
 }
 
 function StatusCell({ status }: { status: boolean | "closed" }) {
@@ -49,6 +50,7 @@ function StatusCell({ status }: { status: boolean | "closed" }) {
  */
 export function StateNominationMatrix({
   eligibility,
+  highlightedState,
 }: StateNominationMatrixProps) {
   return (
     <div className="space-y-3" data-testid="state-nomination-matrix">
@@ -76,22 +78,31 @@ export function StateNominationMatrix({
             </tr>
           </thead>
           <tbody>
-            {eligibility.map((row, i) => (
+            {eligibility.map((row, i) => {
+              const isHighlighted = highlightedState === row.state;
+              return (
               <tr
                 key={row.state}
-                style={
-                  i < eligibility.length - 1
-                    ? {
-                        borderBottom:
-                          "1px solid oklch(0.24 0.015 260 / 0.3)",
-                      }
-                    : undefined
-                }
+                style={{
+                  ...(i < eligibility.length - 1
+                    ? { borderBottom: "1px solid oklch(0.24 0.015 260 / 0.3)" }
+                    : {}),
+                  ...(isHighlighted
+                    ? { background: "oklch(0.72 0.17 155 / 0.08)" }
+                    : {}),
+                }}
                 className="transition-colors hover:bg-white/[0.02]"
                 data-testid={`state-row-${row.state}`}
               >
                 <td className="px-4 py-2.5 font-semibold text-foreground">
-                  {row.state}
+                  <span className="flex items-center gap-1.5">
+                    {row.state}
+                    {isHighlighted && (
+                      <span className="text-[10px] font-bold uppercase tracking-wider" style={{ color: "oklch(0.72 0.17 155)" }}>
+                        Best
+                      </span>
+                    )}
+                  </span>
                 </td>
                 <td className="px-4 py-2.5">
                   <StatusCell status={row.visa_190} />
@@ -100,7 +111,8 @@ export function StateNominationMatrix({
                   <StatusCell status={row.visa_491} />
                 </td>
               </tr>
-            ))}
+              );
+            })}
           </tbody>
         </table>
       </div>

@@ -74,8 +74,8 @@ export async function POST(request: Request) {
       : null;
 
     const occupationTitle = (primaryMatch?.title as string) || "";
-    const anzscoCode = (primaryMatch?.anzscoCode as string) || "";
-    const assessingAuthority = (primaryMatch?.assessingAuthority as string) || "";
+    const anzscoCode = (primaryMatch?.anzsco_code as string) || (primaryMatch?.anzscoCode as string) || "";
+    const assessingAuthority = (primaryMatch?.assessing_authority as string) || (primaryMatch?.assessingAuthority as string) || "";
 
     let assessingBody: AssessingBodyRequirement | null = null;
     if (assessingAuthority) {

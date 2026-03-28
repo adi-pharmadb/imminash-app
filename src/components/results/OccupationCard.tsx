@@ -1,16 +1,16 @@
 "use client";
 
 import { useState } from "react";
-import { AlertTriangle, Calendar, ChevronDown, ChevronUp, MessageCircle } from "lucide-react";
-import type { MatchResult, LatestInvitation } from "@/types/assessment";
+import { AlertTriangle, ChevronDown, ChevronUp, ExternalLink } from "lucide-react";
+import type { MatchResult } from "@/types/assessment";
 import type { StateEligibility } from "@/lib/state-nominations";
 import type { PossibilityRating } from "@/lib/pathway-signals";
-import { isWeakMatch } from "@/lib/occupation-matching";
 import { MatchBadge } from "./MatchBadge";
 import { PointsGap } from "./PointsGap";
 import { StatGrid } from "./StatGrid";
 import { PathwaySignals } from "./PathwaySignals";
 import { StateNominationMatrix } from "./StateNominationMatrix";
+import { InvitationTrend, type InvitationRound } from "./InvitationTrend";
 
 interface OccupationCardProps {
   occupation: MatchResult;
@@ -22,19 +22,35 @@ interface OccupationCardProps {
   stateEligibility: StateEligibility[];
   pathwaySignals: string[];
   stateInvitingSummary?: string;
+  bestStateRecommendation?: string;
 }
 
-const AGENT_BOOKING_URL = "#book-consultation";
-const ACS_BODIES = ["ACS", "Australian Computer Society"];
+const AGENT_BOOKING_URL =
+  process.env.NEXT_PUBLIC_AGENT_BOOKING_URL || "#book-consultation";
 
-function isACSAuthority(authority: string | null): boolean {
-  if (!authority) return false;
-  return ACS_BODIES.some((body) => authority.toLowerCase().includes(body.toLowerCase()));
-}
+/** Known assessing body website URLs */
+const ASSESSING_BODY_URLS: Record<string, string> = {
+  ACS: "https://www.acs.org.au",
+  "Australian Computer Society": "https://www.acs.org.au",
+  EA: "https://www.engineersaustralia.org.au",
+  "Engineers Australia": "https://www.engineersaustralia.org.au",
+  VETASSESS: "https://www.vetassess.com.au",
+  TRA: "https://www.tradesrecognitionaustralia.gov.au",
+  "Trades Recognition Australia": "https://www.tradesrecognitionaustralia.gov.au",
+  AACA: "https://www.aaca.org.au",
+  AIMS: "https://www.aims.org.au",
+  AIQS: "https://www.aiqs.com.au",
+  ANMAC: "https://www.anmac.org.au",
+  CAANZ: "https://www.charteredaccountantsanz.com",
+  CPA: "https://www.cpaaustralia.com.au",
+  "CPA Australia": "https://www.cpaaustralia.com.au",
+  NAATI: "https://www.naati.com.au",
+};
 
 /**
- * Full occupation card with confidence scoring, reasoning, warnings,
- * state summary, invitation data, and agent booking CTAs.
+ * Full occupation card restructured to 8-row spec per CTO Brief v2 section 2.4.
+ * Order: (1) ID + label, (2) Points signal, (3) 4 tiles, (4) Assessing body,
+ * (5) Why this occupation (bullets), (6) Risks, (7) Pathway signals, (8) State matrix.
  */
 export function OccupationCard({
   occupation,
@@ -46,13 +62,26 @@ export function OccupationCard({
   stateEligibility,
   pathwaySignals,
   stateInvitingSummary,
+  bestStateRecommendation,
 }: OccupationCardProps) {
   const [stateMatrixOpen, setStateMatrixOpen] = useState(false);
-  const weak = isWeakMatch(occupation.confidence);
-  const showAgentCTA = weak || !isACSAuthority(occupation.assessing_authority);
+
+  // Extract best state name from recommendation string for matrix highlighting
+  const bestStateName = bestStateRecommendation
+    ? bestStateRecommendation.match(/Best state for you: (\w+)/)?.[1]
+    : undefined;
+
+  // Parse reasoning into bullet points (split on newline or numbered list patterns)
+  const reasoningBullets = occupation.reasoning
+    ? occupation.reasoning
+        .split(/\n|(?:\d+\.\s)/)
+        .map((s) => s.trim())
+        .filter((s) => s.length > 0)
+    : [];
 
   return (
     <div
+      id={`occ-${occupation.anzsco_code}`}
       className={`glass-card rounded-2xl p-6 space-y-5 transition-all duration-300 ${
         rank === 0 ? "glow-primary" : ""
       }`}
@@ -63,24 +92,7 @@ export function OccupationCard({
       }
       data-testid="occupation-card"
     >
-      {/* Weak match warning banner */}
-      {weak && (
-        <div
-          className="rounded-xl px-4 py-3 flex items-center gap-2.5"
-          style={{
-            background: "oklch(0.65 0.2 25 / 0.1)",
-            border: "1px solid oklch(0.65 0.2 25 / 0.25)",
-          }}
-          data-testid="weak-match-banner"
-        >
-          <AlertTriangle className="h-4 w-4 shrink-0" style={{ color: "oklch(0.65 0.2 25)" }} />
-          <p className="text-sm" style={{ color: "oklch(0.65 0.2 25)" }}>
-            This match may not be strong enough for a successful application
-          </p>
-        </div>
-      )}
-
-      {/* Header: rank, title, badge */}
+      {/* ROW 1: Occupation identifier + label */}
       <div className="flex items-start justify-between gap-4">
         <div className="flex items-start gap-3">
           <span
@@ -117,46 +129,13 @@ export function OccupationCard({
         <MatchBadge confidence={occupation.confidence} />
       </div>
 
-      {/* Why it matched - reasoning */}
-      {occupation.reasoning && (
-        <div data-testid="match-reasoning">
-          <p className="text-sm text-muted-foreground leading-relaxed">
-            {occupation.reasoning}
-          </p>
-        </div>
-      )}
-
-      {/* Warnings */}
-      {occupation.warnings.length > 0 && (
-        <div className="space-y-2" data-testid="match-warnings">
-          {occupation.warnings.map((warning, i) => (
-            <div
-              key={i}
-              className="rounded-lg px-3 py-2 flex items-start gap-2"
-              style={{
-                background: "oklch(0.62 0.17 250 / 0.08)",
-                border: "1px solid oklch(0.62 0.17 250 / 0.2)",
-              }}
-            >
-              <AlertTriangle
-                className="h-3.5 w-3.5 mt-0.5 shrink-0"
-                style={{ color: "oklch(0.62 0.17 250)" }}
-              />
-              <p className="text-xs" style={{ color: "oklch(0.62 0.17 250)" }}>
-                {warning}
-              </p>
-            </div>
-          ))}
-        </div>
-      )}
-
-      {/* Points gap */}
+      {/* ROW 2: Points signal */}
       <PointsGap
         userPoints={userPoints}
         threshold={occupation.min_189_points}
       />
 
-      {/* Stat grid */}
+      {/* ROW 3: 4 data tiles */}
       <StatGrid
         listStatus={listStatus}
         min189Points={occupation.min_189_points}
@@ -164,66 +143,129 @@ export function OccupationCard({
         stateNomCount={stateNomCount}
       />
 
-      {/* Latest invitation round */}
-      {occupation.latest_invitation && occupation.latest_invitation.round_date && (
-        <div
-          className="rounded-xl p-4 flex items-center gap-3"
-          style={{
-            background: "var(--surface-1)",
-            border: "1px solid var(--surface-border-subtle)",
-          }}
-          data-testid="invitation-round"
-        >
-          <Calendar className="h-4 w-4 shrink-0 text-muted-foreground" />
-          <div className="text-sm">
-            <span className="text-muted-foreground">Latest round: </span>
-            <span className="font-medium text-foreground">
-              {occupation.latest_invitation.round_date}
-            </span>
-            {occupation.latest_invitation.minimum_points !== null && (
-              <>
-                <span className="text-muted-foreground"> / Min points: </span>
-                <span className="font-medium text-foreground">
-                  {occupation.latest_invitation.minimum_points}
-                </span>
-              </>
-            )}
-            {occupation.latest_invitation.invitations_issued !== null && (
-              <>
-                <span className="text-muted-foreground"> / Issued: </span>
-                <span className="font-medium text-foreground">
-                  {occupation.latest_invitation.invitations_issued}
-                </span>
-              </>
-            )}
-          </div>
+      {/* ROW 4: Assessing body tile (links to website per CTO Brief 2.4) */}
+      {occupation.assessing_authority &&
+        occupation.assessing_authority !== "See relevant authority" && (() => {
+          const bodyUrl = ASSESSING_BODY_URLS[occupation.assessing_authority] ||
+            ASSESSING_BODY_URLS[occupation.assessing_authority.toUpperCase()];
+          const Wrapper = bodyUrl ? "a" : "div";
+          const wrapperProps = bodyUrl
+            ? { href: bodyUrl, target: "_blank", rel: "noopener noreferrer" }
+            : {};
+
+          return (
+            <Wrapper
+              {...wrapperProps}
+              className={`rounded-xl p-4 block ${bodyUrl ? "hover:bg-white/[0.03] transition-colors cursor-pointer" : ""}`}
+              style={{
+                background: "var(--surface-1)",
+                border: "1px solid var(--surface-border-subtle)",
+              }}
+            >
+              <p className="mb-1.5 text-[11px] font-semibold uppercase tracking-widest text-muted-foreground">
+                Skill Assessing Body
+              </p>
+              <div className="flex items-center justify-between">
+                <p
+                  className="text-sm font-semibold text-foreground"
+                  data-testid="occ-authority"
+                >
+                  {occupation.assessing_authority}
+                </p>
+                {bodyUrl && (
+                  <ExternalLink className="h-3.5 w-3.5 text-muted-foreground" />
+                )}
+              </div>
+            </Wrapper>
+          );
+        })()}
+
+      {/* ROW 5: Why this occupation (bullet points, not paragraph) */}
+      {reasoningBullets.length > 0 && (
+        <div data-testid="match-reasoning">
+          <p className="mb-2 text-[11px] font-semibold uppercase tracking-widest text-muted-foreground">
+            Why this occupation
+          </p>
+          <ul className="space-y-1.5">
+            {reasoningBullets.map((bullet, i) => (
+              <li
+                key={i}
+                className="flex items-start gap-2 text-sm text-muted-foreground leading-relaxed"
+              >
+                <span
+                  className="mt-2 h-1 w-1 shrink-0 rounded-full"
+                  style={{ background: "oklch(0.62 0.17 250)" }}
+                />
+                {bullet}
+              </li>
+            ))}
+          </ul>
         </div>
       )}
 
-      {/* Assessing body */}
-      {occupation.assessing_authority &&
-        occupation.assessing_authority !== "See relevant authority" && (
-          <div
-            className="rounded-xl p-4"
-            style={{
-              background: "var(--surface-1)",
-              border: "1px solid var(--surface-border-subtle)",
-            }}
-          >
-            <p className="mb-1.5 text-[11px] font-semibold uppercase tracking-widest text-muted-foreground">
-              Skill Assessing Body
-            </p>
-            <p
-              className="text-sm font-semibold text-foreground"
-              data-testid="occ-authority"
+      {/* ROW 6: Risks to be aware of */}
+      {occupation.warnings.length > 0 && (
+        <div className="space-y-2" data-testid="match-warnings">
+          <p className="text-[11px] font-semibold uppercase tracking-widest text-muted-foreground">
+            Risks to be aware of
+          </p>
+          {occupation.warnings.map((warning, i) => (
+            <div
+              key={i}
+              className="rounded-lg px-3 py-2 flex items-start gap-2"
+              style={{
+                background: "oklch(0.65 0.2 25 / 0.08)",
+                border: "1px solid oklch(0.65 0.2 25 / 0.2)",
+              }}
             >
-              {occupation.assessing_authority}
-            </p>
-          </div>
-        )}
+              <AlertTriangle
+                className="h-3.5 w-3.5 mt-0.5 shrink-0"
+                style={{ color: "oklch(0.65 0.2 25)" }}
+              />
+              <p className="text-xs" style={{ color: "oklch(0.65 0.2 25)" }}>
+                {warning}
+              </p>
+            </div>
+          ))}
+        </div>
+      )}
 
-      {/* Pathway signals */}
+      {/* ROW 7: Pathway signals */}
       <PathwaySignals signals={pathwaySignals} />
+
+      {/* Invitation trend (last 3 rounds) per CTO Brief 3.2 */}
+      {(() => {
+        // Use invitation_rounds if available, otherwise construct from latest_invitation
+        const rounds: InvitationRound[] = occupation.invitation_rounds
+          ? occupation.invitation_rounds
+              .filter((r) => r.round_date)
+              .map((r) => ({
+                round_date: r.round_date!,
+                minimum_points: r.minimum_points,
+                invitations_issued: r.invitations_issued,
+              }))
+          : occupation.latest_invitation?.round_date
+            ? [{
+                round_date: occupation.latest_invitation.round_date,
+                minimum_points: occupation.latest_invitation.minimum_points,
+                invitations_issued: occupation.latest_invitation.invitations_issued,
+              }]
+            : [];
+
+        return rounds.length > 0 ? <InvitationTrend rounds={rounds} /> : null;
+      })()}
+
+      {/* ROW 8: State nomination matrix */}
+      {/* Best state recommendation */}
+      {bestStateRecommendation && (
+        <p
+          className="text-sm font-medium"
+          style={{ color: "oklch(0.72 0.17 155)" }}
+          data-testid="best-state"
+        >
+          {bestStateRecommendation}
+        </p>
+      )}
 
       {/* State invitation summary */}
       {stateInvitingSummary && (
@@ -232,7 +274,6 @@ export function OccupationCard({
         </div>
       )}
 
-      {/* State nomination matrix (collapsible) */}
       <div>
         <button
           type="button"
@@ -249,35 +290,10 @@ export function OccupationCard({
         </button>
         {stateMatrixOpen && (
           <div className="mt-3">
-            <StateNominationMatrix eligibility={stateEligibility} />
+            <StateNominationMatrix eligibility={stateEligibility} highlightedState={bestStateName} />
           </div>
         )}
       </div>
-
-      {/* Agent booking CTA */}
-      {showAgentCTA && (
-        <a
-          href={AGENT_BOOKING_URL}
-          className="block rounded-xl p-4 transition-all hover:scale-[1.01]"
-          style={{
-            background: "oklch(0.62 0.17 250 / 0.08)",
-            border: "1px solid oklch(0.62 0.17 250 / 0.2)",
-          }}
-          data-testid="agent-cta"
-        >
-          <div className="flex items-center gap-3">
-            <MessageCircle className="h-5 w-5 shrink-0" style={{ color: "oklch(0.62 0.17 250)" }} />
-            <div>
-              <p className="text-sm font-semibold text-foreground">
-                Need help with this occupation?
-              </p>
-              <p className="text-xs text-muted-foreground mt-0.5">
-                Book a consultation with Kunal to explore your options
-              </p>
-            </div>
-          </div>
-        </a>
-      )}
     </div>
   );
 }

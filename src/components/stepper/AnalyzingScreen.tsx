@@ -5,15 +5,39 @@ import type { StepperFormData, MatchResult } from "@/types/assessment";
 import { estimatePoints, MAX_POINTS } from "@/lib/points-calculator";
 import type { UserProfile } from "@/types/assessment";
 
-const STEP_MESSAGES = [
-  "Finding your best occupation matches...",
-  "Checking which assessing body you need...",
-  "Calculating your points score...",
-  "Mapping out your visa options...",
-] as const;
+/**
+ * Generate personalised step messages using form data.
+ * Falls back to generic copy when fields are blank.
+ */
+function getPersonalisedMessages(formData: Partial<StepperFormData>): string[] {
+  const jobTitle = formData.jobTitle || "your";
+  const field = formData.fieldOfStudy || "your qualifications";
 
-const STEP_DURATION_MS = 1200;
-const TOTAL_ANIMATION_MS = STEP_MESSAGES.length * STEP_DURATION_MS; // 4800ms
+  // Age
+  let ageStr = "";
+  if (formData.age) {
+    ageStr = `age ${formData.age}`;
+  }
+
+  // Australian experience years
+  const ausExp = formData.australianExperience;
+  const expStr = ausExp ? `${ausExp} years Australian experience` : "";
+
+  // Build points detail: "age X, Y years Australian experience"
+  const pointsParts = [ageStr, expStr].filter(Boolean);
+  const pointsDetail = pointsParts.length > 0 ? ` — ${pointsParts.join(", ")}` : "";
+
+  return [
+    `Scanning 574 ANZSCO codes for ${jobTitle} profiles...`,
+    `Matching your ${field} to occupation requirements...`,
+    `Calculating points${pointsDetail}...`,
+    "Mapping state nomination eligibility across 8 territories...",
+  ];
+}
+
+const STEP_DURATION_MS = 800;
+const STEP_COUNT = 4;
+const TOTAL_ANIMATION_MS = STEP_COUNT * STEP_DURATION_MS; // 3200ms
 
 export interface AnalyzingScreenResult {
   points: number;
@@ -37,7 +61,8 @@ export function AnalyzingScreen({ formData, onComplete }: AnalyzingScreenProps) 
   const apiResult = useRef<AnalyzingScreenResult | null>(null);
   const hasAdvanced = useRef(false);
 
-  const progress = ((step + 1) / STEP_MESSAGES.length) * 100;
+  const stepMessages = getPersonalisedMessages(formData);
+  const progress = ((step + 1) / stepMessages.length) * 100;
   const circumference = 2 * Math.PI * 54;
   const offset = circumference - (progress / 100) * circumference;
 
@@ -182,7 +207,7 @@ export function AnalyzingScreen({ formData, onComplete }: AnalyzingScreenProps) 
 
         {/* Step messages - editorial style */}
         <div className="space-y-4 text-left animate-reveal-up delay-200" data-testid="step-messages">
-          {STEP_MESSAGES.map((msg, i) => (
+          {stepMessages.map((msg, i) => (
             <div
               key={i}
               className={`flex items-center gap-4 transition-all duration-500 ${
@@ -224,4 +249,4 @@ export function AnalyzingScreen({ formData, onComplete }: AnalyzingScreenProps) 
   );
 }
 
-export { STEP_MESSAGES, TOTAL_ANIMATION_MS, STEP_DURATION_MS };
+export { TOTAL_ANIMATION_MS, STEP_DURATION_MS };

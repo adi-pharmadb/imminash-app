@@ -7,7 +7,7 @@
  */
 
 import { useState, useRef, useEffect, useCallback } from "react";
-import { Send } from "lucide-react";
+import { Send, Paperclip } from "lucide-react";
 import { MessageBubble } from "@/components/workspace/MessageBubble";
 import { parseDocumentUpdates, parseACSFormUpdates, stripDocumentMarkers } from "@/lib/duty-alignment";
 import type { ChatMessage } from "@/lib/workspace-helpers";
@@ -19,6 +19,7 @@ interface ChatPanelProps {
   assessmentId: string;
   onDocumentUpdates: (updates: DocumentUpdate[]) => void;
   onACSFormUpdates?: (updates: ACSFormUpdate[]) => void;
+  placeholderOverride?: string;
 }
 
 export function ChatPanel({
@@ -27,17 +28,26 @@ export function ChatPanel({
   assessmentId,
   onDocumentUpdates,
   onACSFormUpdates,
+  placeholderOverride,
 }: ChatPanelProps) {
   const [input, setInput] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [streamingText, setStreamingText] = useState("");
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLTextAreaElement>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   // Auto-scroll to latest message
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages, streamingText]);
+
+  // Auto-focus input when placeholder override is set (Request changes flow)
+  useEffect(() => {
+    if (placeholderOverride) {
+      inputRef.current?.focus();
+    }
+  }, [placeholderOverride]);
 
   const handleSend = useCallback(async () => {
     const trimmed = input.trim();
@@ -141,6 +151,63 @@ export function ChatPanel({
     }
   };
 
+  const handleFileUpload = useCallback(async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file || isLoading) return;
+
+    // Accept PDF and DOCX only
+    const validTypes = ["application/pdf", "application/vnd.openxmlformats-officedocument.wordprocessingml.document"];
+    if (!validTypes.includes(file.type)) {
+      const errorMessages: ChatMessage[] = [
+        ...messages,
+        { role: "user", content: `[Uploaded: ${file.name}]` },
+        { role: "assistant", content: "Please upload a PDF or Word document (.pdf or .docx). Other formats are not supported." },
+      ];
+      onMessagesChange(errorMessages);
+      return;
+    }
+
+    // Show upload in chat
+    const uploadMsg: ChatMessage = { role: "user", content: `[Uploaded CV: ${file.name}]` };
+    const updatedMessages = [...messages, uploadMsg];
+    onMessagesChange(updatedMessages);
+    setIsLoading(true);
+
+    try {
+      const formData = new FormData();
+      formData.append("file", file);
+      formData.append("assessmentId", assessmentId);
+
+      const response = await fetch("/api/parse-cv", {
+        method: "POST",
+        body: formData,
+      });
+
+      if (!response.ok) {
+        throw new Error("CV parsing failed");
+      }
+
+      const result = await response.json();
+      const summary = result.summary || "I've received your CV. Let me review it and ask follow-up questions about your employment history.";
+
+      const finalMessages: ChatMessage[] = [
+        ...updatedMessages,
+        { role: "assistant", content: summary },
+      ];
+      onMessagesChange(finalMessages);
+    } catch {
+      const finalMessages: ChatMessage[] = [
+        ...updatedMessages,
+        { role: "assistant", content: "I've received your CV. Let me review it and ask targeted questions about your work experience." },
+      ];
+      onMessagesChange(finalMessages);
+    } finally {
+      setIsLoading(false);
+      // Reset file input
+      if (fileInputRef.current) fileInputRef.current.value = "";
+    }
+  }, [messages, isLoading, assessmentId, onMessagesChange]);
+
   return (
     <div className="flex h-full flex-col bg-background" data-testid="chat-panel">
       {/* Messages area - spacious premium feel */}
@@ -186,12 +253,31 @@ export function ChatPanel({
       {/* Input area - glass-card styled */}
       <div className="border-t border-border/30 p-4 md:p-5">
         <div className="glass-card mx-auto flex max-w-2xl items-end gap-3 rounded-xl p-2">
+          {/* CV upload button */}
+          <input
+            ref={fileInputRef}
+            type="file"
+            accept=".pdf,.docx,application/pdf,application/vnd.openxmlformats-officedocument.wordprocessingml.document"
+            onChange={handleFileUpload}
+            className="hidden"
+            data-testid="cv-upload-input"
+          />
+          <button
+            onClick={() => fileInputRef.current?.click()}
+            disabled={isLoading}
+            className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg text-muted-foreground transition-colors hover:bg-secondary/50 hover:text-foreground disabled:opacity-30"
+            aria-label="Upload CV"
+            title="Upload your CV/resume"
+            data-testid="cv-upload-button"
+          >
+            <Paperclip className="h-4 w-4" />
+          </button>
           <textarea
             ref={inputRef}
             value={input}
             onChange={(e) => setInput(e.target.value)}
             onKeyDown={handleKeyDown}
-            placeholder="Type your message..."
+            placeholder={placeholderOverride || "Type your message..."}
             rows={1}
             className="flex-1 resize-none bg-transparent px-3 py-2.5 text-sm leading-relaxed text-foreground outline-none placeholder:text-muted-foreground/50"
             disabled={isLoading}

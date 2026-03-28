@@ -1,21 +1,31 @@
 "use client";
 
 /**
- * Split-panel workspace layout.
- * Desktop: side-by-side panels (chat left, application form / documents right).
- * Mobile (<768px): stacked vertically with toggle button. [AC-DW6]
+ * 3-zone workspace layout per DocGen Brief 2.1/2.2.
+ * Zone 1 (left nav ~220px): Logo, occupation badge, document list, progress, download.
+ * Zone 2 (chat): Main chat panel, takes remaining width by default.
+ * Zone 3 (document preview): Appears when AI triggers doc review, takes 50% of Zone 2.
  *
- * For ACS assessments: right panel shows the ACS application form simulator.
- * For other bodies: right panel shows document tabs (original behavior).
+ * 4 screen states:
+ * - Default: chat only (Zone 1 + Zone 2)
+ * - Split: chat + preview (Zone 1 + Zone 2 + Zone 3)
+ * - Approved: collapse preview back to chat only
+ * - All Complete: download button active in Zone 1
+ *
+ * Mobile: Zone 1 collapses to hamburger, Zone 3 opens as fullscreen modal.
  */
 
-import { useState, useCallback } from "react";
-import { Download, Loader2 } from "lucide-react";
+import { useState, useCallback, useMemo, useRef } from "react";
+import { X, Check, MessageSquare } from "lucide-react";
 import { ChatPanel } from "@/components/workspace/ChatPanel";
 import { DocumentPanel } from "@/components/workspace/DocumentPanel";
 import { ACSApplicationPanel } from "@/components/workspace/ACSApplicationPanel";
-import { MobileToggle } from "@/components/workspace/MobileToggle";
-import { isACSBody } from "@/lib/workspace-helpers";
+import {
+  DocumentSidebar,
+  type SidebarDocument,
+  type DocumentStatus,
+} from "@/components/workspace/DocumentSidebar";
+import { isACSBody, formatDocumentType } from "@/lib/workspace-helpers";
 import type { ChatMessage } from "@/lib/workspace-helpers";
 import type { DocumentUpdate, ACSFormUpdate } from "@/lib/duty-alignment";
 import type { Document as DbDocument, AssessingBodyRequirement } from "@/types/database";
@@ -29,6 +39,8 @@ interface WorkspaceLayoutProps {
   documentTabs: string[];
   assessingBody: AssessingBodyRequirement | null;
   assessingAuthority: string;
+  occupationTitle?: string;
+  anzscoCode?: string;
   initialACSData?: ACSApplicationData;
   onMessagesChange?: (messages: ChatMessage[]) => void;
 }
@@ -40,6 +52,8 @@ export function WorkspaceLayout({
   documentTabs,
   assessingBody,
   assessingAuthority,
+  occupationTitle = "",
+  anzscoCode = "",
   initialACSData,
   onMessagesChange,
 }: WorkspaceLayoutProps) {
@@ -47,14 +61,52 @@ export function WorkspaceLayout({
 
   const [messages, setMessages] = useState<ChatMessage[]>(initialMessages);
   const [documents, setDocuments] = useState<DbDocument[]>(initialDocuments);
-  const [mobileView, setMobileView] = useState<"chat" | "documents">("chat");
   const [isDownloadingAll, setIsDownloadingAll] = useState(false);
+
+  // Zone 3 visibility state
+  const [previewOpen, setPreviewOpen] = useState(false);
+  const [previewDocType, setPreviewDocType] = useState<string | null>(null);
+
+  // Track approved documents
+  const [approvedDocTypes, setApprovedDocTypes] = useState<Set<string>>(new Set());
 
   // ACS-specific state
   const [acsData, setAcsData] = useState<ACSApplicationData>(
     initialACSData || createEmptyACSApplication(),
   );
   const [highlightedSection, setHighlightedSection] = useState<ACSSection | null>(null);
+
+  // Derive sidebar document list from documentTabs + actual documents
+  const sidebarDocs: SidebarDocument[] = useMemo(() => {
+    return documentTabs.map((tab) => {
+      const docType = tab
+        .toLowerCase()
+        .replace(/[\s/]+/g, "_")
+        .replace(/[()]/g, "");
+
+      const matchedDoc = documents.find((d) => {
+        const dt = d.document_type.toLowerCase();
+        return dt === docType || dt.includes(docType.split("_")[0]);
+      });
+
+      let status: DocumentStatus = "not_started";
+      if (approvedDocTypes.has(docType)) {
+        status = "approved";
+      } else if (matchedDoc?.content) {
+        status = "in_progress";
+      }
+
+      return {
+        id: matchedDoc?.id || `pending-${docType}`,
+        label: tab,
+        type: docType,
+        status,
+      };
+    });
+  }, [documentTabs, documents, approvedDocTypes]);
+
+  const allComplete = sidebarDocs.length > 0 && sidebarDocs.every((d) => d.status === "approved");
+  const hasDocuments = documents.some((d) => d.content !== null);
 
   const handleMessagesChange = useCallback(
     (newMessages: ChatMessage[]) => {
@@ -112,6 +164,9 @@ export function WorkspaceLayout({
 
         return next;
       });
+
+      // Open preview when ACS form gets updated
+      setPreviewOpen(true);
     },
     [],
   );
@@ -154,9 +209,52 @@ export function WorkspaceLayout({
         }
         return next;
       });
+
+      // Open preview when documents get updated
+      if (updates.length > 0) {
+        setPreviewDocType(updates[0].documentType);
+        setPreviewOpen(true);
+      }
     },
     [assessmentId],
   );
+
+  // Chat input placeholder override for "Request changes" flow
+  const [chatPlaceholder, setChatPlaceholder] = useState<string | undefined>();
+
+  const handleDocumentClick = useCallback((docType: string) => {
+    setPreviewDocType(docType);
+    setPreviewOpen(true);
+  }, []);
+
+  /** Approve the currently previewed document: turn dot green, collapse Zone 3 */
+  const handleApproveDocument = useCallback(() => {
+    if (!previewDocType) return;
+
+    setDocuments((prev) => {
+      const next = [...prev];
+      const idx = next.findIndex((d) => d.document_type === previewDocType);
+      if (idx >= 0) {
+        next[idx] = { ...next[idx], updated_at: new Date().toISOString() };
+      }
+      return next;
+    });
+
+    // Mark the sidebar doc as approved by updating its status via a state bump
+    // The sidebar derives status from documents, so we need to signal "approved"
+    // We'll store approved doc types in a set
+    setApprovedDocTypes((prev) => new Set([...prev, previewDocType]));
+    setPreviewOpen(false);
+    setPreviewDocType(null);
+  }, [previewDocType]);
+
+  /** Request changes: close preview, refocus chat with placeholder */
+  const handleRequestChanges = useCallback(() => {
+    setPreviewOpen(false);
+    setChatPlaceholder("Describe what you'd like to change...");
+    // Clear the placeholder after user starts typing (handled in ChatPanel)
+    setTimeout(() => setChatPlaceholder(undefined), 10000);
+  }, []);
 
   const handleDownloadAll = useCallback(async () => {
     if (isDownloadingAll) return;
@@ -188,98 +286,126 @@ export function WorkspaceLayout({
     }
   }, [assessmentId, isDownloadingAll]);
 
-  const hasDocuments = documents.some((d) => d.content !== null);
-
   return (
-    <div className="flex h-screen flex-col bg-background" data-testid="workspace-layout">
-      {/* Workspace header */}
+    <div className="flex h-screen bg-background" data-testid="workspace-layout">
+      {/* Zone 1: Left navigation sidebar */}
+      <DocumentSidebar
+        occupationTitle={occupationTitle}
+        anzscoCode={anzscoCode}
+        assessingAuthority={assessingAuthority}
+        documents={sidebarDocs}
+        onDocumentClick={handleDocumentClick}
+        onDownloadAll={handleDownloadAll}
+        isDownloading={isDownloadingAll}
+        allComplete={allComplete || hasDocuments}
+      />
+
+      {/* Zone 2: Chat panel (takes remaining width, or splits with Zone 3) */}
       <div
-        className="glass-card flex items-center justify-between border-b border-border/50 px-4 py-2.5 sm:px-5"
-        data-testid="workspace-header"
+        className={`flex-1 flex flex-col min-w-0 ${
+          previewOpen ? "md:w-1/2" : ""
+        }`}
       >
-        <div className="flex items-center gap-3">
-          <span className="font-display text-lg italic tracking-tight text-foreground/80">
-            imminash
-          </span>
-          {isACS && (
-            <span
-              className="hidden sm:inline rounded-md px-2 py-0.5 text-[10px] font-bold uppercase tracking-widest"
-              style={{
-                background: "oklch(0.62 0.17 250 / 0.15)",
-                color: "oklch(0.62 0.17 250)",
-              }}
-            >
-              ACS Assessment
-            </span>
-          )}
-        </div>
+        <ChatPanel
+          messages={messages}
+          onMessagesChange={handleMessagesChange}
+          assessmentId={assessmentId}
+          onDocumentUpdates={handleDocumentUpdates}
+          onACSFormUpdates={isACS ? handleACSFormUpdates : undefined}
+          placeholderOverride={chatPlaceholder}
+        />
+      </div>
 
-        <div className="flex items-center gap-3">
-          {/* Mobile view toggle - in header instead of floating */}
-          <MobileToggle
-            activeView={mobileView}
-            onToggle={setMobileView}
-            rightLabel={isACS ? "Application" : "Documents"}
-          />
-
-          {!isACS && hasDocuments && (
+      {/* Zone 3: Document preview (appears when triggered, 50% width on desktop) */}
+      {previewOpen && (
+        <>
+          {/* Desktop: inline panel */}
+          <div className="hidden md:flex md:flex-col md:w-1/2 border-l border-border/30 relative">
             <button
-              onClick={handleDownloadAll}
-              disabled={isDownloadingAll}
-              className="glow-primary inline-flex items-center gap-2 rounded-lg bg-primary px-5 py-2 text-sm font-semibold text-primary-foreground transition-all hover:brightness-110 disabled:opacity-50 disabled:shadow-none"
-              data-testid="download-all-btn"
-              aria-label="Download all documents as ZIP"
+              onClick={() => setPreviewOpen(false)}
+              className="absolute top-3 right-3 z-10 flex h-8 w-8 items-center justify-center rounded-lg bg-secondary/80 hover:bg-secondary transition-colors"
+              aria-label="Close preview"
+              data-testid="close-preview"
             >
-              {isDownloadingAll ? (
-                <Loader2 className="h-4 w-4 animate-spin" />
-              ) : (
-                <Download className="h-4 w-4" />
-              )}
-              {isDownloadingAll ? "Generating..." : "Download All"}
+              <X className="h-4 w-4 text-muted-foreground" />
             </button>
-          )}
-        </div>
-      </div>
+            <div className="flex-1 overflow-hidden">
+              {isACS ? (
+                <ACSApplicationPanel
+                  applicationData={acsData}
+                  highlightedSection={highlightedSection}
+                />
+              ) : (
+                <DocumentPanel tabs={documentTabs} documents={documents} />
+              )}
+            </div>
+            {/* Approve / Request Changes buttons */}
+            <div className="flex items-center gap-3 border-t border-border/30 px-4 py-3">
+              <button
+                onClick={handleApproveDocument}
+                className="flex-1 flex items-center justify-center gap-2 rounded-lg py-2.5 text-sm font-semibold transition-all hover:brightness-110"
+                style={{ background: "oklch(0.72 0.17 155)", color: "oklch(0.13 0.01 260)" }}
+                data-testid="approve-document"
+              >
+                <Check className="h-4 w-4" />
+                Approve this document
+              </button>
+              <button
+                onClick={handleRequestChanges}
+                className="flex-1 flex items-center justify-center gap-2 rounded-lg border border-border/50 py-2.5 text-sm font-semibold text-muted-foreground transition-all hover:bg-secondary/50"
+                data-testid="request-changes"
+              >
+                <MessageSquare className="h-4 w-4" />
+                Request changes
+              </button>
+            </div>
+          </div>
 
-      {/* Main content area */}
-      <div className="flex flex-1 flex-col overflow-hidden md:flex-row">
-        {/* Chat panel */}
-        <div
-          className={`h-full w-full md:w-1/2 ${
-            mobileView === "documents" ? "hidden md:flex" : "flex"
-          } flex-col`}
-        >
-          <ChatPanel
-            messages={messages}
-            onMessagesChange={handleMessagesChange}
-            assessmentId={assessmentId}
-            onDocumentUpdates={handleDocumentUpdates}
-            onACSFormUpdates={isACS ? handleACSFormUpdates : undefined}
-          />
-        </div>
-
-        {/* Subtle divider between panels */}
-        <div className="hidden md:flex md:flex-col md:items-center md:justify-center">
-          <div className="h-full w-px bg-gradient-to-b from-transparent via-border to-transparent" />
-        </div>
-
-        {/* Right panel: ACS form or document viewer */}
-        <div
-          className={`h-full w-full md:w-1/2 ${
-            mobileView === "chat" ? "hidden md:flex" : "flex"
-          } flex-col`}
-        >
-          {isACS ? (
-            <ACSApplicationPanel
-              applicationData={acsData}
-              highlightedSection={highlightedSection}
-            />
-          ) : (
-            <DocumentPanel tabs={documentTabs} documents={documents} />
-          )}
-        </div>
-
-      </div>
+          {/* Mobile: fullscreen modal */}
+          <div className="fixed inset-0 z-40 flex flex-col bg-background md:hidden">
+            <div className="flex items-center justify-between border-b border-border/30 px-4 py-3">
+              <span className="text-sm font-semibold text-foreground">
+                Document Preview
+              </span>
+              <button
+                onClick={() => setPreviewOpen(false)}
+                className="flex h-8 w-8 items-center justify-center rounded-lg hover:bg-secondary/50"
+                aria-label="Close preview"
+              >
+                <X className="h-4 w-4 text-muted-foreground" />
+              </button>
+            </div>
+            <div className="flex-1 overflow-hidden">
+              {isACS ? (
+                <ACSApplicationPanel
+                  applicationData={acsData}
+                  highlightedSection={highlightedSection}
+                />
+              ) : (
+                <DocumentPanel tabs={documentTabs} documents={documents} />
+              )}
+            </div>
+            {/* Mobile Approve / Request Changes buttons */}
+            <div className="flex items-center gap-3 border-t border-border/30 px-4 py-3 pb-safe">
+              <button
+                onClick={handleApproveDocument}
+                className="flex-1 flex items-center justify-center gap-2 rounded-lg py-2.5 text-sm font-semibold transition-all hover:brightness-110"
+                style={{ background: "oklch(0.72 0.17 155)", color: "oklch(0.13 0.01 260)" }}
+              >
+                <Check className="h-4 w-4" />
+                Approve
+              </button>
+              <button
+                onClick={handleRequestChanges}
+                className="flex-1 flex items-center justify-center gap-2 rounded-lg border border-border/50 py-2.5 text-sm font-semibold text-muted-foreground transition-all hover:bg-secondary/50"
+              >
+                <MessageSquare className="h-4 w-4" />
+                Request changes
+              </button>
+            </div>
+          </div>
+        </>
+      )}
     </div>
   );
 }

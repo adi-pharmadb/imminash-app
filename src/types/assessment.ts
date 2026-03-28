@@ -105,6 +105,7 @@ export interface MatchResult {
   list: string | null;
   min_189_points: number | null;
   latest_invitation: LatestInvitation | null;
+  invitation_rounds?: LatestInvitation[];
 }
 
 /** Occupation record matching the occupations database table. */

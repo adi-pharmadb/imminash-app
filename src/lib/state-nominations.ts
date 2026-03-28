@@ -79,6 +79,38 @@ export function getStateInvitingSummary(eligibility: StateEligibility[]): string
 }
 
 /**
+ * Determine the best state recommendation for a user.
+ * Returns a sentence like "Best state for you: SA (eligible for both 190 and 491)"
+ * or null if no states are inviting.
+ * CTO Brief v2 section 3.3
+ */
+export function getBestStateRecommendation(
+  eligibility: StateEligibility[],
+): string | null {
+  // Prefer states where both 190 and 491 are true
+  const bothVisa = eligibility.filter(
+    (e) => e.visa_190 === true && e.visa_491 === true,
+  );
+  if (bothVisa.length > 0) {
+    return `Best state for you: ${bothVisa[0].state} (eligible for both 190 and 491)`;
+  }
+
+  // Then prefer 190
+  const visa190 = eligibility.filter((e) => e.visa_190 === true);
+  if (visa190.length > 0) {
+    return `Best state for you: ${visa190[0].state} (eligible for 190 nomination)`;
+  }
+
+  // Then 491
+  const visa491 = eligibility.filter((e) => e.visa_491 === true);
+  if (visa491.length > 0) {
+    return `Best state for you: ${visa491[0].state} (eligible for 491 nomination)`;
+  }
+
+  return null;
+}
+
+/**
  * Get state nomination eligibility for a given occupation.
  *
  * @param anzscoCode - 6-digit ANZSCO code

@@ -155,6 +155,10 @@ export default function WorkspacePage() {
           body = bodyData as AssessingBodyRequirement | null;
         }
 
+        // Compute match level from confidence score
+        const confidence = (primaryMatch.confidence as number) || 0;
+        const matchLevel = confidence >= 75 ? "Strong" : confidence >= 50 ? "Medium" : "Weak";
+
         const workspaceData: WorkspaceAssessmentData = {
           assessmentId: typedAssessment.id,
           occupationTitle,
@@ -162,6 +166,7 @@ export default function WorkspacePage() {
           assessingAuthority,
           profileData: typedAssessment.profile_data,
           totalPoints: typedAssessment.total_points,
+          matchLevel,
         };
 
         // Load existing conversation [AC-DW7]
@@ -269,6 +274,8 @@ export default function WorkspacePage() {
       documentTabs={documentTabs}
       assessingBody={assessingBody}
       assessingAuthority={assessmentData.assessingAuthority}
+      occupationTitle={assessmentData.occupationTitle}
+      anzscoCode={assessmentData.anzscoCode}
       initialACSData={initialACSData}
     />
   );

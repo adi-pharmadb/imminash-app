@@ -78,7 +78,7 @@ export default function AuthCallbackPage() {
         console.error("Failed to link assessment after 3 attempts");
       }
 
-      router.push("/workspace");
+      router.push("/value");
     }
 
     handleAuth();

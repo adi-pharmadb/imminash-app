@@ -1,16 +1,24 @@
 "use client";
 
-import { useEffect, useState, useCallback } from "react";
+import { useEffect, useState, useCallback, useMemo } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { ArrowRight } from "lucide-react";
 import type { MatchResult, PointsBreakdown, StepperFormData } from "@/types/assessment";
 import type { StateEligibility } from "@/lib/state-nominations";
-import { getStateEligibility, getStateInvitingSummary } from "@/lib/state-nominations";
+import {
+  getStateEligibility,
+  getStateInvitingSummary,
+  getBestStateRecommendation,
+} from "@/lib/state-nominations";
 import { getPossibilityRating, getPathwaySignal } from "@/lib/pathway-signals";
+import { analyzePointsGap } from "@/lib/points-gap";
 import { OccupationCard } from "@/components/results/OccupationCard";
 import { PointsBreakdownCard } from "@/components/results/PointsBreakdownCard";
+import { PointsGapAnalysis } from "@/components/pathway/PointsGapAnalysis";
+import { SummaryCard } from "@/components/results/SummaryCard";
 import { DualCTA } from "@/components/results/DualCTA";
+import { ReassessmentTrigger } from "@/components/results/ReassessmentTrigger";
 import { AuthModal } from "@/components/auth/AuthModal";
 import { OccupationPicker } from "@/components/results/OccupationPicker";
 import { createClient } from "@/lib/supabase/client";
@@ -111,8 +119,8 @@ export default function ResultsPage() {
 
   /**
    * Handle "Prepare my skill assessment documents" click.
-   * If there are multiple occupations, show the picker first.
-   * Then authenticate if needed, then go to /workspace.
+   * Shows picker with ALL occupations (non-ACS greyed out).
+   * If only one ACS match, proceeds directly.
    */
   const handleStartDocPrep = useCallback(() => {
     if (!data) return;
@@ -121,8 +129,8 @@ export default function ResultsPage() {
       (occ) => occ.assessing_authority && isACSBody(occ.assessing_authority),
     );
 
-    if (acsMatches.length > 1) {
-      // Multiple ACS occupations: let user choose
+    if (acsMatches.length > 1 || data.skillsMatches.length > 1) {
+      // Multiple occupations: show picker with all (non-ACS greyed out)
       setPickerOpen(true);
     } else if (acsMatches.length === 1) {
       // Single ACS occupation: select it automatically and proceed
@@ -147,7 +155,7 @@ export default function ResultsPage() {
       const { data: sessionData } = await supabase.auth.getSession();
 
       if (sessionData.session) {
-        router.push("/workspace");
+        router.push("/value");
         return;
       }
     } catch {
@@ -180,6 +188,24 @@ export default function ResultsPage() {
     topList === "MLTSSL",
   );
 
+  // Compute total unique inviting states for summary card
+  const allInvitingStates = new Set<string>();
+  stateData.forEach((eligibility) => {
+    eligibility.forEach((e) => {
+      if (e.visa_190 === true || e.visa_491 === true) {
+        allInvitingStates.add(e.state);
+      }
+    });
+  });
+
+  // Points gap analysis for the top match
+  const topTarget = skillsMatches[0]?.min_189_points ?? 65;
+  const gapAnalysis = analyzePointsGap(
+    breakdown,
+    topTarget,
+    skillsMatches[0]?.assessing_authority,
+  );
+
   return (
     <div className="min-h-screen bg-background pb-20 gradient-mesh">
       {/* Brand header */}
@@ -206,13 +232,52 @@ export default function ResultsPage() {
           </p>
         </div>
 
-        {/* Points breakdown */}
+        {/* Summary card with anchor navigation */}
         <div className="animate-reveal-up delay-100">
+          <SummaryCard
+            firstName={formData.firstName || ""}
+            breakdown={breakdown}
+            skillsMatches={skillsMatches}
+            stateCount={allInvitingStates.size}
+          />
+        </div>
+
+        {/* Social proof position 1: below summary card */}
+        <p className="text-xs text-muted-foreground text-center animate-reveal-up delay-100">
+          Join thousands of skilled professionals who have assessed their PR eligibility with imminash.
+        </p>
+
+        {/* Points breakdown */}
+        <div id="points-breakdown" className="animate-reveal-up delay-100">
           <PointsBreakdownCard
             breakdown={breakdown}
             minRequired={skillsMatches[0]?.min_189_points ?? null}
           />
         </div>
+
+        {/* How to improve your score */}
+        {gapAnalysis.gap > 0 && gapAnalysis.suggestions.length > 0 && (
+          <div className="animate-reveal-up delay-100">
+            <div className="space-y-2 mb-4">
+              <h2 className="font-display text-xl italic text-foreground">
+                How to improve your score
+              </h2>
+              <p className="text-sm text-muted-foreground leading-relaxed">
+                You need {gapAnalysis.gap} more points to reach the minimum for your top match.
+              </p>
+            </div>
+            <PointsGapAnalysis
+              currentPoints={gapAnalysis.currentPoints}
+              targetPoints={gapAnalysis.targetPoints}
+              suggestions={gapAnalysis.suggestions.filter((s) => s.available)}
+            />
+          </div>
+        )}
+
+        {/* Social proof position 2: above occupation cards */}
+        <p className="text-xs text-muted-foreground text-center animate-reveal-up delay-200">
+          Trusted by applicants across 50+ occupations and all 8 Australian states and territories.
+        </p>
 
         {/* Recommended Occupations */}
         <div className="animate-reveal-up delay-200">
@@ -243,6 +308,7 @@ export default function ResultsPage() {
               ).length;
               const stateNomCount = Math.max(nomCount190, nomCount491);
               const stateSummary = getStateInvitingSummary(eligibility);
+              const bestState = getBestStateRecommendation(eligibility);
 
               // Build an Occupation-like object for getPathwaySignal
               const occForSignals = {
@@ -277,6 +343,7 @@ export default function ResultsPage() {
                     stateEligibility={eligibility}
                     pathwaySignals={signals}
                     stateInvitingSummary={stateSummary}
+                    bestStateRecommendation={bestState ?? undefined}
                   />
                 </div>
               );
@@ -291,6 +358,21 @@ export default function ResultsPage() {
             hasACSMatch={hasACSMatch}
             onStartDocPrep={handleStartDocPrep}
           />
+        </div>
+
+        {/* Re-assessment trigger */}
+        <div className="animate-reveal-up delay-300">
+          <ReassessmentTrigger
+            email={gateEmail}
+            assessmentId={data.assessmentId}
+          />
+        </div>
+
+        {/* Social proof position 3: near conversion CTAs */}
+        <div className="animate-reveal-up delay-300 text-center">
+          <p className="text-xs text-muted-foreground">
+            Applicants who use imminash to prepare their documents report higher confidence in their submissions.
+          </p>
         </div>
 
         {/* Pathway CTA */}
@@ -322,13 +404,11 @@ export default function ResultsPage() {
         </div>
       </div>
 
-      {/* Occupation Picker Modal */}
+      {/* Occupation Picker Modal - now shows ALL occupations */}
       <OccupationPicker
         open={pickerOpen}
         onOpenChange={setPickerOpen}
-        occupations={skillsMatches.filter(
-          (occ) => occ.assessing_authority && isACSBody(occ.assessing_authority),
-        )}
+        occupations={skillsMatches}
         onSelect={handleOccupationSelected}
       />
 

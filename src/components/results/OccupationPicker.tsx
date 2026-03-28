@@ -11,6 +11,7 @@ import {
 import { Button } from "@/components/ui/button";
 import type { MatchResult } from "@/types/assessment";
 import { getConfidenceColor } from "@/lib/occupation-matching";
+import { isACSBody } from "@/lib/workspace-helpers";
 
 interface OccupationPickerProps {
   open: boolean;
@@ -19,9 +20,16 @@ interface OccupationPickerProps {
   onSelect: (occupation: MatchResult) => void;
 }
 
+function getConfidenceLabel(confidence: number): string {
+  if (confidence >= 75) return "Strong Match";
+  if (confidence >= 50) return "Medium Match";
+  return "Weak Match";
+}
+
 /**
- * Modal for selecting which matched occupation to proceed with
- * for document generation / skill assessment preparation.
+ * Modal for selecting which matched occupation to proceed with.
+ * Shows ALL occupations. Non-ACS bodies are greyed out with "Coming soon".
+ * Pre-selects the highest confidence ACS match. CTO Brief v2 section 4.1
  */
 export function OccupationPicker({
   open,
@@ -29,7 +37,13 @@ export function OccupationPicker({
   occupations,
   onSelect,
 }: OccupationPickerProps) {
-  const [selected, setSelected] = useState<string | null>(null);
+  // Pre-select the best ACS match
+  const bestACS = occupations.find(
+    (o) => o.assessing_authority && isACSBody(o.assessing_authority),
+  );
+  const [selected, setSelected] = useState<string | null>(
+    bestACS?.anzsco_code || null,
+  );
 
   function handleConfirm() {
     const occ = occupations.find((o) => o.anzsco_code === selected);
@@ -50,6 +64,8 @@ export function OccupationPicker({
 
         <div className="space-y-3 pt-2">
           {occupations.map((occ) => {
+            const isSupported =
+              occ.assessing_authority && isACSBody(occ.assessing_authority);
             const isSelected = selected === occ.anzsco_code;
             const colors = getConfidenceColor(occ.confidence);
 
@@ -57,19 +73,37 @@ export function OccupationPicker({
               <button
                 key={occ.anzsco_code}
                 type="button"
-                onClick={() => setSelected(occ.anzsco_code)}
+                onClick={() => {
+                  if (isSupported) setSelected(occ.anzsco_code);
+                }}
+                disabled={!isSupported}
                 className={`w-full rounded-xl p-4 text-left transition-all duration-200 ${
-                  isSelected
-                    ? "ring-2 ring-primary bg-primary/10"
-                    : "bg-secondary/30 hover:bg-secondary/50"
+                  !isSupported
+                    ? "opacity-50 cursor-not-allowed bg-secondary/20"
+                    : isSelected
+                      ? "ring-2 ring-primary bg-primary/10"
+                      : "bg-secondary/30 hover:bg-secondary/50"
                 }`}
                 data-testid={`pick-${occ.anzsco_code}`}
               >
                 <div className="flex items-center justify-between gap-3">
                   <div className="min-w-0">
-                    <p className="font-semibold text-foreground truncate">
-                      {occ.title}
-                    </p>
+                    <div className="flex items-center gap-2">
+                      <p className="font-semibold text-foreground truncate">
+                        {occ.title}
+                      </p>
+                      {isSupported && bestACS?.anzsco_code === occ.anzsco_code && (
+                        <span
+                          className="shrink-0 rounded-md px-1.5 py-0.5 text-[9px] font-bold uppercase tracking-wider"
+                          style={{
+                            background: "oklch(0.72 0.17 155 / 0.12)",
+                            color: "oklch(0.72 0.17 155)",
+                          }}
+                        >
+                          Recommended
+                        </span>
+                      )}
+                    </div>
                     <p className="text-xs text-muted-foreground mt-0.5">
                       ANZSCO {occ.anzsco_code}
                       {occ.assessing_authority && (
@@ -78,15 +112,23 @@ export function OccupationPicker({
                         </span>
                       )}
                     </p>
+                    {!isSupported && (
+                      <p
+                        className="text-[10px] mt-1 font-medium"
+                        style={{ color: "oklch(0.65 0.15 250)" }}
+                      >
+                        Coming soon - we currently support ACS assessments only
+                      </p>
+                    )}
                   </div>
                   <span
                     className="shrink-0 rounded-full px-2.5 py-0.5 text-xs font-semibold"
                     style={{
-                      background: colors.bg,
-                      color: colors.text,
+                      background: isSupported ? colors.bg : "var(--bar-track)",
+                      color: isSupported ? colors.text : "oklch(0.50 0.02 260)",
                     }}
                   >
-                    {occ.confidence}%
+                    {getConfidenceLabel(occ.confidence)}
                   </span>
                 </div>
               </button>
