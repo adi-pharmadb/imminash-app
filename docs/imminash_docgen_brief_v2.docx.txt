@@ -1,0 +1,990 @@
+﻿imminash
+Document Generation Tool
+CTO Product Brief v2 — UI/UX, AI Behaviour & ACS Criteria
+For: CTO & AI development team  |  From: Dev Desai  |  March 2026  |  Confidential
+v2 adds: glossary, ACS context, full example AI messages, edge cases, CPD detail, system prompt skeleton, agent workflow detail, screen wireframe descriptions
+	
+
+READ THIS FIRST
+HOW TO USE THIS DOCUMENT
+
+
+This brief is written for two audiences: (1) a CTO who may not have an immigration background, and (2) an AI assistant helping build the product. Both should be able to build the tool from this document alone with no additional context.
+
+
+If you are unfamiliar with Australian immigration or the ACS assessment process, start with Section 00 — Context and Glossary before reading anything else. It explains what ACS is, why it matters, and defines every technical term used in this document.
+
+
+Sections 01–08 follow the build order. P0 items must be completed before P1 work begins.
+	
+
+________________
+
+
+00
+	Context & Glossary
+Read this first if you are not from the immigration industry
+	
+
+0.1  What is ACS and Why Does This Tool Exist?
+The following is a plain-English explanation of the Australian immigration process this tool supports. Understanding this context is essential for building the product correctly.
+
+
+ESSENTIAL CONTEXT — READ BEFORE BUILDING
+THE IMMIGRATION CONTEXT — plain English
+
+
+Australia allows skilled workers to migrate permanently through a points-based visa system called the General Skilled Migration (GSM) program. To apply, a person must first prove their skills are genuine by getting a Skills Assessment from an approved body.
+
+
+For ICT (Information and Communication Technology) workers, that approved body is the ACS — the Australian Computer Society. ACS is a professional membership organisation that has been delegated authority by the Australian government to assess ICT migrants.
+
+
+The ACS assessment process works like this:
+1. The applicant nominates an occupation code (called an ANZSCO code) that matches their work
+2. ACS reviews their qualifications and employment history
+3. ACS decides if their skills meet Australian ICT standards for that occupation
+4. If approved, ACS issues a result letter the applicant uses in their visa application
+
+
+The assessment costs AUD $1,498 and takes 8–12 weeks. Applications are frequently refused — the most common reason is poorly written employment reference letters that do not adequately describe the applicant's duties.
+
+
+This is the problem imminash solves. The tool guides migrants through producing high-quality, ACS-compliant documents before they submit, reducing the risk of refusal.
+	
+
+0.2  What Happens if Documents Are Poor Quality?
+This is critical for understanding why the AI conversation design in Section 03 and 04 must be built exactly as specified.
+
+
+If documents are good quality
+	If documents are poor quality
+	• ACS approves the assessment
+• Applicant receives a result letter
+• Applicant can lodge their visa application
+• Applicant is one step closer to PR
+	• ACS refuses the assessment
+• Applicant must reapply and pay $1,498 again
+• Delay of 3–6 months minimum
+• User blames imminash publicly
+• Reputational damage in international student communities
+	
+
+This is why the AI must ask specific, probing questions and refuse to generate documents from vague answers. The document quality directly determines whether our users succeed or fail — and whether imminash has a business.
+
+
+0.3  Glossary — Every Technical Term Used in This Document
+Every term below is used throughout this brief. If you encounter a term you don't recognise, look it up here first.
+
+
+Term
+	Plain English definition
+	ACS
+	Australian Computer Society. The government-approved body that assesses ICT migrants' skills for visa purposes.
+	ANZSCO
+	Australia and New Zealand Standard Classification of Occupations. A numbered code system that categorises jobs. Example: ICT Business Analyst = 261111. The applicant must nominate one code that matches their work.
+	Skills Assessment
+	The formal process where ACS reviews qualifications and work history to determine if someone meets Australian ICT standards. Costs AUD $1,498.
+	GSM
+	General Skilled Migration. The points-based visa program through which skilled workers apply for permanent residency in Australia.
+	PR
+	Permanent Residency. The goal of most imminash users.
+	SFIA
+	Skills Framework for the Information Age. An international framework that describes ICT job roles at different skill levels. ACS uses SFIA to evaluate whether an applicant's duties match their nominated occupation.
+	BUSA
+	Business Analysis — a specific SFIA skill code. ACS assessors check whether an ICT Business Analyst applicant's duties demonstrate BUSA-level work.
+	BPRE
+	Business Process Re-Engineering — another SFIA skill. Relevant to ICT Business Analyst and similar occupations.
+	Employment Reference Letter
+	A letter written on company letterhead by the employer, describing the applicant's job title, employment dates, hours, and duties. This is the most critical document in an ACS application.
+	Supporting Statement
+	A document written in the first person by the applicant (or on their behalf) explaining how their qualifications and experience meet the nominated occupation's requirements.
+	CPD
+	Continuing Professional Development. A record of training, courses, certifications, or professional activities completed to maintain and develop skills. ACS may ask for this.
+	RPL
+	Recognition of Prior Learning. An alternative ACS pathway for applicants with no formal ICT qualification but extensive work experience (6+ years). Requires project reports instead of qualification documents.
+	MLTSSL
+	Medium and Long-term Strategic Skills List. A government list of occupations eligible for certain visa types. Whether an occupation is on this list affects which visas the applicant can apply for.
+	STSOL
+	Short-term Skilled Occupation List. Another government occupations list with different visa eligibility rules.
+	189 Visa
+	Skilled Independent visa. Permanent residency without needing employer or state sponsorship. Requires ACS approval and sufficient points.
+	190 Visa
+	Skilled Nominated visa. Permanent residency with state/territory nomination. Requires ACS approval and state nomination.
+	491 Visa
+	Skilled Work Regional visa. Temporary visa (5 years) for regional areas. Can lead to permanent residency.
+	BRD
+	Business Requirements Document. A formal document describing what a business needs from an IT system or project. Producing BRDs is evidence of ICT Business Analyst work.
+	FSD
+	Functional Specification Document. A technical document describing how a system will work. Relevant to ICT BA duties.
+	Duty statement
+	A sentence or paragraph describing a specific work responsibility. ACS assesses duty statements to determine if the work was at the right ICT skill level.
+	Host company
+	When a worker is placed by a recruitment agency, the host company is the business where they actually worked. ACS requires reference letters from the host company, not the agency.
+	Supabase
+	The backend-as-a-service platform currently used for authentication (login) in the imminash product.
+	OAuth
+	Open Authorisation. A standard protocol for sign-in via third-party accounts (e.g. Google Sign-In). Recommended replacement for magic link in this product.
+	
+
+________________
+
+
+Tool Flow Overview
+The document generation tool is Stage 5 of the imminash user journey. By the time a user reaches this tool, they have: completed the 7-step assessment form, seen their occupation matches and points score, selected their occupation, signed in with Google, seen the value page, and paid. They arrive knowing which occupation they are applying under.
+
+
+The tool's single job is to produce a complete, ACS-compliant document package the user can download, take to their employers for signature, and submit directly to ACS.
+
+
+COMPLETE WORKSPACE FLOW
+
+
+User arrives
+Occupation pre-loaded
+	CV upload offered
+Optional — first message
+	Full-width chat
+AI asks questions
+	
+
+Document ready
+AI triggers split
+	User reviews
+Requests changes
+	User approves
+Dot turns green
+	
+
+Repeat per doc
+One cycle per document
+	All docs complete
+All dots green
+	Download ZIP
+Word + PDF package
+	
+
+________________
+
+
+01
+	Existing Bugs — Fix Before Building Anything Else
+Two bugs in the current UI shell that will undermine everything else if not fixed first
+	
+
+1.1  Wrong Occupation Loading
+THE BUG
+The workspace currently loads ANZSCO 261313 (Software Engineer) regardless of which occupation the user selected. This is because the occupation selected in the modal is not being passed to the workspace. The user selected ICT Business Analyst (261111). Every element of this tool — the AI questions, the document content, the assessing body — is occupation-specific. Loading the wrong occupation means the entire tool produces wrong output.
+
+
+THE FIX — EXACT PARAMETERS TO PASS
+
+
+Parameter name
+	Example value
+	Where it comes from
+	anzsco_code
+	261111
+	Occupation selection modal
+	occupation_title
+	ICT Business Analyst
+	Occupation selection modal
+	assessing_body
+	ACS
+	Occupation selection modal
+	match_level
+	Strong
+	Results page occupation card
+	user_first_name
+	Devarshi
+	Step 1 of assessment form
+	user_email
+	user@gmail.com
+	Sign-in (Google OAuth or magic link)
+	
+
+ERROR STATE — REQUIRED
+If parameters are missing on workspace load: do not default to any occupation. Show an error screen: 'We could not load your occupation details. Please return to your results and try again.' with a link back to the results page. Never proceed with a hardcoded or default occupation.
+	
+
+ACCEPTANCE CRITERIA
+• Workspace header badge shows correct occupation name, ANZSCO code, and assessing body
+• First AI message references the correct occupation (not Software Engineer or any hardcoded value)
+• QA test: complete the flow with 3 different occupation selections and verify each loads correctly in the workspace
+• QA test: access the workspace URL without parameters and verify the error screen appears
+	
+
+Priority: P0  |  Effort: S  |  Owner: Backend + Frontend
+
+
+1.2  Re-Asking for Information Already Collected
+THE BUG
+The AI's opening message asks for name, date of birth, citizenship, email, and phone — all as if starting from scratch. The product already has the user's first name (from the form), email (from sign-in), occupation (from selection), field of study, job title, and role description (from the form). Asking for known data creates a poor first impression and signals a disconnected product.
+
+
+ALL DATA AVAILABLE AT WORKSPACE LOAD — PRE-POPULATE WITHOUT ASKING
+
+
+Data field
+	Source
+	How AI should use it
+	first_name
+	Form Step 1
+	Address user by name in all messages. Never ask for it.
+	email
+	Google Sign-In or magic link
+	Pre-fill Personal Details. Never ask for it.
+	anzsco_code + occupation_title
+	Occupation modal
+	Reference in opening message and all occupation-specific questions.
+	field_of_study + highest_qualification
+	Form Step 2
+	Pre-fill Qualifications section. Ask only for missing details (institution name, graduation year).
+	current_job_title
+	Form Step 4
+	Use as starting point for duty questions. e.g. 'You mentioned working as a Business Analyst — let's dig into the specifics of that role.'
+	roles_and_responsibilities
+	Form Step 5
+	Use as context for generating duty questions. Do not reproduce verbatim — use to inform which follow-up questions to ask.
+	
+
+Priority: P0  |  Effort: M  |  Owner: Backend (session passing) + AI prompt
+
+
+________________
+
+
+02
+	Workspace Layout & UI Design
+Screen-by-screen specification of every layout state
+	
+
+2.1  The Three Zones — Always, Default, and Triggered
+The workspace has three zones. Zone 1 is always visible. Zone 2 is the default state. Zone 3 only appears when triggered by the AI. This is the same pattern used by ChatGPT, Claude, and Notion — users understand it immediately.
+
+
+SCREEN STATE 1 — DEFAULT (USER ARRIVES, CONVERSATION IN PROGRESS)
+	Left: Zone 1 — Navigation bar  |  ~220px wide  |  Fixed, does not scroll
+Contents from top to bottom:
+* imminash logo (top left)
+* Occupation badge: '[Occupation Name] | ANZSCO [code] | [Assessing Body]' — e.g. 'ICT Business Analyst | ANZSCO 261111 | ACS'
+* Divider line
+* Document list — see Section 2.2 for detail
+* Bottom: progress indicator — e.g. '0 of 4 documents complete'
+
+
+Right: Zone 2 — Full-width chat  |  Fills all remaining screen width
+Contents:
+* Chat history — scrollable, messages from top
+* Fixed chat input bar at bottom — text field + send button + CV upload icon
+	SCREEN STATE 2 — SPLIT VIEW (AI HAS GENERATED A DOCUMENT FOR REVIEW)
+Trigger: AI sends a message saying 'I've drafted your [document name] — review it on the right.' The screen splits at this moment.
+Left half (50% of Zone 2): Chat continues. The most recent AI message is visible. Input bar remains active.
+Right half (50% of Zone 2 = Zone 3): Document preview panel appears. Contains:
+* Document title at top (e.g. 'Employment Reference Letter — Accenture')
+* Scrollable document preview — formatted to look like the final output (letterhead style, correct font, paragraph structure)
+* Two fixed buttons at bottom: 'Approve this document' (green) and 'Request changes' (outlined/secondary)
+	SCREEN STATE 3 — DOCUMENT APPROVED (SPLIT COLLAPSES, CONVERSATION RESUMES)
+Trigger: User clicks 'Approve this document'.
+Zone 3 closes with a smooth animation. Chat returns to full width. The approved document's dot in Zone 1 turns green. The progress indicator updates.
+AI sends next message beginning the next document's information gathering.
+	SCREEN STATE 4 — ALL COMPLETE (DOWNLOAD SCREEN)
+Trigger: All documents approved. All dots green.
+Chat area shows a completion message from the AI summarising what was produced and what the user needs to do next (get employer signatures, submit to ACS).
+Zone 1 bottom: 'Download Package' button activates — prominent, blue, full width of Zone 1. Zone 2: agent review offer appears below the AI completion message.
+	
+
+MOBILE BEHAVIOUR
+
+
+* Zone 1 collapses to a hamburger icon in the top left. Tapping opens a slide-out drawer.
+* Zone 2 (chat) is full width on mobile — no split state.
+* When a document is ready for review on mobile: AI message contains a 'View document' button. Tapping opens the document in a full-screen modal with Approve and Request Changes buttons at the bottom.
+* After approving on mobile, modal closes and chat resumes.
+
+
+ACCEPTANCE CRITERIA
+• All 4 screen states render correctly on desktop (1280px+ width)
+• Mobile layout follows the mobile behaviour rules above
+• Zone 1 is never hidden on desktop — it is always visible
+• Split animation is smooth — no jarring layout shift
+• Document preview is scrollable independently of the chat
+• 'Approve' button turns the correct document's dot green and collapses Zone 3
+• 'Request changes' refocuses the chat input with placeholder text: 'Describe what you'd like to change...'
+	
+
+Priority: P0  |  Effort: L  |  Owner: Frontend
+
+
+________________
+
+
+2.2  Document List — Zone 1 Detail
+The document list in Zone 1 is the user's map of what they are building. It builds dynamically during the conversation and gives constant visibility of progress.
+
+
+On load (employers unknown)
+	After employment collected (2 employers)
+	All complete
+	⬜ Reference Letter(s)
+    (number TBC)
+⬜ Supporting Statement
+⬜ CPD Log
+⬜ Document Checklist
+	🟡 Ref Letter — Accenture
+⬜ Ref Letter — TCS
+⬜ Supporting Statement
+⬜ CPD Log
+⬜ Document Checklist
+	✅ Ref Letter — Accenture
+✅ Ref Letter — TCS
+✅ Supporting Statement
+✅ CPD Log
+✅ Document Checklist
+	
+
+RULES
+Document list rules:
+• Reference letters: exactly one per employer. No cap. 5 employers = 5 letters.
+• List builds dynamically — each employer name appears as it is mentioned in the conversation
+• Grey/empty = not started. Amber = AI currently gathering info / document in review. Green = user approved.
+• Each item is clickable — scrolls chat to the point where that document's conversation began
+• 'Download Package' button (bottom of Zone 1) only activates when all items are green
+	
+
+________________
+
+
+03
+	AI Conversation Design
+Opening message, conversation sequence, example messages, and edge cases
+	
+
+3.1  Opening Message — Exact Format Required
+The opening message is the first thing the user reads. It must use real data from the session — never placeholder text. Below is the exact required format with a concrete example.
+
+
+EXACT MESSAGE — IMPLEMENT THIS
+REQUIRED OPENING MESSAGE FORMAT
+
+
+Hi [first_name]. You're applying for [occupation_title] (ANZSCO [anzsco_code]) through [assessing_body] — this is your [match_level] match based on your [current_job_title] background.
+
+
+I already have your name and email. Before we start, would you like to upload your CV? If you do, I'll extract your employment history and qualifications automatically and we can skip a lot of the basic questions.
+
+
+If you don't have one handy, no problem — I'll guide you through everything. Either way, the output will be the same quality.
+
+
+— — — CONCRETE EXAMPLE (for Devarshi) — — —
+
+
+Hi Devarshi. You're applying for ICT Business Analyst (ANZSCO 261111) through ACS — this is your strong match based on your Business Analyst background.
+
+
+I already have your name and email. Before we start, would you like to upload your CV? If you do, I'll extract your employment history and qualifications automatically and we can skip a lot of the basic questions.
+
+
+If you don't have one handy, no problem — I'll guide you through everything. Either way, the output will be the same quality.
+	
+
+❌  Current (wrong)
+• References wrong occupation: Software Engineer (261313)
+• Asks for name, date of birth, citizenship, email — all already known
+• Generic welcome message with no personalisation
+	✅  Required (correct)
+• References correct occupation from session: ICT Business Analyst (261111)
+• Uses user's first name from form Step 1
+• Offers CV upload immediately — before any questions
+• Acknowledges what it already knows
+	
+
+Priority: P0  |  Effort: S  |  Owner: AI prompt engineering
+
+
+3.2  Conversation Flow — All 11 Steps With Example Messages
+The AI follows a fixed sequence. It must not jump steps or ask unrelated questions. Below is every step with the exact topic, what the AI does, and a concrete example of what the AI message should look like.
+
+
+#
+	Topic
+	What AI does + example message
+	1
+	CV upload
+	Offers CV upload. If uploaded: extracts data, confirms findings, proceeds to step 3 (skipping step 2 if name/qualifications found). If declined: proceeds to step 2.
+Example (no CV): 'No problem — let's go through everything together. First, can I confirm your full legal name exactly as it appears on your passport?'
+	2
+	Personal details gap-fill
+	Confirms what it already knows. Asks only for: full legal name as on passport, date of birth (DD/MM/YYYY), country of citizenship, phone number.
+Example: 'I have your first name as Devarshi and your email. I just need your full legal name as it appears on your passport, your date of birth, country of citizenship, and best phone number.'
+	3
+	Employment count
+	Asks how many employers the user has worked for in skilled ICT roles in the past 8 years. This determines how many reference letters are needed and builds the document list.
+Example: 'Let's move to your employment history — this is the most important part of your ACS application. How many employers have you worked for in ICT roles over the past 8 years? Include your current employer if you're still working.'
+	4
+	Employer details (per employer)
+	For each employer (in order, most recent first): company name, job title, employment start date, employment end date (or 'present'), country, full-time or part-time (if part-time: hours per week), whether role was via a recruitment agency.
+Example: 'Starting with your most recent role — what was the company name, your job title, and your start and end dates there? Was this full-time (20+ hours per week)?'
+	5
+	Duty questions (per employer)
+	For each employer, asks the 8 ACS-specific duty elicitation questions listed in Section 04. This step produces the content for the reference letters. It is the most important step — do not rush it or accept vague answers.
+Example: 'Now let's dig into what you actually did at [employer]. ACS assessors need specific, detailed duties — the more concrete you are, the stronger your application. First question: did your role involve gathering requirements from business stakeholders? If yes, describe a specific project — what was the problem, what did you do, and what was the result?'
+	6
+	Qualifications
+	Confirms what it knows from the form (field of study, qualification level). Asks only for: exact full degree title, institution full name, country of study, graduation month and year, whether the degree is an ICT major or minor.
+Example: 'I can see you have a Bachelor's degree in Business Analytics. A few more details: what is the exact full title of your degree as it appears on your certificate? And which university, and when did you graduate?'
+	7
+	Generate Reference Letter #1
+	Generates draft letter for the most recent employer. Triggers screen split. Chat message: 'I've drafted your reference letter for [employer]. Review it on the right — if anything needs adjusting, tell me and I'll update it. When you're happy, click Approve.'
+The letter in the preview panel uses the exact content gathered in steps 4 and 5. See Section 06 for format requirements.
+	8
+	Repeat letters 2–N
+	Repeat step 7 for each remaining employer, in order. One letter at a time. Each follows the same review-approve cycle before moving to the next.
+	9
+	Supporting statement
+	Generates the ACS supporting statement using all collected information. Triggers screen split.
+Chat message: 'Your reference letters are done. I've now drafted your ACS Supporting Statement — this is where you explain in your own words why ICT Business Analyst accurately describes your work and how your qualifications are relevant. Review it on the right.'
+See Section 04 for content requirements.
+	10
+	CPD Log
+	Asks about professional development activities. See Section 3.3 for detail. Generates CPD log document.
+	11
+	Document checklist + completion
+	Generates personalised document checklist. See Section 3.4 for detail. When all documents are approved, AI sends completion message. See Section 3.5 for exact completion message.
+	
+
+AI BEHAVIOUR RULES
+AI behaviour rules — these apply to every step:
+• Never ask two unrelated questions in the same message
+• Never re-ask something already answered
+• If an answer is vague, ask a follow-up before proceeding — do not generate from vague input
+• If user says they don't know, explain why it matters and suggest how to find out
+• Tone: professional, warm, direct. Not robotic. Not overly casual. This is a high-stakes process.
+• If user seems frustrated or overwhelmed, acknowledge it: 'I know this is detailed — it's important because ACS assessors specifically look for this level of specificity.'
+	
+
+3.3  CPD Log — Detail
+CPD stands for Continuing Professional Development. It is a record of activities that demonstrate the applicant keeps their ICT skills current. ACS may request this as part of the assessment. The tool generates it proactively so the user has it ready.
+
+
+WHAT COUNTS AS CPD — AI MUST ASK ABOUT ALL OF THESE
+
+
+* Online courses or certifications completed (e.g. AWS, Google Cloud, Microsoft, Coursera, LinkedIn Learning, Udemy)
+* Industry conferences or webinars attended (in person or online)
+* Professional memberships (e.g. ACS membership, ISACA, PMI, IIBA)
+* Workshops or training programmes attended through an employer
+* Technical books, publications, or industry papers read (if significant)
+* Contributions to professional communities (e.g. Stack Overflow, GitHub, industry forums)
+
+
+CPD LOG FORMAT — WHAT THE GENERATED DOCUMENT MUST CONTAIN
+
+
+Activity / Course name
+	Provider
+	Date completed
+	Relevance to occupation
+	AWS Solutions Architect — Associate
+	Amazon Web Services
+	March 2024
+	Cloud infrastructure knowledge relevant to ICT BA requirements gathering for cloud migration projects
+	Agile Business Analysis (IIBAWebinar)
+	IIBA
+	November 2023
+	Advanced requirements elicitation and stakeholder management techniques for ICT BA role
+	Power BI Desktop — Advanced Analytics
+	Microsoft Learn
+	July 2023
+	Advanced data analysis and visualisation skills directly applied in current ICT BA role
+	
+
+EDGE CASE — NO CPD ACTIVITIES
+If user has no CPD activities: do not skip this document. AI should say: 'Even if you haven't done formal courses, we can still document relevant activities. Have you read any technical documentation, used online platforms like LinkedIn Learning, or attended any work-related events or training in the last 3 years?' If still nothing: generate a minimal CPD log with a note that the applicant is planning to enrol in relevant professional development, and list 2–3 suggested courses relevant to their occupation.
+	
+
+3.4  Document Checklist — What It Must Contain
+The document checklist is the final document in the package. It tells the user everything they need to submit to ACS, in the order they need to submit it. It is personalised based on their occupation, qualification level, and number of employers.
+
+
+CHECKLIST SECTIONS — ALL MUST BE PRESENT
+
+
+* Identity documents: passport bio page, any name change evidence
+* Qualification documents: degree certificate, official academic transcripts (for each qualification)
+* English translations: if any documents are not in English, certified translations required
+* Employment evidence (for each employer): reference letter on official letterhead signed by authorised signatory, plus one form of supporting evidence per employer (payslips, tax records, superannuation statements, or bank statements showing salary deposits)
+* CV/Resume: tailored to ACS requirements
+* CPD Log: the document generated in this tool
+* Supporting Statement: the document generated in this tool
+* ACS application fee: AUD $1,498 — payable at time of submission at acs.org.au
+* Submission format: all documents combined into a single PDF, maximum 3MB, not encrypted or read-only
+
+
+CRITICAL REMINDER — MUST APPEAR ON CHECKLIST
+The checklist must include a prominent reminder about employer signatures: 'Your reference letters must be printed on each employer's official company letterhead and signed by an authorised person (manager, HR, or director) with their name, title, and contact details. imminash has prepared the content — your employer provides the letterhead and signature.'
+	
+
+3.5  Completion Message — Exact Format
+When all documents are approved, the AI sends a final message. This message is important — it sets the user up for their next steps correctly and manages expectations about the employer signature requirement.
+
+
+EXACT MESSAGE — IMPLEMENT THIS
+REQUIRED COMPLETION MESSAGE
+
+
+Your document package is ready, [first_name]. Here's what I've prepared:
+• [N] Employment Reference Letter(s) — one for each of your employers
+• ACS Supporting Statement
+• CPD Log
+• Document Checklist
+
+
+Before you submit to ACS, there's one important step: your reference letters need to be printed on each employer's official company letterhead and signed by an authorised person (your manager, HR, or a company director). The content is done — you just need the signature and letterhead.
+
+
+Your document checklist (included in the download) has the full list of everything ACS needs from you.
+
+
+Click 'Download Package' below to get your files in Word and PDF format.
+
+
+If you'd like a registered migration agent to review your documents before submission, you can add that service below for an additional fee.
+	
+
+________________
+
+
+3.6  Edge Cases — Required AI Behaviour
+The following situations will occur in real usage. The AI must handle all of them. Ignoring these will result in poor user experience or incorrect documents.
+
+
+Edge case
+	Required AI response
+	User has no paid ICT experience
+	AI must say: 'ACS requires paid employment of at least 20 hours per week. Without this, your application may not be eligible under the General Skills pathway. However, if you have 6+ years of ICT experience, the RPL pathway may be available to you. Would you like to discuss this?' Do not proceed with document generation for ineligible applications.
+	User worked part-time (under 20hrs/week)
+	AI must flag: 'ACS will not count employment under 20 hours per week — this period may be assessed as ineligible. I'll include it in your letter but flag this risk clearly. You may want to focus on your full-time experience.'
+	User worked via a recruitment agency
+	AI must note: 'For agency placements, ACS requires the reference letter to come from the host company (the business where you actually worked), not the agency. Make sure you obtain the letter from [host company name], not [agency name].'
+	Employment overlaps (two jobs at same time)
+	AI must explain: 'ACS will only count one period of employment for any overlapping timeframe. For the period [date] to [date] where both roles overlap, only the one more closely aligned to ICT Business Analyst duties will be counted toward your total years.'
+	Graduation date is after employment start
+	AI must flag: 'ACS generally requires work experience to be post-qualification for the General Skills pathway. Your role at [employer] appears to have started before you graduated. This period may be assessed differently — I'll flag this in your supporting statement.'
+	User abandons mid-conversation (returns later)
+	All conversation data must be saved to the user's account. When they return, the AI resumes from where it left off: 'Welcome back, [name]. We were working on your reference letter for [employer]. Let's pick up where we left off.'
+	User says they can't remember specific details
+	AI responds: 'That's okay — let's try to reconstruct it. Do you have any old performance reviews, project documents, or emails that might help? If not, give me your best recollection and I can help frame it appropriately. Even rough details are better than nothing.'
+	User asks a question not related to the document
+	AI responds helpfully but redirects: 'That's a good question — [brief answer]. For now, let's stay focused on getting your documents done. Back to [current step]...'
+	
+
+________________
+
+
+04
+	ACS Assessment Criteria
+Eligibility rules, duty requirements, elicitation questions, and AI system prompt skeleton
+	
+
+4.1  ACS General Eligibility Rules
+The AI must know and apply these rules. When a user's situation violates a rule, the AI must flag it immediately and explain the consequence — not proceed silently.
+
+
+Rule
+	The requirement
+	What AI must say if violated
+	Minimum work hours
+	Must be 20+ hours per week. ACS will reject employment under this threshold.
+	'ACS requires at least 20 hours per week. This period may be assessed as ineligible. I'll flag this in your documents.'
+	Paid employment only
+	Volunteering, thesis research, and unpaid internships do not count.
+	'ACS only counts paid work. This period cannot be included in your application.'
+	Post-qualification experience
+	For General Skills pathway, experience should be after your qualification's completion date.
+	'This experience appears to predate your qualification. ACS may not count it toward your total years.'
+	Experience within 8 years
+	Only experience from the last 8 years counts toward the assessment.
+	'ACS typically only counts experience within the past 8 years. Experience before [8 years ago date] may not be counted.'
+	Overlapping employment
+	If two jobs overlap, only one period counts. ACS counts the most relevant one.
+	'These roles overlap between [dates]. ACS will only count one period — I'll use the role more closely aligned to your nominated occupation.'
+	Agency roles — host company letter
+	Reference letter must come from the host company, not the recruitment agency.
+	'For this role, ACS requires the letter from [host company], not [agency]. Please obtain the letter directly from your workplace.'
+	RPL — experience within 2 years
+	For RPL pathway, most recent ICT experience must be within the last 2 years.
+	'ACS requires your most recent experience to be within the last 2 years for the RPL pathway. Your most recent role appears to be more than 2 years ago — this may affect eligibility.'
+	
+
+4.2  Duty Elicitation Questions — ICT Business Analyst (261111)
+These 8 questions must be asked for every employer. They are occupation-specific and mapped to ACS/SFIA assessment criteria. Different ANZSCO codes require different questions — this section covers 261111 only. When other occupations are added, a similar question set must be developed for each.
+
+
+WHY THESE QUESTIONS — FOR THE CTO
+Why these specific questions: ACS assessors use the SFIA (Skills Framework for the Information Age) to evaluate whether an applicant's duties match their nominated occupation. For ICT Business Analyst (261111), the key SFIA skills are Business Analysis (BUSA), Business Process Re-Engineering (BPRE), Requirements Engineering, and Stakeholder Relationship Management. Each question below is designed to elicit evidence of one or more of these skills.
+	
+
+#
+	Exact question AI must ask
+	SFIA skill it addresses
+	Follow-up if answer is vague
+	1
+	Did your role involve gathering requirements from business stakeholders? If yes, describe a specific project — what was the business problem, what did you do to gather requirements, and what was the output?
+	Business Analysis (BUSA) — core ICT BA duty
+	'Can you be more specific? How did you gather those requirements — interviews, workshops, surveys? What document did you produce at the end?'
+	2
+	Did you produce any formal documents such as Business Requirements Documents (BRDs), Functional Specifications (FSDs), or Use Case documents? Give a specific example of one you created.
+	Requirements Engineering — distinguishes ICT BA from non-ICT analyst
+	'What was the project? Who did you write it for — a developer team, a vendor? How long was the document and what did it contain?'
+	3
+	Did your role involve analysing business processes and recommending improvements or changes? Describe a specific example — what process, what analysis, what recommendation?
+	Business Process Re-Engineering (BPRE)
+	'What tools did you use to map the process? Did you use process flow diagrams, swimlane charts, or similar? What happened as a result of your recommendation?'
+	4
+	Did you work directly with technical teams — developers, architects, or engineers — to translate business requirements into technical solutions? Describe your role in that process.
+	Business-to-technical translation — critical differentiator between ICT BA and non-ICT analyst
+	'What did you actually produce or communicate to the technical team? A specification document, a user story, a technical brief? Give an example.'
+	5
+	Did you use any ICT tools or systems as part of your work? List the tools you used and describe what you specifically did with each one.
+	ICT tool proficiency — demonstrates ICT-level work
+	'For each tool, give me a specific example of a task you completed with it. For example, if you used Power BI — what data did you analyse, what did you build, and who used it?'
+	6
+	Did you manage or contribute to IT project delivery? What was your involvement — scope definition, project planning, stakeholder management, or issue resolution?
+	Project Management/ICT project experience
+	'What was the scale of the project — budget, team size, duration? What was your specific contribution versus the project manager's?'
+	7
+	Were you responsible for testing or quality assurance of any IT systems or software? Describe your involvement.
+	Systems Testing/QA — relevant to ICT BA role
+	'What type of testing — user acceptance testing (UAT), functional testing, regression? What did you document as part of this?'
+	8
+	Did your role involve training or supporting business users on new IT systems or processes? Give an example of a training or change management activity you led or contributed to.
+	Change Management/User Adoption — relevant ICT BA activity
+	'How many users were involved? Did you create any training materials, guides, or documentation for this?'
+	
+
+❌  Non-compliant duty statement (AI must never generate)
+• Worked on computers and helped the team
+• Responsible for analysing business needs
+• Used SQL and Power BI for data work
+• Supported the IT department with various tasks
+• These are vague, non-SFIA aligned, and will be rejected by ACS
+	✅  Compliant duty statement (target output)
+• Conducted requirements elicitation workshops with 12 business stakeholders to document functional and non-functional requirements for a $2M CRM implementation project, producing a 45-page Business Requirements Document
+• Analysed existing procurement processes using swimlane diagrams and identified 3 key inefficiencies, recommending workflow changes that reduced processing time by 30%
+• Developed Power BI dashboards to visualise sales pipeline data for senior management, analysing 500K+ records monthly and presenting insights that informed quarterly strategy decisions
+	
+
+________________
+
+
+4.3  AI System Prompt Skeleton
+The following is a skeleton system prompt that the CTO should use as a starting point for the AI configuration. This is not complete — it must be expanded with the full occupation-specific criteria, the exact question set, and the document templates. It is provided as a structural guide.
+
+
+SYSTEM PROMPT SKELETON — FOR THE CTO
+AI SYSTEM PROMPT SKELETON — starting point only, expand before use
+
+
+You are an ACS skills assessment document preparation assistant for imminash. Your job is to guide [user_first_name] through preparing their complete ACS application document package for [occupation_title] (ANZSCO [anzsco_code]).
+
+
+CONTEXT YOU ALREADY HAVE:
+- Applicant name: [user_first_name]
+- Email: [user_email]
+- Occupation: [occupation_title] (ANZSCO [anzsco_code])
+- Assessing body: [assessing_body]
+- Current job title: [current_job_title]
+- Field of study: [field_of_study]
+- Highest qualification: [highest_qualification]
+- Years of Australian experience: [australian_experience_years]
+- Role description (from assessment form): [roles_and_responsibilities]
+
+
+YOUR RULES:
+1. Never ask for information you already have in the context above
+2. Follow the 11-step conversation sequence exactly — do not skip steps or jump ahead
+3. For duty questions, ask all 8 questions listed below for each employer
+4. Never accept vague answers — always ask follow-up questions until you have specific, SFIA-aligned content
+5. Flag any ACS eligibility issues immediately — see eligibility rules below
+6. Generate documents only when you have sufficient specific content
+7. Never fabricate experience or duties the user has not described
+
+
+ACS ELIGIBILITY RULES: [insert full eligibility rules from Section 4.1]
+
+
+DUTY ELICITATION QUESTIONS FOR [occupation_title]: [insert full question set from Section 4.2]
+
+
+DOCUMENT TEMPLATES: [insert reference letter template, supporting statement structure, CPD log format]
+	
+
+________________
+
+
+05
+	CV Upload Feature
+Optional — how it works, what it extracts, and how to handle different CV quality levels
+	
+
+5.1  CV Upload — Behaviour Specification
+CV upload is offered first, before any questions. It is never required. The tool must produce identical-quality output whether or not a CV is uploaded. The CV is used only to skip questions the AI can answer from the CV — it never replaces the duty elicitation questions.
+
+
+What CV upload extracts
+	What CV upload never replaces
+	• Employer names, job titles, employment dates
+• Full-time vs part-time indicators
+• Qualification names, institutions, graduation years
+• Certifications and professional memberships
+• Potential ACS eligibility flags (e.g. overlapping dates, early career)
+	• The 8 ACS duty elicitation questions — always asked
+• The conversation itself — CV does not skip the chat
+• Vague CV duty descriptions — these are never used verbatim in output documents
+• The supporting statement — always generated from conversation content
+	
+
+CV quality handling — three scenarios
+
+
+CV quality
+	What AI does
+	Example AI message
+	Good CV (detailed, specific ICT duties)
+	Extract all structured data. Confirm with user. Still ask all 8 duty questions per employer — do not assume CV duties are ACS-compliant.
+	'Great CV — I've found 3 roles and your Bachelor's degree. I'll use this as a starting point. I still need to ask you some specific questions about each role so the letters meet ACS standards.'
+	Average CV (basic job descriptions, dates present)
+	Extract structured data (dates, titles, employers). Flag that duty descriptions are not detailed enough for ACS. Ask all 8 duty questions using CV as context.
+	'I've extracted your job history. Your CV descriptions are a good start but ACS needs more detail — let's work through each role together to build stronger duty statements.'
+	Poor CV (vague, irrelevant, or outdated)
+	Extract what is possible. Inform user clearly. Proceed with full question set — do not let poor CV quality degrade the conversation.
+	'Your CV doesn't give me enough detail for ACS requirements — that's fine, it's common. Your answers to my questions matter more than your CV. Let's go through each role together.'
+	
+
+Priority: P1  |  Effort: M  |  Owner: Backend (PDF/doc parsing) + AI prompt
+
+
+________________
+
+
+06
+	Document Output Specifications
+What the user downloads — exact format, naming, content requirements
+	
+
+6.1  Download Package
+When all documents are approved, clicking 'Download Package' produces a single ZIP file. The ZIP contains every document in both Word (.docx) and PDF format, plus the checklist and cover sheet in PDF only.
+
+
+Document
+	Format
+	Filename
+	Reference Letter — [EmployerName] (one per employer)
+	Word + PDF
+	Ref_Letter_[EmployerName]_[FirstName]_[LastName].docx / .pdf
+	ACS Supporting Statement
+	Word + PDF
+	Supporting_Statement_[FirstName]_[LastName].docx / .pdf
+	CPD Log
+	Word + PDF
+	CPD_Log_[FirstName]_[LastName].docx / .pdf
+	Document Checklist
+	PDF only
+	ACS_Checklist_[FirstName]_[LastName].pdf
+	Package Cover Sheet
+	PDF only
+	Package_Summary_[FirstName]_[LastName].pdf
+	
+
+Reference letter — exact structure
+Every reference letter must follow this exact structure. This is what ACS expects to see.
+
+
+Block
+	Content required
+	Header
+	Company name, full address, phone, email — on official letterhead. If imminash generates this as a Word template, the letterhead section is a placeholder the employer fills in when they print on their letterhead.
+	Date
+	Date of signing — left as [Date] placeholder for employer to complete.
+	Salutation
+	'To Whom It May Concern' or 'ACS Migration Skills Assessment Team'
+	Opening paragraph
+	States applicant's full legal name, job title, employment start date, employment end date (or 'to present'), and confirmation of paid full-time employment (stating hours per week, must be 20+).
+	Duties section
+	3–6 bullet points or short paragraphs describing the applicant's actual duties. These must be specific, SFIA-aligned, and generated from the duty elicitation questions. This is the critical section.
+	Closing paragraph
+	Confirms the applicant is a skilled ICT professional and recommends them. States the letter is provided for ACS Migration Skills Assessment purposes.
+	Signature block
+	[Authorised Signatory Full Name], [Job Title], [Company Name], [Date], [Direct phone], [Email]. All left as placeholders for employer to complete.
+	Footer note
+	'This letter has been prepared to support an ACS Migration Skills Assessment application for [occupation_title] (ANZSCO [anzsco_code]).'
+	
+
+Priority: P0  |  Effort: L  |  Owner: Backend (document generation) + Frontend (download)
+
+
+________________
+
+
+07
+	Agent Review — Optional Premium Tier
+How the Studynash agent review workflow operates end to end
+	
+
+7.1  The Two Tiers
+
+
+Standard tier — base product
+	Premium tier — agent review add-on
+	1. AI generates documents
+2. User downloads ZIP package
+3. User takes letters to employers for signature
+4. User submits to ACS independently
+No agent involvement. Price: [set by product].
+	1. AI generates documents (same as standard)
+2. User downloads ZIP
+3. User purchases agent review add-on
+4. Documents sent to Studynash agent via CRM task
+5. Agent reviews within 2 business days
+6. User receives revised documents or approval by email
+7. User proceeds to employer signatures and ACS submission
+	
+
+Agent review — what the Studynash agent actually checks
+This is what the reviewing agent is expected to evaluate. This checklist should be provided to the agent along with the documents.
+
+
+* Do the duty statements in each reference letter align with the ANZSCO occupation description for the nominated code?
+* Are duties specific enough — do they describe concrete tasks, outputs, and outcomes, or are they still vague?
+* Does each letter state hours per week (20+) and confirm paid employment?
+* Does the supporting statement coherently connect qualifications and experience to the nominated occupation?
+* Are there any ACS eligibility issues that have not been flagged (overlapping dates, pre-qualification experience, agency roles)?
+* Is the overall application narrative internally consistent — do the CV, letters, and supporting statement all tell the same story?
+
+
+Agent review — Studynash workflow
+
+
+* When user purchases agent review: system creates a task in Studynash CRM (Odoo) with: user name, occupation, assessing body, document package attached, and a 2-business-day due date
+* Agent receives email notification with task link
+* Agent opens documents, reviews against the checklist above, adds comments in track-changes mode (Word documents)
+* Agent marks task complete in Odoo. System sends user an email with revised documents attached, or an approval confirmation if no changes needed
+* User downloads revised documents from the email link
+
+
+Priority: P2  |  Effort: M  |  Owner: Backend + Studynash Odoo CRM integration
+
+
+________________
+
+
+08
+	Master Change Table
+All changes with priority, effort, and done-when criteria
+	
+
+Change
+	Section
+	Priority
+	Effort
+	Done when
+	Fix wrong occupation loading (261313 → correct code)
+	01 Bugs
+	P0
+	S
+	Workspace loads correct occupation from session. QA with 3 different occupations. Error state shown if params missing.
+	Pre-populate all known data from form + sign-in
+	01 Bugs
+	P0
+	M
+	AI opening message does not ask for name or email. Uses correct occupation. Data table in 1.2 fully implemented.
+	New 3-zone workspace layout (all 4 screen states)
+	02 Layout
+	P0
+	L
+	All 4 screen states work correctly. Mobile layout follows spec. Split animation smooth. Approve button closes preview correctly.
+	Dynamic document list in Zone 1
+	02 Layout
+	P1
+	M
+	List builds as employers named. Dots correct. Download button activates only when all green. Items clickable.
+	Correct personalised opening message
+	03 AI
+	P0
+	S
+	Opening message matches exact format in 3.1. Uses real session data. Never hardcoded.
+	11-step structured conversation flow
+	03 AI
+	P0
+	M
+	AI follows all 11 steps in order. Never skips. Example messages match those in 3.2.
+	CPD log — questions and document generation
+	03 AI
+	P1
+	M
+	AI asks about all CPD categories. Edge case (no CPD) handled correctly. Log matches table format in 3.3.
+	Document checklist generation
+	03 AI
+	P0
+	S
+	Checklist contains all items in 3.4. Employer signature reminder prominent. Personalised by qualification level.
+	Completion message — exact format
+	03 AI
+	P0
+	S
+	Completion message matches format in 3.5. Lists all documents produced. Explains next steps correctly.
+	Edge cases — all 8 handled
+	03 AI
+	P1
+	M
+	All 8 edge cases in 3.6 produce the correct AI response. QA tested for each.
+	ACS eligibility rules — AI flags violations
+	04 ACS
+	P0
+	M
+	All 7 eligibility rules in 4.1 trigger the correct AI flag message when violated.
+	8 duty questions per employer with follow-ups
+	04 ACS
+	P0
+	M
+	All 8 questions asked per employer. Follow-up questions triggered on vague answers. Non-compliant output never generated.
+	System prompt implemented from skeleton in 4.3
+	04 ACS
+	P0
+	M
+	System prompt includes all session variables, eligibility rules, duty questions, and document templates.
+	CV upload with quality handling
+	05 CV
+	P1
+	M
+	All 3 formats accepted. All 3 quality levels handled. Duty questions still asked regardless. No CV = no degraded experience.
+	Download package — Word + PDF, correct naming
+	06 Output
+	P0
+	L
+	ZIP contains all documents in both formats. Naming matches spec. Cover sheet present.
+	Reference letter — exact structure in 6.1
+	06 Output
+	P0
+	M
+	All 8 blocks present in every letter. Signature placeholders correct. Footer note present.
+	Agent review tier — end-to-end workflow
+	07 Agent
+	P2
+	M
+	Purchase flow works. Odoo task created with correct data. Agent email sent. User receives revised docs by email.
+	
+
+END OF BRIEF — Document Generation Tool v2
+
+
+March 2026  |  Prepared by Dev Desai, imminash / Studynash
+
+
+Companion document: imminash_cto_brief_v2.docx (occupation identifier tool changes)
+
+
+Questions: dev@internash.co
+P0 items must all be complete before any P1 work begins.

@@ -1,8 +1,9 @@
 /**
  * POST /api/documents/[assessmentId]/download-all
  *
- * Generate PDF + DOCX for all documents in an assessment and bundle
- * them into a ZIP file. Saves individual files to Supabase Storage. [AC-DD3]
+ * Generate PDF + DOCX for all documents in an assessment, plus a
+ * Package Cover Sheet PDF, and bundle them into a ZIP file.
+ * Saves individual files to Supabase Storage. [AC-DD3]
  */
 
 import { NextRequest, NextResponse } from "next/server";
@@ -10,7 +11,8 @@ import JSZip from "jszip";
 import { createClient } from "@/lib/supabase/server";
 import { generatePdf } from "@/lib/pdf-generator";
 import { generateDocx } from "@/lib/docx-generator";
-import type { Document as DbDocument } from "@/types/database";
+import { generateCoverSheetPdf } from "@/lib/cover-sheet-generator";
+import type { Document as DbDocument, Assessment } from "@/types/database";
 
 export async function POST(
   _request: NextRequest,
@@ -32,10 +34,10 @@ export async function POST(
       );
     }
 
-    // Verify ownership
+    // Verify ownership and load assessment details
     const { data: assessment, error: assessmentError } = await supabase
       .from("assessments")
-      .select("id")
+      .select("*")
       .eq("id", assessmentId)
       .eq("user_id", user.id)
       .single();
@@ -46,6 +48,8 @@ export async function POST(
         { status: 404 },
       );
     }
+
+    const typedAssessment = assessment as Assessment;
 
     // Load all documents
     const { data: documents, error: docError } = await supabase
@@ -62,6 +66,9 @@ export async function POST(
 
     const zip = new JSZip();
 
+    // Collect document names for the cover sheet
+    const documentManifest: Array<{ name: string; type: string }> = [];
+
     // Generate PDF and DOCX for each document and add to ZIP
     for (const doc of documents as DbDocument[]) {
       const content = (doc.content as Record<string, unknown>) || {};
@@ -75,6 +82,11 @@ export async function POST(
       // DOCX
       const docxBuffer = await generateDocx(doc.document_type, docTitle, content);
       zip.file(`${safeName}.docx`, docxBuffer);
+
+      documentManifest.push({
+        name: docTitle.replace(/_/g, " "),
+        type: doc.document_type,
+      });
 
       // Save to Supabase Storage
       const pdfPath = `documents/${user.id}/${assessmentId}/${doc.document_type}-${doc.id}.pdf`;
@@ -108,6 +120,44 @@ export async function POST(
         console.error(`DOCX upload error for ${doc.document_type}:`, docxUpload.error);
       }
     }
+
+    // Extract applicant info from the assessment profile data
+    const profileData = typedAssessment.profile_data || {};
+    const firstName = (profileData.firstName as string) || "Applicant";
+    const lastName = (profileData.lastName as string) || "";
+
+    // Extract occupation info from matched_occupations
+    const matchedOccupations = typedAssessment.matched_occupations || {};
+    const skillsMatches = Array.isArray(
+      (matchedOccupations as Record<string, unknown>).skillsMatches,
+    )
+      ? ((matchedOccupations as Record<string, unknown>).skillsMatches as Array<Record<string, unknown>>)
+      : [];
+    const primaryMatch = skillsMatches[0] || {};
+
+    const occupationTitle = (primaryMatch.title as string) || "Not specified";
+    const anzscoCode = (primaryMatch.anzsco_code as string) || (primaryMatch.anzscoCode as string) || "";
+    const assessingBody = (primaryMatch.assessing_authority as string) || (primaryMatch.assessingAuthority as string) || "";
+
+    // Generate Package Cover Sheet PDF
+    const coverSheetBuffer = await generateCoverSheetPdf({
+      applicantName: `${firstName} ${lastName}`.trim(),
+      occupationTitle,
+      anzscoCode,
+      assessingBody,
+      dateGenerated: new Date().toLocaleDateString("en-AU", {
+        day: "2-digit",
+        month: "long",
+        year: "numeric",
+      }),
+      documents: documentManifest,
+    });
+
+    const coverSheetFileName = `Package_Summary_${firstName}_${lastName}`.replace(
+      /[^a-zA-Z0-9_-]/g,
+      "_",
+    );
+    zip.file(`${coverSheetFileName}.pdf`, coverSheetBuffer);
 
     const zipBuffer = await zip.generateAsync({ type: "nodebuffer" });
 

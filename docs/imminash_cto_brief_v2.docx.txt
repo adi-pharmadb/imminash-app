@@ -1,0 +1,796 @@
+﻿imminash
+Product Improvement Brief
+Occupation Identifier Tool — Full Flow v2
+For: CTO  |  From: Dev Desai  |  March 2026  |  Confidential
+Version 2 — includes flow maps, card mocks, acceptance criteria, data specs, tech notes
+	
+
+READ THIS FIRST
+HOW TO USE THIS DOCUMENT
+
+
+This brief is written for both a human CTO and an AI coding assistant building the imminash product.
+
+
+Read it in order. Each section follows the user journey — form → results → conversion flow.
+Every change includes: (1) what exists today, (2) exactly what to build, (3) acceptance criteria so you know when it is done, and (4) data or tech dependencies where relevant.
+
+
+P0 = must ship before anything else. P1 = next sprint. P2 = enhancement when P0 and P1 are complete.
+Do not start P1 work while P0 items are outstanding.
+	
+
+Complete User Flow — Reference Map
+Before reading any individual change, understand the complete journey a user takes through the product. Every change in this document maps to one of these stages.
+
+
+STAGE 1 — AWARENESS & ENTRY
+
+
+Landing page
+imminash.co
+	Start Free Assessment
+CTA click
+	Form Step 1
+Basics
+	
+
+STAGE 2 — ASSESSMENT FORM (7 STEPS)
+
+
+Step 1
+Name / Age / Visa
+	Step 2
+Education
+	Step 3
+Additional quals
+	Step 4
+Work experience
+	Step 5
+Role description
+	Step 6
+English / points
+	Step 7
+Final details
+	
+
+STAGE 3 — AI PROCESSING
+
+
+Loading screen
+Personalised steps
+	AI matching
+ANZSCO + points
+	Results generated
+3 occupations
+	
+
+STAGE 4 — RESULTS PAGE (FREE, GATED AFTER SIGN-IN)
+
+
+Summary card
+Headline result
+	Points breakdown
+Category bars
+	Occupation cards
+#1 #2 #3
+	State table
+190/491 matrix
+	Dual CTA
+Doc tool + Agent
+	
+
+STAGE 5 — CONVERSION FLOW (PAID)
+
+
+Occupation modal
+Choose occupation
+	Google Sign-In
+OAuth, 1 tap
+	Value page
+What you get + price
+	Payment
+Stripe / gateway
+	Document workspace
+Skill assessment tool
+	
+
+IMPORTANT
+The flow above is the single source of truth for page order. If you are unsure where a new feature sits, map it to one of the 5 stages above before building it.
+	
+
+________________
+
+
+01
+	Form Flow Changes
+Fixes to the 7-step assessment questionnaire
+	
+
+1.1  Step Counter Inconsistency
+CURRENT STATE — THE PROBLEM
+Steps 1–3 display "X of 6" in the top right. Steps 4+ display "X of 7". The total changes mid-flow because Step 3 (Additional Qualifications) is conditionally inserted based on a previous answer. Users notice this and it signals unreliability.
+
+
+❌  Current (broken)
+• Step 1 shows: 1 OF 6
+• Step 2 shows: 2 OF 6
+• Step 3 appears conditionally
+• Step 4 shows: 4 OF 7 ← goalposts moved
+	✅  Required (fixed)
+• Option A: Count from the start including conditional steps. Grey out steps not yet active.
+• Option B: Show only current step number, no total (e.g. "Step 3" not "3 of 7")
+• Choose one approach and apply it consistently across all steps.
+	
+
+ACCEPTANCE CRITERIA
+• The step counter displays the same total number on every step of the form
+• If conditional steps are used, the total either accounts for them from step 1, or no total is shown
+• QA: complete the form selecting both paths (with and without additional qualification) and verify counter never changes total mid-flow
+	
+
+Priority: P0  |  Effort: S  |  Owner: Frontend
+
+
+1.2  Loading Screen — Personalised Sequential Steps
+CURRENT STATE — THE PROBLEM
+All 4 loading steps appear simultaneously as static bullet points with generic copy. This misses an opportunity to build trust and maintain the emotional engagement the user has built up through 7 steps of the form.
+
+
+❌  Current copy (generic, simultaneous)
+• Finding your best occupation matches...
+• Checking which assessing body you need...
+• Calculating your points score...
+• Mapping out your visa options...
+• (all 4 appear at once)
+	✅  Required copy (personalised, sequential)
+• Step 1 (0ms): "Scanning 574 ANZSCO codes for [job title] profiles..."
+• Step 2 (+800ms): "Matching your [field of study] to occupation requirements..."
+• Step 3 (+1600ms): "Calculating points — age [X], [Y] years Australian experience..."
+• Step 4 (+2400ms): "Mapping state nomination eligibility across 8 territories..."
+• (each step appears one at a time, using their actual inputs)
+	
+
+Data inputs required for personalisation
+Loading step
+	Form field to inject
+	Fallback if blank
+	Step 1
+	currentJobTitle
+	your job title
+	Step 2
+	fieldOfStudy
+	your field of study
+	Step 3
+	age + australianExperienceYears
+	your profile
+	Step 4
+	No variable needed
+	static copy
+	
+
+ACCEPTANCE CRITERIA
+• Each loading step appears individually, not all at once
+• Timing: ~800ms between each step reveal
+• Step copy uses real form data — if job title is 'Business Analyst', it shows 'Business Analyst', not a generic placeholder
+• Fallback copy is used if a field is blank — never show undefined or empty brackets
+• The skeleton result cards (blurred placeholder cards) become visible after step 4 completes, before results load
+	
+
+Priority: P1  |  Effort: S  |  Owner: Frontend
+
+
+________________
+
+
+02
+	Results Page — Full Redesign
+Stage 4 of the user journey — where users decide to convert or leave
+	
+
+WHY THIS SECTION MATTERS
+The results page is the most important page in the product. It is the first time the user sees value. It must deliver a clear headline result within 3 seconds, give detailed supporting information for those who want it, and guide the user naturally toward the paid next step. Every change in this section serves one of those three goals.
+	
+
+2.1  Page Header — Personalised Summary Card
+CURRENT STATE — THE PROBLEM
+The results page opens directly with a Points Breakdown table. There is no headline summary. The user has just invested 2+ minutes filling in a form and the first thing they see is a data table — not their answer.
+
+
+REQUIRED — NEW PAGE STRUCTURE (TOP TO BOTTOM)
+
+
+ELEMENT 1 — PERSONALISED HEADLINE
+[FirstName]'s PR Eligibility Report
+Based on official ANZSCO occupation lists, invitation rounds, and DHA points tables.
+	ELEMENT 2 — ONE-SENTENCE RESULT SUMMARY
+You have 90 points, 3 occupation matches, and are eligible in 6 states.  ✓ Above the 65-point threshold.
+	ELEMENT 3 — 4 ANCHOR NAVIGATION BOXES (CLICKABLE, JUMP TO SECTION)
+[ Points Breakdown ]   [ #1 ICT Business Analyst ]   [ #2 Database Admin ]   [ #3 Org & Methods Analyst ]
+	
+
+ACCEPTANCE CRITERIA
+• Summary card is the first visible element on the results page — nothing appears above it
+• Headline uses the user's first name from Step 1 of the form
+• One-sentence result is dynamically generated using: total points, number of occupation matches, number of eligible states
+• Threshold status indicator is green (above) or red (below) based on the user's actual points vs 65
+• Four anchor boxes scroll smoothly to their target section when clicked
+• Anchor box labels use the actual matched occupation names, not placeholder text
+	
+
+Priority: P1  |  Effort: M  |  Owner: Frontend + Backend (points/state count needed)
+
+
+2.2  Remove Employer Sponsored Tab
+CURRENT STATE — THE PROBLEM
+A tab switcher appears on the results page with two options: 'Skills Assessment' and 'Employer Sponsored'. The tool is built for skilled migration (GSM). Showing an employer sponsored tab implies coverage the tool does not yet have, and divides the user's attention at a critical moment.
+
+
+ACTION REQUIRED
+Required change: Remove the Employer Sponsored tab entirely.
+
+
+The tool is scoped to the GSM skills assessment pathway. If employer sponsored pathways are added in future, they should be a separate flow — not a tab on the same results page. Keeping focus makes the product more authoritative and easier to build correctly.
+
+
+Future consideration: if employer sponsored is added later, it should be a separate page or a clearly labelled 'beta' section — not a tab that implies parity with the main tool.
+	
+
+ACCEPTANCE CRITERIA
+• No tab switcher appears on the results page
+• All results shown are skills assessment pathway results only
+• No reference to employer sponsored visa (482/494) anywhere on the results page
+	
+
+Priority: P0  |  Effort: S  |  Owner: Frontend
+
+
+2.3  Rename Section Label
+CURRENT STATE — THE PROBLEM
+The occupation cards section is currently labelled 'Skills Assessment' — which is the name of the process the user is about to undertake, not a description of what this section shows. It is confusing and inaccurate.
+
+
+❌  Current
+• Section header: 'Skills Assessment'
+• This describes a process, not the content of the section
+	✅  Required
+• Section header: 'Recommended Occupations' or 'Your Top Occupation Matches'
+• This accurately describes what the user is about to see
+	
+
+ACCEPTANCE CRITERIA
+• The section containing occupation cards is labelled 'Recommended Occupations' (or agreed equivalent)
+• No other element on the page uses 'Skills Assessment' as a section label (it can still appear within card content where contextually correct)
+	
+
+Priority: P0  |  Effort: S (copy change only)  |  Owner: Frontend
+
+
+2.4  Occupation Card — Full Restructure
+CURRENT STATE — THE PROBLEM
+Each occupation card opens with a 3–4 line AI-generated paragraph. This is information-dense and hard to scan. Users need to identify their pathway in seconds, not read an essay. The key facts (visa pathway, assessing body, list status) are buried below the paragraph rather than leading the card.
+
+
+REQUIRED — NEW OCCUPATION CARD STRUCTURE
+The following is the exact layout required for each occupation card, from top to bottom. Build to this specification.
+
+
+CARD STRUCTURE — READ TOP TO BOTTOM
+	ROW 1 — OCCUPATION IDENTIFIER
+[#1]  ICT Business Analyst   |   ANZSCO 261111   |   [ STRONG MATCH ] (green badge)
+Note: Replace % score with label. Strong Match = dark green. Medium Match = amber. Weak Match = red.
+	ROW 2 — POINTS SIGNAL (PROMINENT, ABOVE THE DATA TILES)
+↑ 15 points above the 189 threshold   (threshold: 95 pts  |  your score: 90 pts)
+Colour: green if above threshold, red if below. This is the most powerful single data point — make it prominent.
+	ROW 3 — 4 DATA TILES (KEEP EXISTING DESIGN)
+[ List Status: MLTSSL ]  [ 189 Min Points: 95 ]  [ Possibility: High ✓ ]  [ State Nomination: 6 states ]
+Fix: Replace N/A with 'Not on 189 list' (red) if occupation is not on the 189 schedule. Never show bare N/A.
+	ROW 4 — SKILL ASSESSING BODY (SINGLE PROMINENT TILE)
+SKILL ASSESSING BODY:  ACS (Australian Computer Society)
+This feeds directly into the paid document tool — make it clearly visible. It must link to the relevant assessing body's website.
+	ROW 5 — WHY THIS OCCUPATION? (BULLET POINTS, NOT A PARAGRAPH)
+Replace the AI paragraph with 3–4 structured bullet points:
+* Your job title (Business Analyst) directly maps to ANZSCO 261111
+* Your Bachelor of Business Analytics is a relevant qualification for ACS assessment
+* Your Power BI and SQL experience aligns with ICT Business Analyst core duties
+AI prompt guidance: generate exactly 3 bullet points. Each must reference a specific detail from the user's form inputs. No generic statements.
+	ROW 6 — RISKS TO BE AWARE OF (EXPLICIT LABEL, NOT HIDDEN WARNING ICONS)
+Rename from generic amber warning triangles to an explicit 'Risks to be aware of' heading.
+* Your duties lean toward data/BI tools rather than full ICT system requirements gathering
+This is your most differentiated feature — no other tool tells users where they might fail. Lean into it. Label it clearly.
+	ROW 7 — PATHWAY SIGNALS (KEEP EXISTING)
+Keep the existing pathway signals section as-is. The copy and formatting work well.
+	ROW 8 — STATE & TERRITORY NOMINATION TABLE (KEEP EXISTING)
+Keep the existing 190/491 × state matrix. It is excellent and unique. See Section 3.3 for the 'Best state for you' addition above this table.
+	
+
+ACCEPTANCE CRITERIA
+• Card opens with occupation name, ANZSCO code, and match label (not percentage)
+• Points signal is the second visible element, in green (above threshold) or red (below)
+• N/A never appears in the 189 Min Points tile — replaced with 'Not on 189 list' or 'Data pending'
+• 'Why this occupation?' section contains bullet points referencing specific user inputs, not a paragraph
+• 'Risks to be aware of' is an explicit section heading — not icon-only warning flags
+• All 8 rows appear in the order specified above
+	
+
+Priority: P1  |  Effort: M  |  Owner: Frontend + AI prompt engineering
+
+
+________________
+
+
+2.5  Sticky CTA Replacement — Contextual Dual CTA
+CURRENT STATE — THE PROBLEM
+'Start Your Skill Assessment' is pinned permanently to the bottom of the screen from the moment the results page loads. It appears while the user is still reading and competes with the content on every scroll position. A user who has just started reading their first occupation card is not ready to act — showing the CTA here creates pressure, not conversion.
+
+
+REQUIRED — CONTEXTUAL CTA STRATEGY
+
+
+CTA BEHAVIOUR RULES
+	Rule 1 — Hide CTA during reading
+Do not show any sticky CTA while the user is scrolling through the points breakdown and occupation cards.
+Rule 2 — Trigger CTA after reading
+Detect when the user has scrolled past the bottom of the third occupation card. At that scroll depth — and only at that scroll depth — display the dual CTA section.
+Rule 3 — Two options, not one
+Display two side-by-side CTAs: a primary (paid document tool) and a secondary (free Studynash agent call). The secondary is the lead generation mechanism for Studynash.
+	
+
+CONTEXTUAL SECONDARY CTA COPY — VARIES BY TOP MATCH POSSIBILITY
+
+
+Top match result
+	Primary CTA (same always)
+	Secondary CTA copy (changes)
+	High possibility
+	Prepare my skill assessment documents →
+	You're in a strong position — book a free call to plan your next steps
+	Medium possibility
+	Prepare my skill assessment documents →
+	Your pathway has complexity — a migration agent can significantly improve your chances
+	Low possibility
+	Prepare my skill assessment documents →
+	Your situation may need a different strategy — speak to our agents for a personalised plan
+	
+
+FOR THE CTO
+TECH NOTE — Scroll depth detection
+Use an IntersectionObserver on the last occupation card container. When the bottom of that element enters the viewport, trigger the CTA display.
+Example: const observer = new IntersectionObserver(([entry]) => { if (entry.isIntersecting) showDualCTA(); }, { threshold: 1.0 });
+observer.observe(document.querySelector('#occupation-card-3'));
+	
+
+FOR THE CTO — STUDYNASH INTEGRATION
+LEAD GEN NOTE — Secondary CTA behaviour
+When user clicks 'Speak to a migration agent': (1) open a Calendly booking link or WhatsApp chat (configure URL in env var), (2) simultaneously fire a CRM event capturing the user's name, email (if available), occupation match, and points score as a warm lead in the Studynash pipeline.
+Every user who clicks this CTA should appear in the Odoo pipeline as a New Lead with source = 'imminash results page'.
+	
+
+ACCEPTANCE CRITERIA
+• No sticky CTA is visible while user is scrolling through points breakdown or occupation cards
+• Dual CTA section appears after user scrolls past bottom of occupation card #3
+• Primary CTA is always 'Prepare my skill assessment documents'
+• Secondary CTA copy matches the user's top match possibility (High / Medium / Low)
+• Secondary CTA click fires a CRM lead event before opening booking link
+	
+
+Priority: P0  |  Effort: M  |  Owner: Frontend + CRM integration
+
+
+________________
+
+
+03
+	Enhanced Features — Results Page
+P1 and P2 additions that deepen engagement and build defensibility
+	
+
+3.1  Points Gap Analysis — 'How to Improve Your Score'
+This is one of the most useful features you can add. Most users are not at maximum points. Showing them exactly what is available — ranked by impact — turns a static report into an actionable roadmap. It is also highly shareable.
+
+
+REQUIRED — PLACEMENT AND LOGIC
+
+
+* Place directly below the points breakdown table
+* Section heading: 'How to improve your score'
+* Only show point categories where the user scored below maximum
+* Sort by points available descending — biggest wins first
+* Each row: category name, points available, how to get them, timeframe
+
+
+Opportunity
+	Points available
+	How to get them
+	Timeframe
+	Australian work experience
+	+ 15 pts
+	Accumulate 3+ additional years of skilled work in Australia
+	6–12 months
+	Offshore experience
+	+ 5 pts
+	Document prior skilled work experience outside Australia
+	Achievable now
+	NAATI CCL
+	+ 5 pts
+	Complete the NAATI Community Language Credential test
+	3–6 months
+	Regional study bonus
+	+ 5 pts
+	Nominate a regional state or study/work regionally
+	Long-term
+	
+
+FOR THE CTO
+DATA DEPENDENCY
+This feature requires the backend to calculate available points per category as part of the results generation. The gap analysis table is derived from: max_points_per_category (static, from DHA table) minus user_points_per_category (calculated from form inputs).
+No new AI call is needed — this is pure arithmetic on existing data.
+	
+
+Priority: P1  |  Effort: M  |  Owner: Backend + Frontend
+
+
+3.2  Invitation Round Trend per Occupation
+Currently the tool shows 'last invited at 95 points' as a single static data point. This is useful but incomplete — it doesn't tell the user whether getting in is becoming easier or harder over time. A trend indicator transforms this from a snapshot into a signal.
+
+
+REQUIRED DISPLAY FORMAT
+
+
+* Show last 3 invitation rounds for each occupation (189 schedule)
+* Format: 'Recent 189 invitations: 95 pts → 95 pts → 90 pts'
+* Trend arrow: green ↓ if cutoff is falling (easier to get in), red ↑ if rising (harder)
+* Implementation: CSS-only mini bars or plain text — no chart library needed
+
+
+FOR THE CTO — DATA REQUIREMENT
+DATA DEPENDENCY
+Requires a database table of historical invitation rounds per ANZSCO occupation code. Minimum fields: anzsco_code, round_date, points_cutoff, visa_subclass.
+Source: DHA publishes invitation round data at homeaffairs.gov.au. This must be manually updated after each round or scraped via a scheduled job.
+Fallback: if fewer than 3 rounds of data exist for an occupation, show whatever is available with a note: 'Limited invitation history for this occupation'.
+	
+
+Priority: P2  |  Effort: M  |  Owner: Backend (data) + Frontend (display)
+
+
+3.3  State Recommendation Engine
+The state/territory table already shows which states nominate each occupation. The missing step is telling the user which state is actually best for them, given their specific points score and occupation. This is a high-value insight that no other free tool provides.
+
+
+REQUIRED — 'BEST STATE FOR YOU' RECOMMENDATION
+
+
+* Position: directly above the state/territory nomination table
+* Logic: find the state with the lowest current 190 nomination threshold that the user's points score already meets, for their matched occupation
+* Output example: "Based on your 90 points and ICT Business Analyst occupation, South Australia is currently your strongest nomination option — their 190 threshold is 85 points and your occupation is on their priority list."
+* Highlight the recommended state in the table with a distinct indicator (star, bold, or colour)
+
+
+FOR THE CTO — DATA REQUIREMENT
+DATA DEPENDENCY
+Requires a database table of current state nomination thresholds per occupation per visa subclass. Fields: state, anzsco_code, visa_subclass (190/491), current_points_threshold, is_occupation_on_priority_list, last_updated.
+This data must be updated when states publish new nomination criteria — typically at the start of each migration program year.
+Fallback: if threshold data is not available for a state, exclude it from the recommendation and note 'Threshold data pending' in the state table.
+	
+
+Priority: P1  |  Effort: M  |  Owner: Backend (data) + Frontend
+
+
+3.4  Re-Assessment Trigger & Reminder Email
+Immigration journeys span years. A user who checks today may have materially different circumstances in 3–6 months — their visa may be expiring, they may be finishing a degree, or they may be expecting a promotion. Capturing a trigger date and sending a reminder at that point keeps users in the imminash ecosystem and creates a natural re-engagement moment for Studynash.
+
+
+REQUIRED — TRIGGER CAPTURE UI (APPEARS AFTER DUAL CTA SECTION)
+
+
+* Heading: 'When does your situation next change?'
+* Present three options as selectable cards:
+* My visa expires on [date picker] — remind me 90 days before
+* I am completing my studies in [month/year picker] — remind me then
+* I am expecting a promotion or role change in [X months selector]
+* On selection: capture user email (if not already captured) and the trigger date
+* Email sent at trigger date: personalised, links back to imminash with pre-filled form option
+
+
+FOR THE CTO
+DATA DEPENDENCY & TECH NOTE
+Requires: (1) email capture field if user has not signed in yet, (2) a scheduled job or email automation (e.g. Mailchimp, SendGrid, or similar) that fires at the trigger date.
+CRM note: each trigger capture should also create or update a Studynash CRM record with the trigger date — this feeds a long-term nurture sequence.
+	
+
+Priority: P2  |  Effort: L  |  Owner: Backend + Email automation
+
+
+________________
+
+
+04
+	Occupation Selection & Payment Flow
+Stage 5 — the critical path from free tool to paid product
+	
+
+4.1  Occupation Selection Modal — Show All 3 with Availability State
+CURRENT STATE — THE PROBLEM
+The modal currently shows only 2 of 3 occupation matches, because the document tool is currently scoped to ACS-assessed occupations only. The third occupation (VETASSESS-assessed) is silently dropped. Users who saw 3 occupations on the results page are now confused to see only 2 in the modal — they do not know why.
+
+
+❌  Current (silent drop)
+• Modal shows: ICT Business Analyst (ACS) ← visible
+• Modal shows: Database Administrator (ACS) ← visible
+• Organisation & Methods Analyst (VETASSESS) ← missing, no explanation
+	✅  Required (transparent availability)
+• ICT Business Analyst (ACS) ← selectable
+• Database Administrator (ACS) ← selectable
+• Organisation & Methods Analyst (VETASSESS) ← greyed out with label: 'Coming soon — VETASSESS support being added'
+• Pre-selected option has nudge: 'Recommended based on your profile'
+	
+
+ACCEPTANCE CRITERIA
+• All 3 matched occupations appear in the modal, regardless of assessing body support status
+• Unsupported assessing body occupations are visually greyed out (opacity 0.5) with a 'Coming soon' label
+• The occupation with the highest match score is pre-selected by default
+• Pre-selected occupation shows 'Recommended based on your profile' text
+• 'Continue with this occupation' button is only active when a supported occupation is selected
+	
+
+Priority: P1  |  Effort: S  |  Owner: Frontend
+
+
+4.2  Replace Magic Link with Google Sign-In
+CURRENT STATE — THE PROBLEM
+After selecting an occupation, the user is shown a 'Sign in to continue' modal that sends a magic link to their email. To proceed, the user must: close the modal, open their email app, find the email, click the link, and return to the product. On mobile this typically takes 2–5 minutes and requires switching apps. At the highest-intent moment in the flow, this is a conversion killer.
+
+
+REQUIRED — SIGN-IN HIERARCHY
+
+
+Order
+	Method
+	Notes
+	1 — Primary
+	Continue with Google
+	Large button, top of modal. One tap, stays in browser, no context switch. OAuth 2.0 via Google Identity Services.
+	2 — Secondary
+	Continue with Apple
+	Show if user is on Safari / iOS. Apple Sign In is required by App Store rules if you add a native app.
+	3 — Tertiary
+	Sign in with email
+	Collapsed by default behind a 'More options' link. Expands to magic link flow. Not the default path.
+	Not recommended
+	Phone OTP
+	Do not use as primary. Adds friction. Capture phone number later in the document workspace instead.
+	
+
+FOR THE CTO
+TECH NOTE — Google OAuth implementation
+Use Google Identity Services (GIS) library: accounts.google.com/gsi/client
+Scopes needed: openid, email, profile
+On successful sign-in: receive Google ID token → verify on backend → create or retrieve user record → return session token
+Docs: developers.google.com/identity/gsi/web/guides/overview
+The user's Google profile name and email should pre-populate any subsequent forms in the document workspace.
+	
+
+ACCEPTANCE CRITERIA
+• 'Continue with Google' is the first and most prominent sign-in option
+• Google Sign-In completes without leaving the page (no redirect to email)
+• Magic link flow is still accessible but not the default path
+• After sign-in, user's name and email are persisted to session and used in the value page
+	
+
+Priority: P0  |  Effort: M  |  Owner: Backend + Frontend (auth)
+
+
+4.3  Value Page — What You Get Before You Pay
+CURRENT STATE — THE PROBLEM
+After sign-in, the user is taken directly to the document workspace with no intermediate context. They do not know what they are paying for, what the price is, or what a completed document looks like. This is asking for money without making the case for it.
+
+
+REQUIRED — VALUE PAGE STRUCTURE (EXACT LAYOUT)
+
+
+
+
+VALUE PAGE ELEMENT MAP — BUILD IN THIS ORDER
+	
+
+1
+	Personalised headline
+	"Your ACS Skills Assessment Document Package for ICT Business Analyst"  — uses the occupation selected in the modal. Sub-headline: "We'll prepare your documents to ACS standards, personalised to your background."
+	2
+	What you get — explicit deliverables checklist
+	List every deliverable. Users need to know exactly what they are buying. See deliverables list below.
+	3
+	Sample output
+	Show a blurred or watermarked example of a completed employment reference letter and supporting statement. Make it real — generic placeholder screenshots destroy trust.
+	4
+	Social proof
+	'X applicants have successfully submitted their ACS assessment using this package.' Use real numbers only.
+	5
+	Price — clearly stated
+	No buried pricing. Show the price prominently before the CTA. Include any available guarantee.
+	6
+	Guarantee statement
+	e.g. 'If your skills assessment is refused on documentation quality grounds, we will revise at no charge.' This dramatically lowers perceived risk.
+	7
+	Single CTA
+	One button: 'Get my documents — $[price]'. No other links or navigation. This page has one job.
+	Deliverables checklist (Element 2 — complete list)
+* Personalised employment reference letter template (formatted to ACS requirements)
+* Skills assessment supporting statement — written to ACS assessment criteria for the selected occupation
+* Document checklist specific to your occupation and assessing body
+* Reviewer notes — flags the areas ACS assessors are most likely to scrutinise for your occupation, and how to address them
+* Unlimited revisions within [X days] of delivery
+
+
+ACCEPTANCE CRITERIA
+• Value page appears between sign-in completion and payment
+• Headline references the specific occupation the user selected (not generic copy)
+• All 7 elements are present in the order specified
+• Price is clearly visible without scrolling on desktop
+• Only one CTA button exists on the page
+• Clicking CTA proceeds to payment — not another intermediate screen
+	Priority: P0  |  Effort: L  |  Owner: Frontend + Product copy
+________________
+05
+	Why We Are Building in This Order
+Strategic context for prioritisation decisions
+	
+
+This section exists so the CTO understands the business rationale behind each priority tier. Build order is not arbitrary — it follows the user's critical path and the product's conversion funnel.
+
+
+P0 — Fix the Leaks First
+P0 items are changes where the current product is actively losing users or revenue. They are not enhancements — they are repairs.
+
+
+* The magic link sign-in is losing users at the highest-intent moment in the flow. This is a direct revenue leak.
+* The sticky CTA is creating pressure during reading, which reduces trust. Trust is what converts users to pay.
+* N/A in data tiles and the missing employer sponsored removal both signal that the product is unfinished — users who see these signals are less likely to pay for the document tool.
+* The value page gap means users are being asked to pay with no context. This is the most direct barrier to revenue.
+Ship all P0 items before adding any new features.
+
+
+P1 — Deepen the Value Proposition
+P1 items make the product meaningfully better than anything else in the market. They are features users will talk about.
+
+
+* The personalised summary card and occupation card restructure make the results page scannable in under 10 seconds. Speed of comprehension is directly correlated with conversion.
+* The points gap analysis is the feature most likely to be shared on WhatsApp and Reddit by international student communities. Shareability drives organic acquisition.
+* The state recommendation engine is unique — no other tool tells users which specific state is best for them. This creates genuine, defensible differentiation.
+
+
+P2 — Build the Moat
+P2 items are what makes this product hard to copy over time. They require data and infrastructure that a competitor starting today cannot replicate.
+
+
+* Invitation round trend data requires a historical database that takes time to build. Starting now means a 12-month head start over any competitor.
+* Re-assessment reminders create a long-term relationship with users — this is the beginning of a CRM-driven retention strategy for both imminash and Studynash.
+
+
+The Studynash Connection
+imminash is not just a standalone product — it is a lead generation and trust-building machine for Studynash. Every design decision should be evaluated through this lens:
+
+
+* The secondary CTA on the results page feeds warm, pre-qualified leads directly into the Studynash pipeline
+* Users who book a call have already seen their points score, matched occupations, and risk flags — they arrive at the call informed, which means the consultation is higher quality and conversion to paid Studynash services is higher
+* The document tool itself (the skill assessment workspace) is the bridge — users who pay for documents have already self-identified as serious PR applicants. They are the highest-value potential clients for Studynash's full service offering.
+
+
+________________
+
+
+06
+	Master Change Table
+All 18 changes with priority, effort, and done-when criteria
+	
+
+Hand this table to engineering as the canonical backlog. Every row has a 'Done when' definition — use this for QA sign-off.
+
+
+Change
+	Section
+	Priority
+	Effort
+	Done when...
+	Fix step counter (6 vs 7)
+	01 Form
+	P0
+	S
+	Counter shows same total on every step. QA both form paths.
+	Remove Employer Sponsored tab
+	02 Results
+	P0
+	S
+	No tab switcher visible on results page. No employer sponsored content anywhere.
+	Rename to Recommended Occupations
+	02 Results
+	P0
+	S
+	Section label reads 'Recommended Occupations'. No other label used.
+	Fix N/A → 'Not on 189 list'
+	02 Results
+	P0
+	S
+	No bare N/A anywhere. Clear label for ineligible and data-pending states.
+	Replace % with Strong/Medium/Weak
+	02 Results
+	P0
+	S
+	All occupation cards use label, not percentage. Colour coding correct.
+	Remove sticky CTA, add contextual dual CTA
+	02 Results
+	P0
+	M
+	CTA not visible during reading. Appears after card #3. Two options shown. Secondary copy matches possibility level.
+	Replace magic link with Google Sign-In
+	04 Conversion
+	P0
+	M
+	'Continue with Google' is primary option. Sign-in completes without leaving page. Magic link still available as fallback.
+	Insert value page before payment
+	04 Conversion
+	P0
+	L
+	Value page appears after sign-in. All 7 elements present. Price visible. Single CTA only.
+	Personalised summary card at results top
+	02 Results
+	P1
+	M
+	Summary card is first element. Uses first name, points, matches, states. Anchor boxes work.
+	Occupation card full restructure
+	02 Results
+	P1
+	M
+	All 8 rows present in specified order. Bullet points not paragraph. Risks section labelled explicitly.
+	Personalised sequential loading screen
+	01 Form
+	P1
+	S
+	Steps reveal one at a time. Copy uses real form inputs. Fallback copy used if field is blank.
+	Dual CTA + Studynash lead gen
+	02 Results
+	P1
+	M
+	Secondary CTA click fires CRM event. Lead appears in Odoo/CRM with source tag.
+	Show all 3 occupations in modal
+	04 Conversion
+	P1
+	S
+	All 3 shown. Unsupported ones greyed out with 'Coming soon' label. Recommended nudge on pre-selected.
+	Points gap analysis
+	03 Enhanced
+	P1
+	M
+	Table shows only unclaimed categories. Sorted by points descending. Timeframe labels correct.
+	State recommendation engine
+	03 Enhanced
+	P1
+	M
+	'Best state for you' sentence appears above state table. Recommended state highlighted in table.
+	Invitation round trend
+	03 Enhanced
+	P2
+	M
+	Last 3 rounds shown per occupation. Trend direction indicated. Fallback shown if <3 rounds exist.
+	Re-assessment trigger & reminder email
+	03 Enhanced
+	P2
+	L
+	Three trigger options shown. Email + date captured. Reminder email fires at trigger date.
+	Social proof on results page
+	03 Enhanced
+	P2
+	S
+	Contextualised social proof copy appears at 3 specified positions. Real numbers only.
+	
+
+END OF BRIEF
+
+
+Version 2 — March 2026
+Prepared by Dev Desai, imminash / Studynash
+
+
+Questions or clarifications: devarshi@internash.co
+Do not begin P1 work while any P0 item is outstanding.
+This document supersedes Version 1.

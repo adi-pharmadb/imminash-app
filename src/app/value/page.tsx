@@ -275,12 +275,54 @@ export default function ValuePage() {
             style={{ color: "oklch(0.72 0.17 155)" }}
           />
           <p className="text-xs text-muted-foreground">
-            Trusted by applicants across 50+ occupations
+            Based on official ANZSCO occupation lists and DHA points tables
           </p>
         </div>
 
-        {/* Primary CTA */}
+        {/* Quality Guarantee */}
         <div className="mt-8 animate-reveal-up delay-300">
+          <div className="glass-card rounded-2xl p-5 flex items-start gap-4">
+            <div
+              className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl"
+              style={{ background: "oklch(0.72 0.17 155 / 0.12)" }}
+            >
+              <ShieldCheck
+                className="h-5 w-5"
+                style={{ color: "oklch(0.72 0.17 155)" }}
+              />
+            </div>
+            <div className="space-y-1">
+              <h3 className="text-sm font-semibold text-foreground">
+                Quality Guarantee
+              </h3>
+              <p className="text-sm text-muted-foreground leading-relaxed">
+                If your skills assessment is refused on documentation quality grounds, we will revise at no charge.
+              </p>
+            </div>
+          </div>
+        </div>
+
+        {/* Price display */}
+        <div className="mt-8 flex items-center justify-center gap-3 animate-reveal-up delay-300">
+          <span
+            className="text-lg text-muted-foreground line-through"
+            aria-label="Original price"
+          >
+            $199 AUD
+          </span>
+          <span
+            className="rounded-full px-3 py-1 text-xs font-bold uppercase tracking-wide"
+            style={{
+              background: "oklch(0.72 0.17 155 / 0.15)",
+              color: "oklch(0.72 0.17 155)",
+            }}
+          >
+            Free during beta
+          </span>
+        </div>
+
+        {/* Primary CTA */}
+        <div className="mt-6 animate-reveal-up delay-300">
           <button
             onClick={() => router.push("/workspace")}
             className="glow-primary group flex w-full items-center justify-center gap-2 rounded-2xl bg-primary py-5 text-lg font-semibold text-primary-foreground transition-all duration-300 hover:scale-[1.01] active:scale-[0.99]"
@@ -290,7 +332,7 @@ export default function ValuePage() {
             <ArrowRight className="h-5 w-5 transition-transform group-hover:translate-x-1" />
           </button>
           <p className="mt-3 text-center text-xs text-muted-foreground">
-            Free during beta. No credit card required.
+            No credit card required.
           </p>
         </div>
 

@@ -244,7 +244,7 @@ export default function ResultsPage() {
 
         {/* Social proof position 1: below summary card */}
         <p className="text-xs text-muted-foreground text-center animate-reveal-up delay-100">
-          Join thousands of skilled professionals who have assessed their PR eligibility with imminash.
+          Based on official ANZSCO occupation lists, invitation rounds, and DHA points tables.
         </p>
 
         {/* Points breakdown */}
@@ -276,7 +276,7 @@ export default function ResultsPage() {
 
         {/* Social proof position 2: above occupation cards */}
         <p className="text-xs text-muted-foreground text-center animate-reveal-up delay-200">
-          Trusted by applicants across 50+ occupations and all 8 Australian states and territories.
+          Covering 574 ANZSCO codes across all 8 Australian states and territories.
         </p>
 
         {/* Recommended Occupations */}

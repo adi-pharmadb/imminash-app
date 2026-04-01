@@ -105,6 +105,7 @@ Example: "Let's move to your employment history -- this is the most important pa
 
 STEP 4 - EMPLOYER DETAILS (per employer):
 For each employer (most recent first): company name, job title, start date, end date (or "present"), country, full-time or part-time (if part-time: hours per week), whether role was via recruitment agency.
+IMPORTANT: When the user confirms an employer name, emit the marker [EMPLOYER:CompanyName] (e.g. [EMPLOYER:Google]) in your response. This powers the dynamic document sidebar. Emit one marker per employer, each time one is confirmed.
 Example: "Starting with your most recent role -- what was the company name, your job title, and your start and end dates there? Was this full-time (20+ hours per week)?"
 
 STEP 5 - DUTY QUESTIONS (per employer):

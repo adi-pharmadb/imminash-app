@@ -13,6 +13,10 @@
  * - All Complete: download button active in Zone 1
  *
  * Mobile: Zone 1 collapses to hamburger, Zone 3 opens as fullscreen modal.
+ *
+ * Dynamic sidebar: employer names are extracted from conversation messages
+ * and used to replace the generic "Reference Letter(s)" entry with
+ * individual "Ref Letter -- [Employer]" entries.
  */
 
 import { useState, useCallback, useMemo, useRef } from "react";
@@ -28,6 +32,7 @@ import {
 import { isACSBody, formatDocumentType } from "@/lib/workspace-helpers";
 import type { ChatMessage } from "@/lib/workspace-helpers";
 import type { DocumentUpdate, ACSFormUpdate } from "@/lib/duty-alignment";
+import { extractEmployersFromMessages } from "@/lib/duty-alignment";
 import type { Document as DbDocument, AssessingBodyRequirement } from "@/types/database";
 import type { ACSApplicationData, ACSSection } from "@/types/acs-application";
 import { createEmptyACSApplication } from "@/types/acs-application";
@@ -44,6 +49,19 @@ interface WorkspaceLayoutProps {
   initialACSData?: ACSApplicationData;
   onMessagesChange?: (messages: ChatMessage[]) => void;
 }
+
+/**
+ * Default sidebar items shown before any employers are discovered.
+ * "Reference Letter(s) (number TBC)" is the placeholder that gets
+ * replaced once employer names are collected from the conversation.
+ */
+const DEFAULT_NON_REF_DOCS = [
+  "Supporting Statement",
+  "CPD Log",
+  "Document Checklist",
+];
+
+const REF_LETTER_PLACEHOLDER = "Reference Letter(s) (number TBC)";
 
 export function WorkspaceLayout({
   initialMessages,
@@ -76,8 +94,94 @@ export function WorkspaceLayout({
   );
   const [highlightedSection, setHighlightedSection] = useState<ACSSection | null>(null);
 
-  // Derive sidebar document list from documentTabs + actual documents
+  // Extract employer names from conversation messages
+  const employerNames = useMemo(() => {
+    return extractEmployersFromMessages(messages);
+  }, [messages]);
+
+  /**
+   * Build the dynamic sidebar document list.
+   * - If no employers discovered yet, show the placeholder "Reference Letter(s) (number TBC)"
+   * - Once employers appear, replace with individual "Ref Letter -- [Employer]" entries
+   * - Always include Supporting Statement, CPD Log, Document Checklist
+   */
   const sidebarDocs: SidebarDocument[] = useMemo(() => {
+    const items: SidebarDocument[] = [];
+
+    // Reference letter entries
+    if (employerNames.length === 0) {
+      // No employers yet -- show placeholder
+      const docType = "reference_letters_tbc";
+      items.push({
+        id: `pending-${docType}`,
+        label: REF_LETTER_PLACEHOLDER,
+        type: docType,
+        status: "not_started",
+      });
+    } else {
+      // Individual reference letter per employer
+      for (const employer of employerNames) {
+        const slug = employer
+          .toLowerCase()
+          .replace(/[^a-z0-9]+/g, "_")
+          .replace(/^_|_$/g, "");
+        const docType = `reference_letter_${slug}`;
+
+        const matchedDoc = documents.find(
+          (d) => d.document_type === docType,
+        );
+
+        let status: DocumentStatus = "not_started";
+        if (approvedDocTypes.has(docType)) {
+          status = "approved";
+        } else if (matchedDoc?.content) {
+          status = "in_progress";
+        }
+
+        items.push({
+          id: matchedDoc?.id || `pending-${docType}`,
+          label: `Ref Letter -- ${employer}`,
+          type: docType,
+          status,
+        });
+      }
+    }
+
+    // Non-reference documents
+    for (const label of DEFAULT_NON_REF_DOCS) {
+      const docType = label
+        .toLowerCase()
+        .replace(/[\s/]+/g, "_")
+        .replace(/[()]/g, "");
+
+      const matchedDoc = documents.find((d) => {
+        const dt = d.document_type.toLowerCase();
+        return dt === docType || dt.includes(docType.split("_")[0]);
+      });
+
+      let status: DocumentStatus = "not_started";
+      if (approvedDocTypes.has(docType)) {
+        status = "approved";
+      } else if (matchedDoc?.content) {
+        status = "in_progress";
+      }
+
+      items.push({
+        id: matchedDoc?.id || `pending-${docType}`,
+        label,
+        type: docType,
+        status,
+      });
+    }
+
+    return items;
+  }, [employerNames, documents, approvedDocTypes]);
+
+  /**
+   * For ACS bodies, fall back to the original tab-based sidebar logic
+   * since ACS has its own form-based flow.
+   */
+  const acsSidebarDocs: SidebarDocument[] = useMemo(() => {
     return documentTabs.map((tab) => {
       const docType = tab
         .toLowerCase()
@@ -105,7 +209,11 @@ export function WorkspaceLayout({
     });
   }, [documentTabs, documents, approvedDocTypes]);
 
-  const allComplete = sidebarDocs.length > 0 && sidebarDocs.every((d) => d.status === "approved");
+  const activeSidebarDocs = isACS ? acsSidebarDocs : sidebarDocs;
+
+  const allComplete =
+    activeSidebarDocs.length > 0 &&
+    activeSidebarDocs.every((d) => d.status === "approved");
   const hasDocuments = documents.some((d) => d.content !== null);
 
   const handleMessagesChange = useCallback(
@@ -240,9 +348,6 @@ export function WorkspaceLayout({
       return next;
     });
 
-    // Mark the sidebar doc as approved by updating its status via a state bump
-    // The sidebar derives status from documents, so we need to signal "approved"
-    // We'll store approved doc types in a set
     setApprovedDocTypes((prev) => new Set([...prev, previewDocType]));
     setPreviewOpen(false);
     setPreviewDocType(null);
@@ -293,11 +398,11 @@ export function WorkspaceLayout({
         occupationTitle={occupationTitle}
         anzscoCode={anzscoCode}
         assessingAuthority={assessingAuthority}
-        documents={sidebarDocs}
+        documents={activeSidebarDocs}
         onDocumentClick={handleDocumentClick}
         onDownloadAll={handleDownloadAll}
         isDownloading={isDownloadingAll}
-        allComplete={allComplete || hasDocuments}
+        allComplete={allComplete}
       />
 
       {/* Zone 2: Chat panel (takes remaining width, or splits with Zone 3) */}
