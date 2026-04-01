@@ -118,6 +118,20 @@ export interface Conversation {
   updated_at: string;
 }
 
+export interface Payment {
+  id: string;
+  user_id: string;
+  stripe_checkout_session_id: string | null;
+  stripe_payment_intent_id: string | null;
+  amount_cents: number;
+  currency: string;
+  status: string;
+  assessment_id: string | null;
+  metadata: Record<string, unknown>;
+  created_at: string;
+  updated_at: string;
+}
+
 /**
  * Supabase-compatible database type definition.
  * Maps table names to their Row, Insert, and Update types.
@@ -174,6 +188,11 @@ export interface Database {
         Row: Conversation;
         Insert: Omit<Conversation, 'id' | 'created_at' | 'updated_at'> & { id?: string; created_at?: string; updated_at?: string };
         Update: Partial<Omit<Conversation, 'id'>>;
+      };
+      payments: {
+        Row: Payment;
+        Insert: Omit<Payment, 'id' | 'created_at' | 'updated_at' | 'metadata'> & { id?: string; created_at?: string; updated_at?: string; metadata?: Record<string, unknown> };
+        Update: Partial<Omit<Payment, 'id'>>;
       };
     };
   };

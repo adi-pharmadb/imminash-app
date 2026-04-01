@@ -98,6 +98,20 @@ export default function WorkspacePage() {
 
         const userId = sessionData.session.user.id;
 
+        // Check if user has paid
+        const { data: payment } = await supabase
+          .from("payments")
+          .select("id")
+          .eq("user_id", userId)
+          .eq("status", "paid")
+          .limit(1)
+          .single();
+
+        if (!payment) {
+          router.push("/value");
+          return;
+        }
+
         // Load the most recent assessment for this user
         const { data: assessment, error: assessmentError } = await supabase
           .from("assessments")

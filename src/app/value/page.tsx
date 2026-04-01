@@ -3,13 +3,13 @@
 /**
  * Value page: intermediate context between sign-in and workspace.
  * Shows personalised headline, deliverables, sample output, social proof,
- * and single CTA to proceed to /workspace. No payment gate (deferred).
+ * price, and Stripe Checkout CTA.
  *
  * CTO Brief v2 section 4.3
  */
 
-import { useEffect, useState } from "react";
-import { useRouter } from "next/navigation";
+import { useEffect, useState, useCallback } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
 import {
   FileText,
   CheckCircle,
@@ -18,6 +18,7 @@ import {
   FileCheck,
   ClipboardList,
   BookOpen,
+  Lock,
 } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
 
@@ -26,6 +27,7 @@ interface ValuePageData {
   occupationTitle: string;
   anzscoCode: string;
   assessingAuthority: string;
+  assessmentId?: string;
 }
 
 const DELIVERABLES = [
@@ -57,8 +59,12 @@ const DELIVERABLES = [
 
 export default function ValuePage() {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const [data, setData] = useState<ValuePageData | null>(null);
   const [loading, setLoading] = useState(true);
+  const [checkoutLoading, setCheckoutLoading] = useState(false);
+  const [hasPaid, setHasPaid] = useState(false);
+  const [paymentSuccess, setPaymentSuccess] = useState(false);
 
   useEffect(() => {
     async function loadData() {
@@ -71,10 +77,24 @@ export default function ValuePage() {
           return;
         }
 
+        // Check payment status
+        const paymentRes = await fetch("/api/check-payment");
+        const paymentData = await paymentRes.json();
+        if (paymentData.paid) {
+          setHasPaid(true);
+        }
+
+        // Check if returning from successful Stripe Checkout
+        const paymentParam = searchParams.get("payment");
+        if (paymentParam === "success") {
+          setPaymentSuccess(true);
+          setHasPaid(true);
+        }
+
         // Load latest assessment for personalisation
         const { data: assessment } = await supabase
           .from("assessments")
-          .select("profile_data, matched_occupations")
+          .select("id, profile_data, matched_occupations")
           .eq("user_id", sessionData.session.user.id)
           .order("created_at", { ascending: false })
           .limit(1)
@@ -116,6 +136,7 @@ export default function ValuePage() {
             (primaryMatch.assessing_authority as string) ||
             (primaryMatch.assessingAuthority as string) ||
             "",
+          assessmentId: assessment.id,
         });
       } catch (error) {
         console.error("Value page load error:", error);
@@ -126,7 +147,35 @@ export default function ValuePage() {
     }
 
     loadData();
-  }, [router]);
+  }, [router, searchParams]);
+
+  const handleCheckout = useCallback(async () => {
+    setCheckoutLoading(true);
+    try {
+      const res = await fetch("/api/create-checkout-session", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ assessmentId: data?.assessmentId }),
+      });
+
+      const result = await res.json();
+
+      if (result.redirectTo) {
+        router.push(result.redirectTo);
+        return;
+      }
+
+      if (result.url) {
+        window.location.href = result.url;
+      } else {
+        console.error("No checkout URL returned:", result);
+        setCheckoutLoading(false);
+      }
+    } catch (error) {
+      console.error("Checkout error:", error);
+      setCheckoutLoading(false);
+    }
+  }, [data, router]);
 
   if (loading || !data) {
     return (
@@ -156,6 +205,20 @@ export default function ValuePage() {
       </header>
 
       <div className="mx-auto max-w-3xl px-6 pb-20">
+        {/* Payment success banner */}
+        {paymentSuccess && (
+          <div
+            className="mb-8 rounded-2xl p-5 flex items-center gap-3 animate-reveal-up"
+            style={{ background: "oklch(0.72 0.17 155 / 0.1)", border: "1px solid oklch(0.72 0.17 155 / 0.3)" }}
+          >
+            <CheckCircle className="h-5 w-5 shrink-0" style={{ color: "oklch(0.72 0.17 155)" }} />
+            <div>
+              <p className="text-sm font-semibold text-foreground">Payment confirmed</p>
+              <p className="text-sm text-muted-foreground">Your document workspace is ready. Click below to get started.</p>
+            </div>
+          </div>
+        )}
+
         {/* Personalised headline */}
         <div className="space-y-4 animate-reveal-up">
           <h1 className="font-display text-3xl font-normal italic text-foreground sm:text-4xl leading-tight">
@@ -302,39 +365,53 @@ export default function ValuePage() {
           </div>
         </div>
 
-        {/* Price display */}
-        <div className="mt-8 flex items-center justify-center gap-3 animate-reveal-up delay-300">
-          <span
-            className="text-lg text-muted-foreground line-through"
-            aria-label="Original price"
-          >
-            $199 AUD
-          </span>
-          <span
-            className="rounded-full px-3 py-1 text-xs font-bold uppercase tracking-wide"
-            style={{
-              background: "oklch(0.72 0.17 155 / 0.15)",
-              color: "oklch(0.72 0.17 155)",
-            }}
-          >
-            Free during beta
-          </span>
-        </div>
+        {/* Price display + CTA */}
+        {hasPaid ? (
+          /* Already paid - show go to workspace */
+          <div className="mt-8 animate-reveal-up delay-300">
+            <button
+              onClick={() => router.push("/workspace")}
+              className="glow-primary group flex w-full items-center justify-center gap-2 rounded-2xl bg-primary py-5 text-lg font-semibold text-primary-foreground transition-all duration-300 hover:scale-[1.01] active:scale-[0.99]"
+              data-testid="value-cta"
+            >
+              Start preparing my documents
+              <ArrowRight className="h-5 w-5 transition-transform group-hover:translate-x-1" />
+            </button>
+          </div>
+        ) : (
+          /* Not paid - show price and checkout */
+          <>
+            <div className="mt-8 text-center animate-reveal-up delay-300">
+              <p className="text-3xl font-bold text-foreground">$199 <span className="text-lg font-normal text-muted-foreground">AUD</span></p>
+              <p className="mt-1 text-sm text-muted-foreground">One-time payment. No subscription.</p>
+            </div>
 
-        {/* Primary CTA */}
-        <div className="mt-6 animate-reveal-up delay-300">
-          <button
-            onClick={() => router.push("/workspace")}
-            className="glow-primary group flex w-full items-center justify-center gap-2 rounded-2xl bg-primary py-5 text-lg font-semibold text-primary-foreground transition-all duration-300 hover:scale-[1.01] active:scale-[0.99]"
-            data-testid="value-cta"
-          >
-            Start preparing my documents
-            <ArrowRight className="h-5 w-5 transition-transform group-hover:translate-x-1" />
-          </button>
-          <p className="mt-3 text-center text-xs text-muted-foreground">
-            No credit card required.
-          </p>
-        </div>
+            <div className="mt-6 animate-reveal-up delay-300">
+              <button
+                onClick={handleCheckout}
+                disabled={checkoutLoading}
+                className="glow-primary group flex w-full items-center justify-center gap-2 rounded-2xl bg-primary py-5 text-lg font-semibold text-primary-foreground transition-all duration-300 hover:scale-[1.01] active:scale-[0.99] disabled:opacity-60 disabled:cursor-not-allowed"
+                data-testid="value-cta"
+              >
+                {checkoutLoading ? (
+                  <>
+                    <div className="h-5 w-5 animate-spin rounded-full border-2 border-primary-foreground border-t-transparent" />
+                    Redirecting to checkout...
+                  </>
+                ) : (
+                  <>
+                    <Lock className="h-4 w-4" />
+                    Pay and start preparing my documents
+                    <ArrowRight className="h-5 w-5 transition-transform group-hover:translate-x-1" />
+                  </>
+                )}
+              </button>
+              <div className="mt-3 flex items-center justify-center gap-4">
+                <p className="text-xs text-muted-foreground">Secure payment via Stripe</p>
+              </div>
+            </div>
+          </>
+        )}
 
         {/* Trust badges */}
         <div className="mt-10 flex flex-wrap items-center justify-center gap-6 animate-reveal-up delay-300">
