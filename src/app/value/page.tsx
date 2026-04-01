@@ -8,7 +8,7 @@
  * CTO Brief v2 section 4.3
  */
 
-import { useEffect, useState, useCallback } from "react";
+import { Suspense, useEffect, useState, useCallback } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import {
   FileText,
@@ -58,6 +58,23 @@ const DELIVERABLES = [
 ];
 
 export default function ValuePage() {
+  return (
+    <Suspense
+      fallback={
+        <div className="flex min-h-screen items-center justify-center bg-background">
+          <div className="flex items-center gap-3">
+            <div className="h-5 w-5 animate-spin rounded-full border-2 border-primary border-t-transparent" />
+            <p className="text-sm text-muted-foreground">Loading...</p>
+          </div>
+        </div>
+      }
+    >
+      <ValuePageContent />
+    </Suspense>
+  );
+}
+
+function ValuePageContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const [data, setData] = useState<ValuePageData | null>(null);
