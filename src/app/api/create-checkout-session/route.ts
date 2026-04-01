@@ -1,17 +1,14 @@
 import { NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 import { createServiceClient } from "@/lib/supabase/service";
-import {
-  stripe,
-  PRICE_AUD_CENTS,
-  PRODUCT_NAME,
-  PRODUCT_DESCRIPTION,
-} from "@/lib/stripe";
+import { stripe, STRIPE_PRICE_ID } from "@/lib/stripe";
 
 /**
  * POST /api/create-checkout-session
  *
  * Creates a Stripe Checkout Session for the authenticated user.
+ * Uses the pre-created product/price in Stripe.
+ * Allows promotion codes (e.g. BETATEST for 100% off).
  * Returns the checkout URL for client-side redirect.
  */
 export async function POST(request: Request) {
@@ -58,23 +55,17 @@ export async function POST(request: Request) {
       process.env.NEXT_PUBLIC_SITE_URL ||
       "https://imminash-app.vercel.app";
 
-    // Create Stripe Checkout Session
+    // Create Stripe Checkout Session with real price and promo code support
     const checkoutSession = await stripe.checkout.sessions.create({
       mode: "payment",
       customer_email: userEmail || undefined,
       line_items: [
         {
-          price_data: {
-            currency: "aud",
-            unit_amount: PRICE_AUD_CENTS,
-            product_data: {
-              name: PRODUCT_NAME,
-              description: PRODUCT_DESCRIPTION,
-            },
-          },
+          price: STRIPE_PRICE_ID,
           quantity: 1,
         },
       ],
+      allow_promotion_codes: true,
       metadata: {
         user_id: userId,
         assessment_id: assessmentId || "",
@@ -87,7 +78,7 @@ export async function POST(request: Request) {
     await serviceClient.from("payments").insert({
       user_id: userId,
       stripe_checkout_session_id: checkoutSession.id,
-      amount_cents: PRICE_AUD_CENTS,
+      amount_cents: 19900,
       currency: "aud",
       status: "pending",
       assessment_id: assessmentId || null,

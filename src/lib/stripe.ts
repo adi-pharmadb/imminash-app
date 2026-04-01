@@ -9,7 +9,4 @@ export const stripe = new Stripe(process.env.STRIPE_SECRET_KEY, {
   typescript: true,
 });
 
-export const PRICE_AUD_CENTS = 19900; // $199.00 AUD
-export const PRODUCT_NAME = "ACS Skill Assessment Document Package";
-export const PRODUCT_DESCRIPTION =
-  "Employment reference letters, supporting statement, CPD log, and document checklist - all ANZSCO-aligned and ACS-ready.";
+export const STRIPE_PRICE_ID = "price_1THIp0B8nHeu9GtAUjlwSlMg";
