@@ -48,11 +48,21 @@ export interface ProjectedConversation {
 
 export function projectConversation(row: ConversationRow): ProjectedConversation {
   const matchesRaw = row.matched_occupations;
-  const matches: unknown[] = Array.isArray(matchesRaw)
-    ? matchesRaw
-    : matchesRaw && typeof matchesRaw === "object"
-      ? [matchesRaw]
-      : [];
+  let matches: unknown[] = [];
+  if (Array.isArray(matchesRaw)) {
+    matches = matchesRaw;
+  } else if (matchesRaw && typeof matchesRaw === "object") {
+    const r = matchesRaw as Record<string, unknown>;
+    if (Array.isArray(r.matches)) matches = r.matches;
+    else if (Array.isArray(r.skillsMatches) || Array.isArray(r.employerMatches)) {
+      matches = [
+        ...((r.skillsMatches as unknown[]) ?? []),
+        ...((r.employerMatches as unknown[]) ?? []),
+      ];
+    } else {
+      matches = [matchesRaw];
+    }
+  }
 
   return {
     id: row.id,

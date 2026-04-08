@@ -13,7 +13,7 @@ import type { ProjectedConversation } from "@/lib/conversation-state";
 interface Match {
   title?: string;
   anzsco_code?: string;
-  confidence?: number;
+  confidence?: number | string;
 }
 
 function extractMatches(raw: unknown): Match[] {
@@ -153,9 +153,11 @@ export function LiveSummaryPanel({ projection }: { projection: ProjectedConversa
                           </p>
                         )}
                       </div>
-                      {typeof m.confidence === "number" && (
+                      {m.confidence !== undefined && m.confidence !== null && (
                         <span className="shrink-0 rounded-full bg-primary/10 px-2 py-0.5 text-[11px] font-medium text-primary">
-                          {Math.round(m.confidence * 100)}%
+                          {typeof m.confidence === "number"
+                            ? `${Math.round(m.confidence * 100)}%`
+                            : String(m.confidence)}
                         </span>
                       )}
                     </div>
