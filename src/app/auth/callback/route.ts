@@ -1,45 +1,53 @@
 import { NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
-import { createServiceClient } from "@/lib/supabase/service";
-import { linkAssessmentToUser, ensureProfile } from "@/lib/auth-helpers";
+import { ensureProfile } from "@/lib/auth-helpers";
 
 /**
  * GET /auth/callback
  *
- * Server-side route handler for Supabase PKCE auth flow.
- * Exchanges the `code` query parameter for a session,
- * links the assessment to the user, then redirects to /value.
+ * Exchanges the PKCE code for a session, ensures a profile row exists,
+ * ensures the user has an active conversation (creating an empty phase1
+ * row if not), and redirects into /chat.
  */
 export async function GET(request: Request) {
   const { searchParams, origin } = new URL(request.url);
   const code = searchParams.get("code");
-  const next = searchParams.get("next") ?? "/value";
+  const next = searchParams.get("next") ?? "/chat";
 
   if (code) {
     const supabase = await createClient();
     const { data, error } = await supabase.auth.exchangeCodeForSession(code);
 
     if (!error && data.session) {
-      // Link assessment to user server-side
       try {
         const userId = data.session.user.id;
         const email = data.session.user.email ?? "";
-        const serviceClient = createServiceClient();
-        const { data: { user } } = await serviceClient.auth.admin.getUserById(userId);
+        await ensureProfile(userId, email);
 
-        if (user) {
-          await ensureProfile(userId, email || user.email || "");
-          await linkAssessmentToUser(userId, email || user.email || "");
+        // Ensure a conversation exists for this user.
+        const { data: existing } = await supabase
+          .from("conversations")
+          .select("id")
+          .eq("user_id", userId)
+          .order("created_at", { ascending: false })
+          .limit(1)
+          .maybeSingle();
+
+        if (!existing) {
+          await supabase.from("conversations").insert({
+            user_id: userId,
+            status: "phase1",
+            profile_data: {},
+            messages: [],
+          });
         }
-      } catch (linkError) {
-        console.error("Failed to link assessment during callback:", linkError);
-        // Non-fatal - continue to redirect even if linking fails
+      } catch (err) {
+        console.error("auth callback setup failed:", err);
       }
 
       return NextResponse.redirect(`${origin}${next}`);
     }
   }
 
-  // Auth failed - redirect back to results
-  return NextResponse.redirect(`${origin}/results`);
+  return NextResponse.redirect(`${origin}/`);
 }

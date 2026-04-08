@@ -3,39 +3,47 @@ import { updateSession } from "@/lib/supabase/middleware";
 import { createServerClient } from "@supabase/ssr";
 
 /**
- * Next.js middleware that:
- * 1. Refreshes the Supabase auth session on every request
- * 2. Protects /workspace/* routes by redirecting unauthenticated users to /results
+ * Middleware:
+ * 1. Refreshes the Supabase session on every request.
+ * 2. Redirects legacy routes (/assessment, /results, /pathway, /workspace)
+ *    to /chat for authed users or / for unauthed users.
+ * 3. Gates /chat behind auth.
  */
+const LEGACY_PREFIXES = ["/assessment", "/results", "/pathway", "/workspace", "/value"];
+
 export async function middleware(request: NextRequest) {
-  // Refresh the Supabase session (sets updated cookies)
   const response = await updateSession(request);
+  const pathname = request.nextUrl.pathname;
 
-  // Protect /workspace routes
-  if (request.nextUrl.pathname.startsWith("/workspace")) {
-    const supabase = createServerClient(
-      process.env.NEXT_PUBLIC_SUPABASE_URL!,
-      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
-      {
-        cookies: {
-          getAll() {
-            return request.cookies.getAll();
-          },
-          setAll() {
-            // Read-only check; cookie setting handled by updateSession
-          },
+  const isLegacy = LEGACY_PREFIXES.some((p) => pathname === p || pathname.startsWith(p + "/"));
+  const isChat = pathname === "/chat" || pathname.startsWith("/chat/");
+
+  if (!isLegacy && !isChat) return response;
+
+  const supabase = createServerClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+    {
+      cookies: {
+        getAll() {
+          return request.cookies.getAll();
         },
+        setAll() {},
       },
-    );
+    },
+  );
 
-    const {
-      data: { user },
-    } = await supabase.auth.getUser();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
 
-    if (!user) {
-      const redirectUrl = new URL("/results", request.url);
-      return NextResponse.redirect(redirectUrl);
-    }
+  if (isLegacy) {
+    const dest = user ? "/chat" : "/";
+    return NextResponse.redirect(new URL(dest, request.url));
+  }
+
+  if (isChat && !user) {
+    return NextResponse.redirect(new URL("/", request.url));
   }
 
   return response;
@@ -43,6 +51,6 @@ export async function middleware(request: NextRequest) {
 
 export const config = {
   matcher: [
-    "/((?!_next/static|_next/image|favicon.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$).*)",
+    "/((?!_next/static|_next/image|favicon.ico|api|auth|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$).*)",
   ],
 };
