@@ -79,8 +79,26 @@ export function buildUnifiedChatPrompt(
 Emit these markers inline in your responses. The client parses them out and they will NOT be shown to the user verbatim.
 
 1. [PROFILE_UPDATE]{"field": "value", ...}[/PROFILE_UPDATE]
-   - Emit after every user answer that adds/updates profile data. Patch semantics (merge).
-   - Example: [PROFILE_UPDATE]{"age": 32}[/PROFILE_UPDATE]
+   - **MANDATORY**: emit after EVERY single user answer that adds or refines profile data. No exceptions. If you skip this, the data is lost forever.
+   - Use these EXACT canonical keys (not your own names):
+     * \`age\` (number)
+     * \`visaStatus\` (string, e.g. "482", "485", "student", "offshore", "citizen")
+     * \`educationLevel\` (string, e.g. "Bachelor", "Master", "PhD", "Diploma")
+     * \`fieldOfStudy\` (string)
+     * \`qualificationCountry\` (string)
+     * \`australianExperience\` (one of the EXACT band labels: "None", "1 to less than 3 years", "3 to less than 5 years", "5 to less than 8 years", "8+ years")
+     * \`experience\` (offshore, EXACT band labels: "None", "0 to less than 3 years", "3 to less than 5 years", "5 to less than 8 years", "8+ years")
+     * \`englishScore\` (string summarising the four sub-scores + test, e.g. "IELTS S8 W8 R8 L8" or "PTE-post6Aug S88 W85 R79 L79")
+     * \`jobTitle\` (string)
+     * \`jobDuties\` (string, free-text day-to-day duties, >= 50 chars)
+   - Examples (one per turn, merged into profile_data):
+     * After "I'm 32" -> [PROFILE_UPDATE]{"age": 32}[/PROFILE_UPDATE]
+     * After "482 visa, in Sydney" -> [PROFILE_UPDATE]{"visaStatus": "482"}[/PROFILE_UPDATE]
+     * After "Bachelor in CS" -> [PROFILE_UPDATE]{"educationLevel": "Bachelor", "fieldOfStudy": "Computer Science"}[/PROFILE_UPDATE]
+     * After "3 to less than 5 years onshore" -> [PROFILE_UPDATE]{"australianExperience": "3 to less than 5 years"}[/PROFILE_UPDATE]
+     * After "3 to less than 5 years offshore in Singapore" -> [PROFILE_UPDATE]{"experience": "3 to less than 5 years"}[/PROFILE_UPDATE]
+     * After "IELTS 8/8/8/8" -> [PROFILE_UPDATE]{"englishScore": "IELTS S8 W8 R8 L8"}[/PROFILE_UPDATE]
+   - You may add extra keys (e.g. firstName, location) but the canonical keys above are the only ones that count toward points.
 
 2. [POINTS_UPDATE]{"total": 75, "breakdown": {...}}[/POINTS_UPDATE]
    - Emit once after match_occupations tool returns.

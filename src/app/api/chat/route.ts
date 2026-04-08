@@ -586,12 +586,51 @@ function coerceProfileToUserProfile(
     return v; // already in legacy form
   };
 
+  // Map educationLevel synonyms to calculator's expected values.
+  const mapEdu = (v: string): string => {
+    const s = v.toLowerCase().trim();
+    if (!s) return "";
+    if (s.includes("phd") || s.includes("doctor")) return "PhD";
+    if (s.includes("master") || s.includes("mtech") || s.includes("m tech") || s === "ms" || s === "msc") return "Masters";
+    if (s.includes("bachelor") || s.includes("btech") || s.includes("b tech") || s === "bs" || s === "bsc" || s === "ba") return "Bachelor";
+    if (s.includes("diploma")) return "Diploma";
+    if (s.includes("trade")) return "Trade";
+    return v;
+  };
+
+  // Derive Superior/Proficient from a free-form englishScore string.
+  // Accepts patterns like "IELTS S8 W8 R8 L8" or "PTE-post6Aug S88 W85 R79 L79".
+  const deriveEnglishLevel = (raw: string): string => {
+    if (!raw) return "";
+    const s = raw.toLowerCase();
+    if (/superior/.test(s)) return "Superior";
+    if (/proficient/.test(s)) return "Proficient";
+    const nums = Array.from(s.matchAll(/[swrl](\d{1,3})/g)).map((m) => Number(m[1]));
+    if (nums.length === 4) {
+      const isPte = /pte/.test(s);
+      const isPostAug = /post.?6?\s*aug/.test(s) || /post-?6/.test(s);
+      if (isPte) {
+        if (isPostAug) {
+          if (nums[0] >= 88 && nums[1] >= 85 && nums[2] >= 79 && nums[3] >= 79) return "Superior";
+        } else {
+          if (nums.every((n) => n >= 79)) return "Superior";
+        }
+        if (nums.every((n) => n >= 65)) return "Proficient";
+      } else {
+        // IELTS scale (1-9)
+        if (nums.every((n) => n >= 8)) return "Superior";
+        if (nums.every((n) => n >= 7)) return "Proficient";
+      }
+    }
+    return "";
+  };
+
   return {
     firstName: str("firstName"),
     age,
     visaStatus: str("visaStatus"),
     visaExpiry: str("visaExpiry"),
-    educationLevel: str("educationLevel") || str("qualificationLevel"),
+    educationLevel: mapEdu(str("educationLevel") || str("qualificationLevel") || str("qualification")),
     fieldOfStudy: str("fieldOfStudy"),
     universityName: str("universityName"),
     countryOfEducation: str("countryOfEducation"),
@@ -605,7 +644,7 @@ function coerceProfileToUserProfile(
     australianExperience: mapExp(str("australianExperience")),
     experience: mapExp(str("experience") || str("offshoreExperience")),
     jobDuties: str("jobDuties"),
-    englishScore: str("englishScore"),
+    englishScore: deriveEnglishLevel(str("englishScore") || str("englishLevel")) || str("englishLevel") || str("englishScore"),
     naatiCcl: str("naatiCcl"),
     professionalYear: str("professionalYear"),
     relationshipStatus: str("relationshipStatus"),
