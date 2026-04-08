@@ -383,7 +383,12 @@ export default function PathwayPage() {
                   .map((pathway, pIdx) => (
                     <div
                       key={`${analysis.occupation.anzsco_code}-${pathway.visa}`}
-                      className={`animate-reveal-up delay-${Math.min((aIdx * 3 + pIdx + 3) * 100, 600)}`}
+                      id={
+                        aIdx === 0 && pathway.visa === recommended?.visa
+                          ? "recommended-pathway-details"
+                          : undefined
+                      }
+                      className={`animate-reveal-up delay-${Math.min((aIdx * 3 + pIdx + 3) * 100, 600)} scroll-mt-24`}
                     >
                       <PathwayCard
                         pathway={pathway}

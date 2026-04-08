@@ -56,8 +56,17 @@ export function RecommendedBanner({ pathway, reasoning }: RecommendedBannerProps
         href={
           pathway.visa === "consultation"
             ? "https://calendly.com/studynash"
-            : "/pathway#details"
+            : "#recommended-pathway-details"
         }
+        onClick={(e) => {
+          if (pathway.visa === "consultation") return;
+          e.preventDefault();
+          const el = document.getElementById("recommended-pathway-details");
+          if (el) {
+            el.scrollIntoView({ behavior: "smooth", block: "start" });
+            history.replaceState(null, "", "#recommended-pathway-details");
+          }
+        }}
         className="inline-flex items-center gap-2 rounded-xl px-5 py-3 text-sm font-semibold transition-all duration-300 hover:scale-[1.02] active:scale-[0.98]"
         style={{
           background: "oklch(0.62 0.17 250)",
