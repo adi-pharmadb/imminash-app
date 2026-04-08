@@ -127,7 +127,7 @@ export function ChatLayout({ initialProjection, paidFlag }: ChatLayoutProps) {
         </main>
 
         {/* Right: Live summary */}
-        <aside className="hidden w-80 shrink-0 border-l border-border/40 xl:flex xl:flex-col">
+        <aside className="hidden w-80 shrink-0 border-l border-border/40 lg:flex lg:flex-col">
           <LiveSummaryPanel projection={projection} />
         </aside>
       </div>
