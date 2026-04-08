@@ -61,14 +61,14 @@ export function getConfidenceColor(confidence: number): {
   text: string;
   shadow: string;
 } {
-  if (confidence >= 80) {
+  if (confidence >= 70) {
     return {
       bg: "oklch(0.72 0.17 155 / 0.15)",
       text: "oklch(0.72 0.17 155)",
       shadow: "0 0 12px oklch(0.72 0.17 155 / 0.2)",
     };
   }
-  if (confidence >= 61) {
+  if (confidence >= 50) {
     return {
       bg: "oklch(0.78 0.12 70 / 0.15)",
       text: "oklch(0.78 0.12 70)",
@@ -84,7 +84,7 @@ export function getConfidenceColor(confidence: number): {
 
 /** Check if a confidence score indicates a weak match. */
 export function isWeakMatch(confidence: number): boolean {
-  return confidence <= 60;
+  return confidence < 50;
 }
 
 // Tool schema for Anthropic SDK tool use (enhanced with confidence/reasoning)

@@ -7,7 +7,7 @@
  * Collapses to hamburger on mobile. [DocGen Brief 2.2]
  */
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import {
   FileText,
   Download,
@@ -17,6 +17,7 @@ import {
   Circle,
   CheckCircle2,
   Clock,
+  Check,
 } from "lucide-react";
 
 export type DocumentStatus = "not_started" | "in_progress" | "approved";
@@ -37,6 +38,7 @@ interface DocumentSidebarProps {
   onDownloadAll?: () => void;
   isDownloading?: boolean;
   allComplete?: boolean;
+  lastSavedAt?: number | null;
 }
 
 function getStatusIcon(status: DocumentStatus) {
@@ -80,8 +82,18 @@ export function DocumentSidebar({
   onDownloadAll,
   isDownloading = false,
   allComplete = false,
+  lastSavedAt,
 }: DocumentSidebarProps) {
   const [mobileOpen, setMobileOpen] = useState(false);
+  const [showSaved, setShowSaved] = useState(false);
+
+  // Flash "Saved" indicator when lastSavedAt changes
+  useEffect(() => {
+    if (!lastSavedAt) return;
+    setShowSaved(true);
+    const timer = setTimeout(() => setShowSaved(false), 2000);
+    return () => clearTimeout(timer);
+  }, [lastSavedAt]);
 
   const completedCount = documents.filter((d) => d.status === "approved").length;
   const totalCount = documents.length;
@@ -152,10 +164,21 @@ export function DocumentSidebar({
       {/* Progress indicator */}
       <div className="px-5 py-3 space-y-2">
         <div className="flex items-center justify-between text-[11px]">
-          <span className="text-muted-foreground">Progress</span>
-          <span className="font-medium text-foreground">
-            {completedCount}/{totalCount}
-          </span>
+          <span className="text-muted-foreground">Submission Readiness</span>
+          <div className="flex items-center gap-2">
+            {showSaved && (
+              <span
+                className="flex items-center gap-1 text-[10px] font-medium animate-in fade-in duration-300"
+                style={{ color: "oklch(0.72 0.17 155)" }}
+              >
+                <Check className="h-3 w-3" />
+                Saved
+              </span>
+            )}
+            <span className="font-medium text-foreground">
+              {completedCount}/{totalCount}
+            </span>
+          </div>
         </div>
         <div className="h-1.5 w-full overflow-hidden rounded-full bg-muted">
           <div

@@ -7,8 +7,8 @@ interface MatchBadgeProps {
 }
 
 function getConfidenceLabel(confidence: number): string {
-  if (confidence >= 75) return "Strong Match";
-  if (confidence >= 50) return "Medium Match";
+  if (confidence >= 70) return "Strong Match";
+  if (confidence >= 50) return "Good Match";
   return "Weak Match";
 }
 

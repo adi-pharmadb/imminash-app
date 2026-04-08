@@ -1,25 +1,29 @@
 "use client";
 
 import { useState } from "react";
-import { Mail, BarChart3, Map, TrendingUp, Users } from "lucide-react";
+import { Mail, BarChart3, Map, TrendingUp, ShieldCheck } from "lucide-react";
 
 interface EmailGateProps {
   onSubmit: (email: string) => void;
+  firstName?: string;
+  points?: number;
 }
 
 const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
-const UNLOCK_ITEMS = [
-  { icon: BarChart3, text: "Full points breakdown by category" },
-  { icon: Map, text: "Which visa subclass fits you best" },
-  { icon: TrendingUp, text: "State nominations and next steps" },
-] as const;
+function getUnlockItems(firstName?: string, points?: number) {
+  return [
+    { icon: BarChart3, text: `See exactly where your ${points ?? "---"} points came from` },
+    { icon: Map, text: "Which visa subclass fits your profile best" },
+    { icon: TrendingUp, text: "State nominations and next steps tailored to your score" },
+  ];
+}
 
 /**
  * Email gate shown after teaser screen.
  * Collects email before unlocking the full results dashboard.
  */
-export function EmailGate({ onSubmit }: EmailGateProps) {
+export function EmailGate({ onSubmit, firstName, points }: EmailGateProps) {
   const [email, setEmail] = useState("");
   const isValid = EMAIL_REGEX.test(email);
 
@@ -47,7 +51,7 @@ export function EmailGate({ onSubmit }: EmailGateProps) {
 
           {/* What you unlock - glass card items */}
           <div className="space-y-2.5 text-left animate-reveal-up delay-200" data-testid="unlock-checklist">
-            {UNLOCK_ITEMS.map((item, i) => (
+            {getUnlockItems(firstName, points).map((item, i) => (
               <div
                 key={i}
                 className="flex items-center gap-3.5 rounded-xl glass-card px-4 py-3 transition-all duration-300 hover:border-primary/20"
@@ -85,9 +89,9 @@ export function EmailGate({ onSubmit }: EmailGateProps) {
 
           {/* Social proof */}
           <div className="flex items-center justify-center gap-2 text-xs text-muted-foreground animate-reveal-up delay-400">
-            <Users className="h-3.5 w-3.5" />
+            <ShieldCheck className="h-3.5 w-3.5" />
             <span data-testid="social-proof">
-              2,400+ people have already checked their eligibility
+              Based on real DHA occupation and invitation data.
             </span>
           </div>
 

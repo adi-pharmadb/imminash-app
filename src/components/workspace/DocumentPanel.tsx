@@ -9,13 +9,15 @@
  */
 
 import { useState, useEffect, useRef, useCallback } from "react";
-import { Download, FileText, FileSpreadsheet, Loader2 } from "lucide-react";
+import { Download, FileText, FileSpreadsheet, Loader2, Eye, EyeOff } from "lucide-react";
+import { RevisionPopover } from "@/components/workspace/RevisionPopover";
 import type { Document as DbDocument } from "@/types/database";
 import { formatDocumentType } from "@/lib/workspace-helpers";
 
 interface DocumentPanelProps {
   tabs: string[];
   documents: DbDocument[];
+  onRevisionRequest?: (selectedText: string) => void;
 }
 
 /**
@@ -63,11 +65,13 @@ function escapeHtml(text: string): string {
     .replace(/"/g, "&quot;");
 }
 
-export function DocumentPanel({ tabs, documents }: DocumentPanelProps) {
+export function DocumentPanel({ tabs, documents, onRevisionRequest }: DocumentPanelProps) {
   const [activeTab, setActiveTab] = useState(0);
   const [highlightedTab, setHighlightedTab] = useState<number | null>(null);
   const [downloadingFormat, setDownloadingFormat] = useState<string | null>(null);
+  const [xRayMode, setXRayMode] = useState(false);
   const prevDocumentsRef = useRef<string>("");
+  const contentAreaRef = useRef<HTMLDivElement>(null);
 
   // Detect content changes and highlight [AC-DW4]
   useEffect(() => {
@@ -180,7 +184,23 @@ export function DocumentPanel({ tabs, documents }: DocumentPanelProps) {
         ))}
       </div>
 
-      {/* Download toolbar - glass-card styled */}
+      {/* X-Ray toggle + Download toolbar */}
+      {activeDocument?.content && (
+        <div className="flex items-center gap-2 mx-3 mt-3">
+          <button
+            onClick={() => setXRayMode(!xRayMode)}
+            className={`inline-flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-medium transition-all ${
+              xRayMode
+                ? "bg-primary/10 text-primary border border-primary/30"
+                : "text-muted-foreground hover:text-foreground border border-transparent"
+            }`}
+            data-testid="xray-toggle"
+          >
+            {xRayMode ? <Eye className="h-3 w-3" /> : <EyeOff className="h-3 w-3" />}
+            {xRayMode ? "X-Ray View" : "Clean View"}
+          </button>
+        </div>
+      )}
       {activeDocument?.content && (
         <div
           className="glass-card mx-3 mt-3 flex items-center gap-2 rounded-lg px-4 py-2"
@@ -223,19 +243,31 @@ export function DocumentPanel({ tabs, documents }: DocumentPanelProps) {
 
       {/* Document content - VIEW-ONLY [AC-DW5] - clean editorial typography */}
       <div
-        className="flex-1 overflow-y-auto px-5 py-6 md:px-6 lg:px-8"
+        ref={contentAreaRef}
+        className="relative flex-1 overflow-y-auto px-5 py-6 md:px-6 lg:px-8"
         data-testid="document-content"
       >
+        <RevisionPopover
+          containerRef={contentAreaRef}
+          onRevisionRequest={onRevisionRequest}
+        />
         <div
           className={`prose prose-sm max-w-none prose-headings:font-semibold prose-headings:tracking-tight prose-p:leading-relaxed prose-li:leading-relaxed ${
             highlightedTab === activeTab
               ? "rounded-xl p-4 ring-1 ring-primary/30 shadow-[0_0_24px_oklch(0.78_0.12_70_/_0.08)] transition-all duration-1000"
               : ""
-          }`}
+          } ${xRayMode ? "xray-mode" : ""}`}
           dangerouslySetInnerHTML={{
             __html: renderDocumentContent(activeDocument?.content ?? null),
           }}
         />
+        {/* X-Ray mode inline styles */}
+        {xRayMode && (
+          <style>{`
+            .xray-mode li { position: relative; padding-left: 0.5rem; border-left: 3px solid oklch(0.62 0.17 250 / 0.4); margin-bottom: 0.5rem; }
+            .xray-mode li::after { content: "ANZSCO duty"; position: absolute; top: 0; right: 0; font-size: 9px; font-weight: 600; color: oklch(0.62 0.17 250); background: oklch(0.62 0.17 250 / 0.08); padding: 1px 6px; border-radius: 4px; }
+          `}</style>
+        )}
       </div>
     </div>
   );

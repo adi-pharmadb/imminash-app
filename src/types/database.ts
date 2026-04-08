@@ -80,6 +80,8 @@ export interface Assessment {
   points_breakdown: Record<string, unknown>;
   total_points: number;
   matched_occupations: Record<string, unknown>;
+  selected_anzsco_code: string | null;
+  cv_data: Record<string, unknown> | null;
   created_at: string;
   updated_at: string;
 }
@@ -105,6 +107,9 @@ export interface Document {
   title: string | null;
   content: Record<string, unknown> | null;
   storage_path: string | null;
+  status: "draft" | "in_review" | "approved";
+  declaration_confirmed_at: string | null;
+  declaration_text: string | null;
   created_at: string;
   updated_at: string;
 }

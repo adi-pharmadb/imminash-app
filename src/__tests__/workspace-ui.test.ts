@@ -289,46 +289,34 @@ describe("Workspace UI", () => {
     expect(shouldGenerateFirst).toBe(false);
   });
 
-  it("AC-DW8: Different assessing bodies produce different first messages", () => {
+  it("AC-DW8: First message references the user's assessing body", () => {
     const baseData = buildAssessmentData();
 
-    // ACS: asks about ICT specialization
     const acsMessage = generateFirstMessage(
       { ...baseData, assessingAuthority: "ACS" },
       ACS_BODY,
     );
-    expect(acsMessage).toContain("ICT");
-    expect(acsMessage).toContain("specialization");
-    expect(acsMessage).toContain("major");
+    expect(acsMessage).toContain("ACS");
 
-    // VETASSESS: asks about ANZSCO unit group duties
     const vetMessage = generateFirstMessage(
       { ...baseData, assessingAuthority: "VETASSESS" },
       VETASSESS_BODY,
     );
-    expect(vetMessage).toContain("ANZSCO");
-    expect(vetMessage).toContain("duties");
     expect(vetMessage).toContain("VETASSESS");
 
-    // Engineers Australia: asks about engineering competencies
     const eaMessage = generateFirstMessage(
       { ...baseData, assessingAuthority: "Engineers Australia" },
       EA_BODY,
     );
-    expect(eaMessage).toContain("engineering competencies");
     expect(eaMessage).toContain("Engineers Australia");
 
-    // TRA: asks about trade qualifications
     const traMessage = generateFirstMessage(
       { ...baseData, assessingAuthority: "TRA" },
       TRA_BODY,
     );
-    expect(traMessage).toContain("trade qualifications");
     expect(traMessage).toContain("TRA");
 
-    // All messages are different from each other
     const allMessages = [acsMessage, vetMessage, eaMessage, traMessage];
-    const uniqueMessages = new Set(allMessages);
-    expect(uniqueMessages.size).toBe(4);
+    expect(new Set(allMessages).size).toBe(4);
   });
 });

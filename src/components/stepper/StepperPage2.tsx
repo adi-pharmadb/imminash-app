@@ -100,8 +100,8 @@ export function StepperPage2({ data, onChange }: StepperPage2Props) {
 
       {showAustralianStudy && (
         <StepperField
-          label="Completed 2+ years of study in Australia?"
-          hint="2 years of Aussie study = 5 free points. Quick maths."
+          label="Completed 2 or more years of study in Australia?"
+          hint="2 or more years of Aussie study = 5 free points. Quick maths."
         >
           <PillSelect
             options={yesNoOptions}

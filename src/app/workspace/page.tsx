@@ -83,6 +83,7 @@ export default function WorkspacePage() {
   const [initialDocuments, setInitialDocuments] = useState<DbDocument[]>([]);
   const [documentTabs, setDocumentTabs] = useState<string[]>([]);
   const [initialACSData, setInitialACSData] = useState<ACSApplicationData | undefined>();
+  const [initialCvData, setInitialCvData] = useState<Record<string, unknown> | null>(null);
 
   useEffect(() => {
     async function loadWorkspaceData() {
@@ -138,11 +139,13 @@ export default function WorkspacePage() {
           ? ((matchedOccupations as Record<string, unknown>).skillsMatches as Array<Record<string, unknown>>)
           : [];
 
-        // Check if user selected a specific occupation (stored in sessionStorage)
-        let selectedAnzsco: string | null = null;
-        try {
-          selectedAnzsco = sessionStorage.getItem("imminash_selected_occupation");
-        } catch { /* ignore */ }
+        // Read selected ANZSCO from DB (source of truth), fallback to sessionStorage
+        let selectedAnzsco: string | null = typedAssessment.selected_anzsco_code ?? null;
+        if (!selectedAnzsco) {
+          try {
+            selectedAnzsco = sessionStorage.getItem("imminash_selected_occupation");
+          } catch { /* ignore */ }
+        }
 
         // Find the selected occupation, or fall back to the first match
         let primaryMatch: Record<string, unknown> = skillsMatches[0] || {};
@@ -200,12 +203,6 @@ export default function WorkspacePage() {
           })) as ChatMessage[];
         }
 
-        // If no existing conversation, generate the first AI message [AC-DW1, AC-DW8]
-        if (messages.length === 0) {
-          const firstMessage = generateFirstMessage(workspaceData, body);
-          messages = [{ role: "assistant", content: firstMessage }];
-        }
-
         // Load existing documents
         const { data: docs } = await supabase
           .from("documents")
@@ -213,6 +210,33 @@ export default function WorkspacePage() {
           .eq("assessment_id", typedAssessment.id);
 
         const existingDocs = (docs as DbDocument[]) || [];
+
+        // If no existing conversation, generate the first AI message [AC-DW1, AC-DW8]
+        if (messages.length === 0) {
+          const firstMessage = generateFirstMessage(workspaceData, body);
+          messages = [{ role: "assistant", content: firstMessage }];
+        } else if (conversation && messages.length > 1) {
+          // Returning user with existing conversation: add welcome back recap
+          const approvedCount = existingDocs.filter((d) => d.status === "approved").length;
+          const draftCount = existingDocs.filter(
+            (d) => d.content && d.status !== "approved" && !d.document_type.startsWith("acs_form_"),
+          ).length;
+          const totalExchanges = messages.filter((m) => m.role === "user").length;
+
+          let recap = `Welcome back, ${(typedAssessment.profile_data.firstName as string) || "there"}. `;
+          if (approvedCount > 0 || draftCount > 0) {
+            const parts: string[] = [];
+            if (approvedCount > 0) parts.push(`**${approvedCount}** approved`);
+            if (draftCount > 0) parts.push(`**${draftCount}** in draft`);
+            recap += `You have ${parts.join(" and ")} document${approvedCount + draftCount > 1 ? "s" : ""}. `;
+          }
+          recap += "Let's pick up where we left off.";
+
+          messages = [
+            ...messages,
+            { role: "assistant", content: recap },
+          ];
+        }
 
         // Determine document tabs from assessing body
         const tabs = getDocumentTabs(body);
@@ -233,6 +257,11 @@ export default function WorkspacePage() {
           }
 
           setInitialACSData(acsData);
+        }
+
+        // Load persisted CV data
+        if (typedAssessment.cv_data) {
+          setInitialCvData(typedAssessment.cv_data);
         }
 
         setAssessmentData(workspaceData);
@@ -291,6 +320,8 @@ export default function WorkspacePage() {
       occupationTitle={assessmentData.occupationTitle}
       anzscoCode={assessmentData.anzscoCode}
       initialACSData={initialACSData}
+      initialCvData={initialCvData}
+      firstName={(assessmentData.profileData?.firstName as string) || ""}
     />
   );
 }

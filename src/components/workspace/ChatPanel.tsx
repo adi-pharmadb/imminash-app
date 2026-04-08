@@ -9,6 +9,7 @@
 import { useState, useRef, useEffect, useCallback } from "react";
 import { Send, Paperclip } from "lucide-react";
 import { MessageBubble } from "@/components/workspace/MessageBubble";
+import { CaseDashboard } from "@/components/workspace/CaseDashboard";
 import { parseDocumentUpdates, parseACSFormUpdates, stripDocumentMarkers } from "@/lib/duty-alignment";
 import type { ChatMessage } from "@/lib/workspace-helpers";
 import type { DocumentUpdate, ACSFormUpdate } from "@/lib/duty-alignment";
@@ -20,6 +21,11 @@ interface ChatPanelProps {
   onDocumentUpdates: (updates: DocumentUpdate[]) => void;
   onACSFormUpdates?: (updates: ACSFormUpdate[]) => void;
   placeholderOverride?: string;
+  cvData?: Record<string, unknown> | null;
+  onCVDataReceived?: (data: Record<string, unknown>) => void;
+  occupationTitle?: string;
+  anzscoCode?: string;
+  assessingAuthority?: string;
 }
 
 export function ChatPanel({
@@ -29,6 +35,11 @@ export function ChatPanel({
   onDocumentUpdates,
   onACSFormUpdates,
   placeholderOverride,
+  cvData,
+  onCVDataReceived,
+  occupationTitle = "",
+  anzscoCode = "",
+  assessingAuthority = "",
 }: ChatPanelProps) {
   const [input, setInput] = useState("");
   const [isLoading, setIsLoading] = useState(false);
@@ -70,6 +81,7 @@ export function ChatPanel({
             content: m.content,
           })),
           assessmentId,
+          ...(cvData ? { cvData } : {}),
         }),
       });
 
@@ -142,7 +154,7 @@ export function ChatPanel({
     } finally {
       setIsLoading(false);
     }
-  }, [input, isLoading, messages, assessmentId, onMessagesChange, onDocumentUpdates, onACSFormUpdates]);
+  }, [input, isLoading, messages, assessmentId, cvData, onMessagesChange, onDocumentUpdates, onACSFormUpdates]);
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
     if (e.key === "Enter" && !e.shiftKey) {
@@ -190,6 +202,11 @@ export function ChatPanel({
       const result = await response.json();
       const summary = result.summary || "I've received your CV. Let me review it and ask follow-up questions about your employment history.";
 
+      // Pass full parsed CV data upstream for system prompt context
+      if (result.data && onCVDataReceived) {
+        onCVDataReceived(result.data);
+      }
+
       const finalMessages: ChatMessage[] = [
         ...updatedMessages,
         { role: "assistant", content: summary },
@@ -210,17 +227,35 @@ export function ChatPanel({
 
   return (
     <div className="flex h-full flex-col bg-background" data-testid="chat-panel">
+      {/* Compact dashboard bar after first user message */}
+      {messages.some((m) => m.role === "user") && (
+        <CaseDashboard
+          occupationTitle={occupationTitle}
+          anzscoCode={anzscoCode}
+          assessingAuthority={assessingAuthority}
+          collapsed={true}
+        />
+      )}
+
       {/* Messages area - spacious premium feel */}
       <div className="flex-1 overflow-y-auto px-5 py-6 md:px-6 lg:px-8">
-        {messages.length === 0 && (
-          <div className="flex h-full flex-col items-center justify-center text-center">
-            <p className="font-display text-xl italic text-muted-foreground/60">
-              Start a conversation
-            </p>
-            <p className="mt-2 text-sm text-muted-foreground/40">
-              Ask about your migration documents
-            </p>
-          </div>
+        {/* Case Dashboard: show before first user message */}
+        {!messages.some((m) => m.role === "user") && (
+          <CaseDashboard
+            occupationTitle={occupationTitle}
+            anzscoCode={anzscoCode}
+            assessingAuthority={assessingAuthority}
+            collapsed={false}
+            onFileUpload={(file) => {
+              if (fileInputRef.current) {
+                const dt = new DataTransfer();
+                dt.items.add(file);
+                fileInputRef.current.files = dt.files;
+                fileInputRef.current.dispatchEvent(new Event("change", { bubbles: true }));
+              }
+            }}
+            onSkip={() => inputRef.current?.focus()}
+          />
         )}
 
         <div className="mx-auto max-w-2xl space-y-1">

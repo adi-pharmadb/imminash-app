@@ -39,6 +39,7 @@ function getEnglishPoints(score: string): number {
 
 function getAustralianExperiencePoints(experience: string): number {
   switch (experience) {
+    case "0":
     case "0-1":
       return 0;
     case "1-3":
@@ -56,10 +57,10 @@ function getAustralianExperiencePoints(experience: string): number {
 
 function getOffshoreExperiencePoints(experience: string): number {
   switch (experience) {
+    case "0":
     case "0-1":
-      return 0;
     case "1-3":
-      return 5;
+      return 0;
     case "3-5":
       return 10;
     case "5-8":
@@ -113,7 +114,7 @@ export function estimatePoints(userData: UserProfile): PointsBreakdown {
   const age = getAgePoints(userData.age);
   const english = getEnglishPoints(userData.englishScore);
   const rawAU = getAustralianExperiencePoints(
-    userData.australianExperience || "0-1",
+    userData.australianExperience || "0",
   );
   const rawOffshore = getOffshoreExperiencePoints(userData.experience);
   const education = getEducationPoints(userData.educationLevel || "");
@@ -228,6 +229,7 @@ export function calcPointsSoFar(data: Partial<UserProfile>): number {
  */
 export function parseExperienceYears(experience: string): number {
   switch (experience) {
+    case "0":
     case "0-1":
       return 0;
     case "1-3":

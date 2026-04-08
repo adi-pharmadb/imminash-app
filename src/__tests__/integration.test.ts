@@ -195,10 +195,10 @@ describe("E2E-1: Phase 1 Happy Path Data Flow", () => {
     expect(points.education).toBe(15);
     expect(points.australianStudy).toBe(5);
     expect(points.australianExperience).toBe(10);
-    expect(points.offshoreExperience).toBe(5);
+    expect(points.offshoreExperience).toBe(0);
     expect(points.english).toBe(10);
     expect(points.partner).toBe(10);
-    expect(points.total).toBe(85);
+    expect(points.total).toBe(80);
 
     // Step 3: Occupation matching (keyword fallback, no AI client)
     const matchResult = await matchOccupations(
@@ -276,7 +276,6 @@ describe("E2E-2: Phase 2 Data Flow", () => {
     expect(firstMessage).toContain("Software Engineer");
     expect(firstMessage).toContain("261313");
     expect(firstMessage).toContain("ACS");
-    expect(firstMessage).toContain("Australian Computer Society");
 
     // Step 2: Document tabs match assessing body requirements
     const tabs = getDocumentTabs(ACS_BODY);

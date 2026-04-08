@@ -45,6 +45,14 @@ export function StepperPage5({ data, onChange }: StepperPage5Props) {
       </div>
 
       <StepperField label={label} hint={hint}>
+        {!isNotYet && (
+          <ul className="mb-3 space-y-1 text-xs text-muted-foreground">
+            <li>What do you do every day?</li>
+            <li>What tools or systems do you use?</li>
+            <li>Who do you work with or report to?</li>
+            <li>What are you responsible for delivering?</li>
+          </ul>
+        )}
         <textarea
           data-testid="field-jobDuties"
           value={data.jobDuties ?? ""}

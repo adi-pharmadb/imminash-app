@@ -25,19 +25,17 @@ const skilledOptions = [
 
 const auExperienceOptions = [
   { value: "0", label: "None" },
-  { value: "0-1", label: "Less than 1 year" },
-  { value: "1-3", label: "1-3 years" },
-  { value: "3-5", label: "3-5 years" },
-  { value: "5-8", label: "5-8 years" },
-  { value: "8+", label: "8+ years" },
+  { value: "1-3", label: "1 to less than 3 years" },
+  { value: "3-5", label: "3 to less than 5 years" },
+  { value: "5-8", label: "5 to less than 8 years" },
+  { value: "8+", label: "8 years or more" },
 ];
 
 const offshoreExperienceOptions = [
-  { value: "0-1", label: "Less than 1 year" },
-  { value: "1-3", label: "1-3 years" },
-  { value: "3-5", label: "3-5 years" },
-  { value: "5-8", label: "5-8 years" },
-  { value: "8+", label: "8+ years" },
+  { value: "0", label: "None" },
+  { value: "3-5", label: "3 to less than 5 years" },
+  { value: "5-8", label: "5 to less than 8 years" },
+  { value: "8+", label: "8 years or more" },
 ];
 
 function getJobTitleLabel(workingSkilled: string | undefined): string {

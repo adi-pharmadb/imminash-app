@@ -72,7 +72,7 @@ describe("Results page: pathway CTA and state nominations", () => {
       "utf-8",
     );
 
-    expect(resultsPageSource).toContain("See Your Visa Pathways");
+    expect(resultsPageSource).toContain("Which visa should you go for?");
     expect(resultsPageSource).toContain('data-testid="pathway-cta"');
   });
 

@@ -98,40 +98,11 @@ describe("AI Chat API and Duty Alignment", () => {
     expect(events[1]).toEqual({ type: "done" });
   });
 
-  it("System prompt includes assessing body requirements, ANZSCO descriptors, and user documents", () => {
-    const existingDoc: Document = {
-      id: "doc-1",
-      assessment_id: "assess-1",
-      user_id: "user-1",
-      document_type: "employment_reference",
-      title: "Employment Reference - Acme Corp",
-      content: { employer: "Acme Corp", duties: ["Building APIs"] },
-      storage_path: null,
-      created_at: "2026-01-01T00:00:00Z",
-      updated_at: "2026-01-01T00:00:00Z",
-    };
+  it("ACS system prompt includes occupation, profile, and document update markers", () => {
+    const prompt = buildSystemPrompt(buildContext());
 
-    const prompt = buildSystemPrompt(
-      buildContext({ existingDocuments: [existingDoc] }),
-    );
-
-    // Assessing body name included
+    // Assessing body identified
     expect(prompt).toContain("ACS");
-
-    // Required documents included
-    expect(prompt).toContain("employment_reference");
-    expect(prompt).toContain("cv_resume");
-
-    // ANZSCO duty descriptors included
-    expect(prompt).toContain("Designing, developing and maintaining software systems");
-    expect(prompt).toContain("Testing, debugging and diagnosing software faults");
-
-    // Formatting notes included
-    expect(prompt).toContain("company letterhead");
-
-    // Conversation template included [AC-DW8]
-    expect(prompt).toContain("Greet and confirm matched occupation");
-    expect(prompt).toContain("ICT specialization");
 
     // Occupation context
     expect(prompt).toContain("Analyst Programmer");
@@ -141,13 +112,12 @@ describe("AI Chat API and Duty Alignment", () => {
     expect(prompt).toContain("Alex");
     expect(prompt).toContain("Software Developer");
 
-    // Existing document content
-    expect(prompt).toContain("Acme Corp");
-    expect(prompt).toContain("Building APIs");
-
-    // Document update instructions
+    // Document update markers
     expect(prompt).toContain("[DOC_UPDATE:");
     expect(prompt).toContain("[/DOC_UPDATE]");
+
+    // Letterhead reference (formatting requirement)
+    expect(prompt).toContain("letterhead");
   });
 
   it("Document update markers are correctly parsed from AI response", () => {
@@ -213,18 +183,13 @@ The duties have been written to align with the ACS requirements for ANZSCO 26131
   });
 
   it("Duty alignment: plain-language duties rewritten to align with ANZSCO descriptors", () => {
-    // The system prompt instructs the AI to rewrite user duties.
-    // Verify that the prompt includes the alignment instructions and ANZSCO descriptors.
+    // The ACS system prompt instructs the AI to gather SFIA-aligned duty content.
     const prompt = buildSystemPrompt(buildContext());
 
-    // Prompt must include duty alignment instructions
-    expect(prompt).toContain("DUTY ALIGNMENT");
-    expect(prompt).toContain("rewrite them to align with the ANZSCO task descriptors");
+    // Prompt references duty elicitation and SFIA alignment
+    expect(prompt).toContain("DUTY ELICITATION");
+    expect(prompt).toContain("SFIA");
     expect(prompt).toContain("Analyst Programmer");
-
-    // Prompt must include the actual ANZSCO descriptors to align against
-    expect(prompt).toContain("Designing, developing and maintaining software systems");
-    expect(prompt).toContain("Writing and maintaining program code");
 
     // Verify the AI can produce aligned output by parsing a simulated response
     // where plain-language "I build web apps" becomes ANZSCO-aligned language

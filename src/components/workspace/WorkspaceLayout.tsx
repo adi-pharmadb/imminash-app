@@ -19,7 +19,7 @@
  * individual "Ref Letter -- [Employer]" entries.
  */
 
-import { useState, useCallback, useMemo, useRef } from "react";
+import { useState, useCallback, useMemo } from "react";
 import { X, Check, MessageSquare } from "lucide-react";
 import { ChatPanel } from "@/components/workspace/ChatPanel";
 import { DocumentPanel } from "@/components/workspace/DocumentPanel";
@@ -29,6 +29,9 @@ import {
   type SidebarDocument,
   type DocumentStatus,
 } from "@/components/workspace/DocumentSidebar";
+import { FactCheckDeclaration } from "@/components/workspace/FactCheckDeclaration";
+import { CompletionDashboard } from "@/components/workspace/CompletionDashboard";
+import { ReferralPrompt } from "@/components/workspace/ReferralPrompt";
 import { isACSBody, formatDocumentType } from "@/lib/workspace-helpers";
 import type { ChatMessage } from "@/lib/workspace-helpers";
 import type { DocumentUpdate, ACSFormUpdate } from "@/lib/duty-alignment";
@@ -47,6 +50,8 @@ interface WorkspaceLayoutProps {
   occupationTitle?: string;
   anzscoCode?: string;
   initialACSData?: ACSApplicationData;
+  initialCvData?: Record<string, unknown> | null;
+  firstName?: string;
   onMessagesChange?: (messages: ChatMessage[]) => void;
 }
 
@@ -73,6 +78,8 @@ export function WorkspaceLayout({
   occupationTitle = "",
   anzscoCode = "",
   initialACSData,
+  initialCvData,
+  firstName = "",
   onMessagesChange,
 }: WorkspaceLayoutProps) {
   const isACS = isACSBody(assessingAuthority);
@@ -80,13 +87,26 @@ export function WorkspaceLayout({
   const [messages, setMessages] = useState<ChatMessage[]>(initialMessages);
   const [documents, setDocuments] = useState<DbDocument[]>(initialDocuments);
   const [isDownloadingAll, setIsDownloadingAll] = useState(false);
+  const [referralOpen, setReferralOpen] = useState(false);
+  const [lastSavedAt, setLastSavedAt] = useState<number | null>(null);
 
   // Zone 3 visibility state
   const [previewOpen, setPreviewOpen] = useState(false);
   const [previewDocType, setPreviewDocType] = useState<string | null>(null);
 
-  // Track approved documents
-  const [approvedDocTypes, setApprovedDocTypes] = useState<Set<string>>(new Set());
+  // Derive approved doc types from documents' DB status (no in-memory tracking)
+  const approvedDocTypes = useMemo(() => {
+    const set = new Set<string>();
+    for (const doc of documents) {
+      if (doc.status === "approved") {
+        set.add(doc.document_type);
+      }
+    }
+    return set;
+  }, [documents]);
+
+  // CV data state (persisted to assessments.cv_data)
+  const [cvData, setCvData] = useState<Record<string, unknown> | null>(initialCvData || null);
 
   // ACS-specific state
   const [acsData, setAcsData] = useState<ACSApplicationData>(
@@ -125,11 +145,14 @@ export function WorkspaceLayout({
           .toLowerCase()
           .replace(/[^a-z0-9]+/g, "_")
           .replace(/^_|_$/g, "");
-        const docType = `reference_letter_${slug}`;
+        const legacyDocType = `reference_letter_${slug}`;
+        const newDocType = `employment_reference_${slug}`;
 
+        // Match both legacy reference_letter_* and new employment_reference_* formats
         const matchedDoc = documents.find(
-          (d) => d.document_type === docType,
+          (d) => d.document_type === legacyDocType || d.document_type === newDocType,
         );
+        const docType = matchedDoc?.document_type || newDocType;
 
         let status: DocumentStatus = "not_started";
         if (approvedDocTypes.has(docType)) {
@@ -279,6 +302,21 @@ export function WorkspaceLayout({
     [],
   );
 
+  // Handle CV data received from upload
+  const handleCVDataReceived = useCallback(async (data: Record<string, unknown>) => {
+    setCvData(data);
+    // Persist to DB
+    try {
+      const supabase = (await import("@/lib/supabase/client")).createClient();
+      await supabase
+        .from("assessments")
+        .update({ cv_data: data })
+        .eq("id", assessmentId);
+    } catch (e) {
+      console.error("Failed to persist CV data:", e);
+    }
+  }, [assessmentId]);
+
   const handleDocumentUpdates = useCallback(
     (updates: DocumentUpdate[]) => {
       setDocuments((prev) => {
@@ -310,6 +348,9 @@ export function WorkspaceLayout({
               title: update.documentType.replace(/_/g, " "),
               content: parsedContent,
               storage_path: null,
+              status: "draft",
+              declaration_confirmed_at: null,
+              declaration_text: null,
               created_at: new Date().toISOString(),
               updated_at: new Date().toISOString(),
             });
@@ -322,6 +363,7 @@ export function WorkspaceLayout({
       if (updates.length > 0) {
         setPreviewDocType(updates[0].documentType);
         setPreviewOpen(true);
+        setLastSavedAt(Date.now());
       }
     },
     [assessmentId],
@@ -335,30 +377,62 @@ export function WorkspaceLayout({
     setPreviewOpen(true);
   }, []);
 
-  /** Approve the currently previewed document: turn dot green, collapse Zone 3 */
-  const handleApproveDocument = useCallback(() => {
+  /** Approve the currently previewed document: persist to DB, turn dot green, collapse Zone 3 */
+  const handleApproveDocument = useCallback(async () => {
     if (!previewDocType) return;
 
+    // Optimistically update local state
     setDocuments((prev) => {
       const next = [...prev];
       const idx = next.findIndex((d) => d.document_type === previewDocType);
       if (idx >= 0) {
-        next[idx] = { ...next[idx], updated_at: new Date().toISOString() };
+        next[idx] = {
+          ...next[idx],
+          status: "approved",
+          updated_at: new Date().toISOString(),
+        };
       }
       return next;
     });
 
-    setApprovedDocTypes((prev) => new Set([...prev, previewDocType]));
-    setPreviewOpen(false);
-    setPreviewDocType(null);
-  }, [previewDocType]);
+    // Brief delay before collapsing to let the user see the approval
+    setTimeout(() => {
+      setPreviewOpen(false);
+      setPreviewDocType(null);
+    }, 500);
+
+    // Persist approval to DB
+    try {
+      const supabase = (await import("@/lib/supabase/client")).createClient();
+      const doc = documents.find((d) => d.document_type === previewDocType);
+      if (doc && !doc.id.startsWith("local-")) {
+        await supabase
+          .from("documents")
+          .update({ status: "approved", updated_at: new Date().toISOString() })
+          .eq("id", doc.id);
+      }
+    } catch (e) {
+      console.error("Failed to persist document approval:", e);
+    }
+  }, [previewDocType, documents]);
 
   /** Request changes: close preview, refocus chat with placeholder */
   const handleRequestChanges = useCallback(() => {
     setPreviewOpen(false);
     setChatPlaceholder("Describe what you'd like to change...");
-    // Clear the placeholder after user starts typing (handled in ChatPanel)
     setTimeout(() => setChatPlaceholder(undefined), 10000);
+  }, []);
+
+  /** Handle text-selection revision request from DocumentPanel */
+  const handleRevisionRequest = useCallback((selectedText: string) => {
+    // Inject a revision request message into the chat
+    const revisionMsg: ChatMessage = {
+      role: "user",
+      content: `Please revise this section of the document:\n\n"${selectedText}"\n\nMake it more specific and SFIA-aligned for the ACS assessment.`,
+    };
+    setMessages((prev) => [...prev, revisionMsg]);
+    setPreviewOpen(false);
+    setChatPlaceholder(undefined);
   }, []);
 
   const handleDownloadAll = useCallback(async () => {
@@ -384,6 +458,9 @@ export function WorkspaceLayout({
       a.click();
       document.body.removeChild(a);
       URL.revokeObjectURL(url);
+
+      // Show referral prompt after successful download
+      setReferralOpen(true);
     } catch (error) {
       console.error("Download-all error:", error);
     } finally {
@@ -403,14 +480,25 @@ export function WorkspaceLayout({
         onDownloadAll={handleDownloadAll}
         isDownloading={isDownloadingAll}
         allComplete={allComplete}
+        lastSavedAt={lastSavedAt}
       />
 
-      {/* Zone 2: Chat panel (takes remaining width, or splits with Zone 3) */}
+      {/* Zone 2: Chat panel or Completion Dashboard */}
       <div
         className={`flex-1 flex flex-col min-w-0 ${
           previewOpen ? "md:w-1/2" : ""
         }`}
       >
+        {allComplete ? (
+          <CompletionDashboard
+            documents={activeSidebarDocs}
+            firstName={firstName}
+            occupationTitle={occupationTitle}
+            anzscoCode={anzscoCode}
+            onDownload={handleDownloadAll}
+            isDownloading={isDownloadingAll}
+          />
+        ) : (
         <ChatPanel
           messages={messages}
           onMessagesChange={handleMessagesChange}
@@ -418,14 +506,20 @@ export function WorkspaceLayout({
           onDocumentUpdates={handleDocumentUpdates}
           onACSFormUpdates={isACS ? handleACSFormUpdates : undefined}
           placeholderOverride={chatPlaceholder}
+          cvData={cvData}
+          onCVDataReceived={handleCVDataReceived}
+          occupationTitle={occupationTitle}
+          anzscoCode={anzscoCode}
+          assessingAuthority={assessingAuthority}
         />
+        )}
       </div>
 
       {/* Zone 3: Document preview (appears when triggered, 50% width on desktop) */}
       {previewOpen && (
         <>
-          {/* Desktop: inline panel */}
-          <div className="hidden md:flex md:flex-col md:w-1/2 border-l border-border/30 relative">
+          {/* Desktop: slide-in panel */}
+          <div className="hidden md:flex md:flex-col md:w-1/2 border-l border-border/30 relative transition-all duration-300 animate-in slide-in-from-right">
             <button
               onClick={() => setPreviewOpen(false)}
               className="absolute top-3 right-3 z-10 flex h-8 w-8 items-center justify-center rounded-lg bg-secondary/80 hover:bg-secondary transition-colors"
@@ -441,34 +535,69 @@ export function WorkspaceLayout({
                   highlightedSection={highlightedSection}
                 />
               ) : (
-                <DocumentPanel tabs={documentTabs} documents={documents} />
+                <DocumentPanel tabs={documentTabs} documents={documents} onRevisionRequest={handleRevisionRequest} />
               )}
             </div>
-            {/* Approve / Request Changes buttons */}
-            <div className="flex items-center gap-3 border-t border-border/30 px-4 py-3">
-              <button
-                onClick={handleApproveDocument}
-                className="flex-1 flex items-center justify-center gap-2 rounded-lg py-2.5 text-sm font-semibold transition-all hover:brightness-110"
-                style={{ background: "oklch(0.72 0.17 155)", color: "oklch(0.13 0.01 260)" }}
-                data-testid="approve-document"
-              >
-                <Check className="h-4 w-4" />
-                Approve this document
-              </button>
-              <button
-                onClick={handleRequestChanges}
-                className="flex-1 flex items-center justify-center gap-2 rounded-lg border border-border/50 py-2.5 text-sm font-semibold text-muted-foreground transition-all hover:bg-secondary/50"
-                data-testid="request-changes"
-              >
-                <MessageSquare className="h-4 w-4" />
-                Request changes
-              </button>
+            {/* Approve / Request Changes footer */}
+            <div className="border-t border-border/30 px-4 py-3 space-y-3">
+              {/* Fact-check declaration for reference letters */}
+              {previewDocType && (previewDocType.includes("reference") || previewDocType.includes("employment_reference")) ? (
+                <FactCheckDeclaration
+                  employerNames={previewDocType ? [
+                    // Extract employer name from doc type slug
+                    previewDocType
+                      .replace(/^(reference_letter_|employment_reference_)/, "")
+                      .split("_")
+                      .map((w) => w.charAt(0).toUpperCase() + w.slice(1))
+                      .join(" "),
+                  ] : []}
+                  onAllConfirmed={handleApproveDocument}
+                />
+              ) : (
+                <div className="flex items-center gap-3">
+                  <button
+                    onClick={handleApproveDocument}
+                    className="flex-1 flex items-center justify-center gap-2 rounded-lg py-2.5 text-sm font-semibold transition-all hover:brightness-110"
+                    style={{ background: "oklch(0.72 0.17 155)", color: "oklch(0.13 0.01 260)" }}
+                    data-testid="approve-document"
+                  >
+                    <Check className="h-4 w-4" />
+                    Approve this document
+                  </button>
+                  <button
+                    onClick={handleRequestChanges}
+                    className="flex-1 flex items-center justify-center gap-2 rounded-lg border border-border/50 py-2.5 text-sm font-semibold text-muted-foreground transition-all hover:bg-secondary/50"
+                    data-testid="request-changes"
+                  >
+                    <MessageSquare className="h-4 w-4" />
+                    Request changes
+                  </button>
+                </div>
+              )}
+              {/* Request changes always available */}
+              {previewDocType && (previewDocType.includes("reference") || previewDocType.includes("employment_reference")) && (
+                <button
+                  onClick={handleRequestChanges}
+                  className="flex w-full items-center justify-center gap-2 rounded-lg border border-border/50 py-2 text-xs font-medium text-muted-foreground transition-all hover:bg-secondary/50"
+                >
+                  <MessageSquare className="h-3.5 w-3.5" />
+                  Request changes instead
+                </button>
+              )}
             </div>
           </div>
 
-          {/* Mobile: fullscreen modal */}
-          <div className="fixed inset-0 z-40 flex flex-col bg-background md:hidden">
-            <div className="flex items-center justify-between border-b border-border/30 px-4 py-3">
+          {/* Mobile: backdrop + bottom sheet (70vh) */}
+          <div
+            className="fixed inset-0 z-30 bg-black/40 md:hidden animate-in fade-in duration-200"
+            onClick={() => setPreviewOpen(false)}
+          />
+          <div className="fixed inset-x-0 bottom-0 z-40 flex flex-col bg-background rounded-t-2xl shadow-2xl md:hidden animate-in slide-in-from-bottom duration-300" style={{ height: "70vh" }}>
+            {/* Drag handle */}
+            <div className="flex items-center justify-center pt-2 pb-1">
+              <div className="h-1 w-10 rounded-full bg-muted-foreground/20" />
+            </div>
+            <div className="flex items-center justify-between border-b border-border/30 px-4 py-2">
               <span className="text-sm font-semibold text-foreground">
                 Document Preview
               </span>
@@ -487,7 +616,7 @@ export function WorkspaceLayout({
                   highlightedSection={highlightedSection}
                 />
               ) : (
-                <DocumentPanel tabs={documentTabs} documents={documents} />
+                <DocumentPanel tabs={documentTabs} documents={documents} onRevisionRequest={handleRevisionRequest} />
               )}
             </div>
             {/* Mobile Approve / Request Changes buttons */}
@@ -511,6 +640,9 @@ export function WorkspaceLayout({
           </div>
         </>
       )}
+
+      {/* Post-download referral prompt */}
+      <ReferralPrompt open={referralOpen} onOpenChange={setReferralOpen} />
     </div>
   );
 }

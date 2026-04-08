@@ -241,17 +241,17 @@ describe("Stepper Flow", () => {
     data = { ...data, educationLevel: "Masters", fieldOfStudy: "CS", countryOfEducation: "Australia", australianStudy: "Yes" };
     expect(calcPointsSoFar(data)).toBe(30 + 15 + 5); // age + masters + AU study
 
-    // After Page 4: offshore experience contributes
+    // After Page 4: AU + offshore experience contribute (AU 1-3=5, offshore 3-5=10, combined=15)
     data = { ...data, workingSkilled: "Yes", jobTitle: "Engineer", australianExperience: "1-3", experience: "3-5" };
-    expect(calcPointsSoFar(data)).toBe(30 + 15 + 5 + 10); // + offshore 3-5 = 10
+    expect(calcPointsSoFar(data)).toBe(30 + 15 + 5 + 15); // age + masters + AU study + combined exp
 
     // After Page 6: English contributes
     data = { ...data, englishScore: "Superior", naatiCcl: "Yes" };
-    expect(calcPointsSoFar(data)).toBe(30 + 15 + 5 + 10 + 20 + 5); // + superior + naati
+    expect(calcPointsSoFar(data)).toBe(30 + 15 + 5 + 15 + 20 + 5); // + superior + naati
 
     // After Page 7: partner contributes
     data = { ...data, professionalYear: "Yes", relationshipStatus: "Single", partnerStatus: "Single" };
-    expect(calcPointsSoFar(data)).toBe(30 + 15 + 5 + 10 + 20 + 5 + 5 + 10); // + PY + single
+    expect(calcPointsSoFar(data)).toBe(30 + 15 + 5 + 15 + 20 + 5 + 5 + 10); // + PY + single
   });
 
   it("AC-S6: points popup triggers when English changes from Competent to Proficient (+10)", () => {

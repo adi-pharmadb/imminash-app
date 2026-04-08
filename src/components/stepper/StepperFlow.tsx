@@ -47,6 +47,7 @@ const PAGE_DEFS: PageDef[] = [
       d.age !== undefined &&
       d.age > 0 &&
       !!d.visaStatus?.trim() &&
+      (d.visaStatus !== "Other" || !!d.visaStatusOther?.trim()) &&
       isVisaExpiryValid(d.visaExpiry),
   },
   {
@@ -156,6 +157,11 @@ export function StepperFlow({ onComplete }: StepperFlowProps) {
           }
         }
 
+        // Clear visaStatusOther when visa status changes away from "Other"
+        if (key === "visaStatus" && value !== "Other") {
+          next.visaStatusOther = undefined as unknown as string;
+        }
+
         // Clear conditional fields when country of education changes
         if (key === "countryOfEducation" && value === "Overseas") {
           next.australianStudy = undefined as unknown as string;
@@ -175,6 +181,7 @@ export function StepperFlow({ onComplete }: StepperFlowProps) {
   );
 
   const handleNext = () => {
+    window.scrollTo({ top: 0, behavior: "instant" });
     if (currentIndex < totalPages - 1) {
       setCurrentIndex(currentIndex + 1);
     } else {
@@ -183,6 +190,7 @@ export function StepperFlow({ onComplete }: StepperFlowProps) {
   };
 
   const handlePrev = () => {
+    window.scrollTo({ top: 0, behavior: "instant" });
     if (currentIndex > 0) {
       setCurrentIndex(currentIndex - 1);
     }
@@ -274,6 +282,7 @@ export function StepperFlow({ onComplete }: StepperFlowProps) {
                 <button
                   type="button"
                   onClick={() => {
+                    window.scrollTo({ top: 0, behavior: "instant" });
                     if (currentIndex < totalPages - 1) {
                       setCurrentIndex(currentIndex + 1);
                     }

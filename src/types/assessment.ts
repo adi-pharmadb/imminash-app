@@ -25,6 +25,7 @@ export interface StepperFormData {
   firstName: string;
   age: number;
   visaStatus: string;
+  visaStatusOther?: string;
   visaExpiry: string;
   // Page 2: Education
   educationLevel: string;
@@ -62,6 +63,7 @@ export interface UserProfile {
   firstName: string;
   age: number;
   visaStatus: string;
+  visaStatusOther?: string;
   visaExpiry: string;
   educationLevel: string;
   fieldOfStudy: string;

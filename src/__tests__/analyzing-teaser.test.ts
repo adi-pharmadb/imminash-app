@@ -8,7 +8,6 @@
 
 import { describe, it, expect, vi } from "vitest";
 import {
-  STEP_MESSAGES,
   TOTAL_ANIMATION_MS,
   STEP_DURATION_MS,
 } from "@/components/stepper/AnalyzingScreen";
@@ -60,17 +59,17 @@ function simulateAnalyzingFlow(apiDelayMs: number): number {
 }
 
 describe("Analyzing Screen", () => {
-  it("AC-AN1: screen stays for at least 4.8s even if AI responds instantly", () => {
-    // API responds in 500ms, but screen must stay for at least 4800ms
+  it("AC-AN1: screen stays for at least 9s even if AI responds instantly", () => {
+    // API responds in 500ms, but screen must stay for at least TOTAL_ANIMATION_MS
     const advancedAt = simulateAnalyzingFlow(500);
 
     expect(advancedAt).toBeGreaterThanOrEqual(TOTAL_ANIMATION_MS);
-    expect(TOTAL_ANIMATION_MS).toBe(4800);
+    expect(TOTAL_ANIMATION_MS).toBe(9000);
   });
 
-  it("AC-AN2: screen waits for AI if it takes longer than 4.8s", () => {
-    // Simulate AI taking 6000ms -- screen should wait until API completes
-    const apiDelay = 6000;
+  it("AC-AN2: screen waits for AI if it takes longer than animation", () => {
+    // Simulate AI taking 12000ms -- screen should wait until API completes
+    const apiDelay = 12000;
     const advancedAt = simulateAnalyzingFlow(apiDelay);
 
     // Should advance at the API completion time since it is later than animation
@@ -78,23 +77,10 @@ describe("Analyzing Screen", () => {
     expect(advancedAt).toBeGreaterThan(TOTAL_ANIMATION_MS);
   });
 
-  it("AC-AN3: all 4 step messages appear sequentially at ~1.2s intervals", () => {
-    // Verify the step messages are exactly the 4 required messages
-    expect(STEP_MESSAGES).toHaveLength(4);
-    expect(STEP_MESSAGES[0]).toBe("Matching your profile to ANZSCO occupations...");
-    expect(STEP_MESSAGES[1]).toBe("Identifying your assessing authority...");
-    expect(STEP_MESSAGES[2]).toBe("Estimating your points score...");
-    expect(STEP_MESSAGES[3]).toBe("Building your skills assessment roadmap...");
-
-    // Verify each step gets approximately 1.2s
-    expect(STEP_DURATION_MS).toBe(1200);
-
-    // Verify total animation equals steps * duration
-    expect(TOTAL_ANIMATION_MS).toBe(STEP_MESSAGES.length * STEP_DURATION_MS);
-
-    // Simulate step progression timing
-    const stepTimes = STEP_MESSAGES.map((_, i) => (i + 1) * STEP_DURATION_MS);
-    expect(stepTimes).toEqual([1200, 2400, 3600, 4800]);
+  it("AC-AN3: step duration and total animation are consistent", () => {
+    // 10 messages at 900ms each = 9000ms total
+    expect(STEP_DURATION_MS).toBe(900);
+    expect(TOTAL_ANIMATION_MS).toBe(9000);
   });
 });
 

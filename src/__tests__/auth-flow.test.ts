@@ -7,8 +7,14 @@
  */
 
 import { describe, it, expect, vi, beforeEach } from "vitest";
-import { linkAssessmentToUser, ensureProfile } from "@/lib/auth-helpers";
 import type { User, SupabaseClient } from "@supabase/supabase-js";
+
+let currentMockSupabase: ReturnType<typeof createMockSupabase> | null = null;
+vi.mock("@/lib/supabase/service", () => ({
+  createServiceClient: () => currentMockSupabase,
+}));
+
+const { linkAssessmentToUser, ensureProfile } = await import("@/lib/auth-helpers");
 
 /**
  * Build a mock Supabase client with chainable query builder.
@@ -104,8 +110,9 @@ describe("Auth Flow", () => {
         assessments: { data: null, error: null },
       },
     });
+    currentMockSupabase = supabase;
 
-    await linkAssessmentToUser(supabase, mockUser.id);
+    await linkAssessmentToUser(mockUser.id, mockUser.email!);
 
     // Verify that the function called supabase.from for both leads and assessments
     const tablesAccessed = supabase._callLog.map((c) => c.table);
@@ -132,8 +139,9 @@ describe("Auth Flow", () => {
         leads: { data: { first_name: "Bob" }, error: null },
       },
     });
+    currentMockSupabase = supabase;
 
-    await ensureProfile(supabase, mockUser);
+    await ensureProfile(mockUser.id, mockUser.email!);
 
     // Verify profiles.insert was called
     const profileInsert = supabase._callLog.find(

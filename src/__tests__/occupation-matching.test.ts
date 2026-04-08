@@ -179,28 +179,29 @@ describe("AI Occupation Matching", () => {
     expect(titles).toContain("Software Engineer");
   });
 
-  it("AI-5: confidence color mapping returns correct ranges", () => {
+  it("AI-5: confidence color mapping returns correct ranges (70+/50+/<50)", () => {
     const green = getConfidenceColor(85);
     expect(green.text).toBe("oklch(0.72 0.17 155)");
     expect(green.shadow).not.toBe("none");
 
-    const amber = getConfidenceColor(70);
+    const amber = getConfidenceColor(55);
     expect(amber.text).toBe("oklch(0.78 0.12 70)");
 
-    const red = getConfidenceColor(50);
+    const red = getConfidenceColor(40);
     expect(red.text).toBe("oklch(0.65 0.2 25)");
 
-    // Edge cases
-    expect(getConfidenceColor(80).text).toBe("oklch(0.72 0.17 155)");
-    expect(getConfidenceColor(61).text).toBe("oklch(0.78 0.12 70)");
-    expect(getConfidenceColor(60).text).toBe("oklch(0.65 0.2 25)");
+    // Edge cases at boundaries
+    expect(getConfidenceColor(70).text).toBe("oklch(0.72 0.17 155)"); // green at 70
+    expect(getConfidenceColor(69).text).toBe("oklch(0.78 0.12 70)"); // amber at 69
+    expect(getConfidenceColor(50).text).toBe("oklch(0.78 0.12 70)"); // amber at 50
+    expect(getConfidenceColor(49).text).toBe("oklch(0.65 0.2 25)"); // red at 49
   });
 
-  it("AI-6: weak match detection at 60% threshold", () => {
-    expect(isWeakMatch(60)).toBe(true);
-    expect(isWeakMatch(59)).toBe(true);
+  it("AI-6: weak match detection at 50% threshold", () => {
+    expect(isWeakMatch(49)).toBe(true);
     expect(isWeakMatch(0)).toBe(true);
-    expect(isWeakMatch(61)).toBe(false);
+    expect(isWeakMatch(50)).toBe(false);
+    expect(isWeakMatch(51)).toBe(false);
     expect(isWeakMatch(100)).toBe(false);
   });
 

@@ -64,6 +64,21 @@ export async function POST(
       );
     }
 
+    // Check all non-form documents are approved before allowing download
+    const contentDocs = (documents as DbDocument[]).filter(
+      (d) => !d.document_type.startsWith("acs_form_"),
+    );
+    const unapproved = contentDocs.filter((d) => d.status !== "approved");
+    if (unapproved.length > 0) {
+      return NextResponse.json(
+        {
+          error: "All documents must be approved before downloading",
+          unapproved: unapproved.map((d) => d.document_type),
+        },
+        { status: 400 },
+      );
+    }
+
     const zip = new JSZip();
 
     // Collect document names for the cover sheet
@@ -74,6 +89,17 @@ export async function POST(
       const content = (doc.content as Record<string, unknown>) || {};
       const docTitle = doc.title || doc.document_type;
       const safeName = docTitle.replace(/[^a-zA-Z0-9_-]/g, "_");
+
+      // Skip ACS form sections (internal data, not downloadable documents)
+      if (doc.document_type.startsWith("acs_form_")) continue;
+
+      // Manager briefing emails: save as plain text, not PDF/DOCX
+      if (doc.document_type.startsWith("manager_briefing_email")) {
+        const rawText = (content.raw as string) || JSON.stringify(content, null, 2);
+        zip.file(`${safeName}.txt`, rawText);
+        documentManifest.push({ name: docTitle.replace(/_/g, " "), type: doc.document_type });
+        continue;
+      }
 
       // PDF
       const pdfBuffer = await generatePdf(doc.document_type, docTitle, content);
@@ -133,10 +159,18 @@ export async function POST(
     )
       ? ((matchedOccupations as Record<string, unknown>).skillsMatches as Array<Record<string, unknown>>)
       : [];
-    const primaryMatch = skillsMatches[0] || {};
+    // Use selected_anzsco_code (DB source of truth), fallback to first match
+    let primaryMatch: Record<string, unknown> = skillsMatches[0] || {};
+    const selectedAnzsco = (typedAssessment as unknown as Record<string, unknown>).selected_anzsco_code as string | null;
+    if (selectedAnzsco) {
+      const selected = skillsMatches.find(
+        (m) => (m.anzsco_code as string) === selectedAnzsco,
+      );
+      if (selected) primaryMatch = selected;
+    }
 
     const occupationTitle = (primaryMatch.title as string) || "Not specified";
-    const anzscoCode = (primaryMatch.anzsco_code as string) || (primaryMatch.anzscoCode as string) || "";
+    const anzscoCode = selectedAnzsco || (primaryMatch.anzsco_code as string) || (primaryMatch.anzscoCode as string) || "";
     const assessingBody = (primaryMatch.assessing_authority as string) || (primaryMatch.assessingAuthority as string) || "";
 
     // Generate Package Cover Sheet PDF

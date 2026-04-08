@@ -121,24 +121,24 @@ describe("TG7-2: Agent knowledge entries appear in AI prompt", () => {
 });
 
 describe("TG7-3: Weak match triggers correct UI signals", () => {
-  it("confidence <= 60 is classified as weak match", () => {
-    expect(isWeakMatch(60)).toBe(true);
-    expect(isWeakMatch(59)).toBe(true);
+  it("confidence < 50 is classified as weak match", () => {
+    expect(isWeakMatch(49)).toBe(true);
     expect(isWeakMatch(0)).toBe(true);
-    expect(isWeakMatch(61)).toBe(false);
+    expect(isWeakMatch(50)).toBe(false);
+    expect(isWeakMatch(51)).toBe(false);
   });
 
   it("weak match color is red (oklch 0.65 0.2 25)", () => {
-    const colors = getConfidenceColor(55);
+    const colors = getConfidenceColor(40);
     expect(colors.text).toBe("oklch(0.65 0.2 25)");
   });
 
-  it("strong match has glow shadow, weak match does not", () => {
+  it("strong match has glow shadow, weak/good match does not", () => {
     const strong = getConfidenceColor(90);
     expect(strong.shadow).not.toBe("none");
 
-    const weak = getConfidenceColor(50);
-    expect(weak.shadow).toBe("none");
+    const good = getConfidenceColor(55);
+    expect(good.shadow).toBe("none");
   });
 });
 

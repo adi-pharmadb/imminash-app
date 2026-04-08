@@ -11,6 +11,7 @@
 
 export interface DocumentUpdate {
   documentType: string;
+  employerKey?: string;
   content: string;
 }
 
@@ -19,8 +20,9 @@ export interface ACSFormUpdate {
   content: string;
 }
 
+// Supports both [DOC_UPDATE:type] and employer-keyed [DOC_UPDATE:type:EmployerName]
 const DOC_UPDATE_REGEX =
-  /\[DOC_UPDATE:(\w+)\]\s*([\s\S]*?)\s*\[\/DOC_UPDATE\]/g;
+  /\[DOC_UPDATE:(\w+)(?::([^\]]+))?\]\s*([\s\S]*?)\s*\[\/DOC_UPDATE\]/g;
 
 const ACS_UPDATE_REGEX =
   /\[ACS_UPDATE:(\w+)\]\s*([\s\S]*?)\s*\[\/ACS_UPDATE\]/g;
@@ -37,10 +39,19 @@ export function parseDocumentUpdates(aiResponse: string): DocumentUpdate[] {
 
   const regex = new RegExp(DOC_UPDATE_REGEX.source, DOC_UPDATE_REGEX.flags);
   while ((match = regex.exec(aiResponse)) !== null) {
-    updates.push({
-      documentType: match[1],
-      content: match[2].trim(),
-    });
+    const baseType = match[1];
+    const employerKey = match[2]?.trim() || undefined;
+    const content = match[3].trim();
+
+    // For employer-keyed markers, create a slugified document type
+    // e.g. [DOC_UPDATE:employment_reference:Google] -> employment_reference_google
+    let documentType = baseType;
+    if (employerKey) {
+      const slug = employerKey.toLowerCase().replace(/[^a-z0-9]+/g, "_").replace(/^_|_$/g, "");
+      documentType = `${baseType}_${slug}`;
+    }
+
+    updates.push({ documentType, employerKey, content });
   }
 
   return updates;
@@ -106,12 +117,31 @@ export function extractEmployersFromMessages(
     }
 
     // Check DOC_UPDATE markers for reference letter doc types
-    // e.g. DOC_UPDATE:reference_letter_acme_corp
+    // Supports both legacy reference_letter_* and new employment_reference_* formats
     if (msg.role === "assistant") {
       const docUpdates = parseDocumentUpdates(msg.content);
       for (const update of docUpdates) {
+        // New employer-keyed format: employerKey is directly available
+        if (update.employerKey && !employers.includes(update.employerKey)) {
+          employers.push(update.employerKey);
+          continue;
+        }
+
+        // Legacy format: reference_letter_acme_corp
         if (update.documentType.startsWith("reference_letter_")) {
           const employerSlug = update.documentType.replace("reference_letter_", "");
+          const employerName = employerSlug
+            .split("_")
+            .map((w) => w.charAt(0).toUpperCase() + w.slice(1))
+            .join(" ");
+          if (!employers.includes(employerName)) {
+            employers.push(employerName);
+          }
+        }
+
+        // New format: employment_reference_google
+        if (update.documentType.startsWith("employment_reference_") && !update.employerKey) {
+          const employerSlug = update.documentType.replace("employment_reference_", "");
           const employerName = employerSlug
             .split("_")
             .map((w) => w.charAt(0).toUpperCase() + w.slice(1))

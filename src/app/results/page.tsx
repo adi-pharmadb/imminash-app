@@ -23,6 +23,7 @@ import { AuthModal } from "@/components/auth/AuthModal";
 import { OccupationPicker } from "@/components/results/OccupationPicker";
 import { createClient } from "@/lib/supabase/client";
 import { isACSBody } from "@/lib/workspace-helpers";
+import { checkEligibility } from "@/lib/eligibility-check";
 import type { StateNomination } from "@/types/database";
 
 /**
@@ -142,10 +143,21 @@ export default function ResultsPage() {
    * After occupation is selected, store it and proceed to auth or workspace.
    */
   const handleOccupationSelected = useCallback(async (occupation: MatchResult) => {
-    // Store the selected occupation for the workspace to read
+    // Store the selected occupation (sessionStorage as write-through cache)
     try {
       sessionStorage.setItem("imminash_selected_occupation", occupation.anzsco_code);
     } catch { /* ignore */ }
+
+    // Persist to DB (source of truth) if we have an assessmentId
+    if (data?.assessmentId) {
+      try {
+        const supabase = createClient();
+        await supabase
+          .from("assessments")
+          .update({ selected_anzsco_code: occupation.anzsco_code })
+          .eq("id", data.assessmentId);
+      } catch { /* non-blocking */ }
+    }
 
     setPickerOpen(false);
 
@@ -174,6 +186,8 @@ export default function ResultsPage() {
   }
 
   const { formData, skillsMatches, breakdown } = data;
+
+  const isEligible = checkEligibility(formData);
 
   // Check if any matched occupation has an ACS assessing body
   const hasACSMatch = skillsMatches.some(
@@ -344,6 +358,7 @@ export default function ResultsPage() {
                     pathwaySignals={signals}
                     stateInvitingSummary={stateSummary}
                     bestStateRecommendation={bestState ?? undefined}
+                    formData={formData}
                   />
                 </div>
               );
@@ -351,14 +366,36 @@ export default function ResultsPage() {
           </div>
         </div>
 
-        {/* Dual CTA - appears after scrolling past occupation cards */}
-        <div className="animate-reveal-up delay-300">
-          <DualCTA
-            possibility={topPossibility}
-            hasACSMatch={hasACSMatch}
-            onStartDocPrep={handleStartDocPrep}
-          />
-        </div>
+        {/* Dual CTA or consultation CTA based on eligibility */}
+        {isEligible ? (
+          <div className="animate-reveal-up delay-300">
+            <DualCTA
+              possibility={topPossibility}
+              hasACSMatch={hasACSMatch}
+              onStartDocPrep={handleStartDocPrep}
+            />
+          </div>
+        ) : (
+          <div className="animate-reveal-up delay-300 glass-card rounded-2xl p-6 space-y-4 text-center" data-testid="ineligible-cta">
+            <h3 className="font-display text-xl italic text-foreground">
+              Next Steps
+            </h3>
+            <p className="text-sm text-muted-foreground leading-relaxed">
+              Based on your current profile, you may need more Australian or overseas work experience
+              before applying for a skilled visa. A migration agent can help you map out the fastest
+              path to eligibility.
+            </p>
+            <a
+              href={process.env.NEXT_PUBLIC_AGENT_BOOKING_URL || "#book-consultation"}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex items-center gap-2 rounded-xl bg-primary px-6 py-3 text-sm font-semibold text-primary-foreground shadow-lg glow-primary transition-all hover:shadow-xl"
+            >
+              Book a Free Consultation
+              <ArrowRight className="h-4 w-4" />
+            </a>
+          </div>
+        )}
 
         {/* Re-assessment trigger */}
         <div className="animate-reveal-up delay-300">
@@ -375,8 +412,8 @@ export default function ResultsPage() {
           </p>
         </div>
 
-        {/* Pathway CTA */}
-        <div className="animate-reveal-up delay-300" data-testid="pathway-cta">
+        {/* Pathway CTA - only for eligible users */}
+        {isEligible && <div className="animate-reveal-up delay-300" data-testid="pathway-cta">
           <Link
             href="/pathway"
             className="glass-card glow-primary group flex w-full items-center justify-between rounded-2xl px-6 py-5 transition-all duration-300 hover:scale-[1.01] active:scale-[0.99]"
@@ -401,7 +438,7 @@ export default function ResultsPage() {
               style={{ color: "oklch(0.62 0.17 250)" }}
             />
           </Link>
-        </div>
+        </div>}
       </div>
 
       {/* Occupation Picker Modal - now shows ALL occupations */}

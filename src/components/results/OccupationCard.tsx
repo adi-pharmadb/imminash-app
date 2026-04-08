@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { AlertTriangle, ChevronDown, ChevronUp, ExternalLink } from "lucide-react";
-import type { MatchResult } from "@/types/assessment";
+import type { MatchResult, StepperFormData } from "@/types/assessment";
 import type { StateEligibility } from "@/lib/state-nominations";
 import type { PossibilityRating } from "@/lib/pathway-signals";
 import { MatchBadge } from "./MatchBadge";
@@ -23,6 +23,7 @@ interface OccupationCardProps {
   pathwaySignals: string[];
   stateInvitingSummary?: string;
   bestStateRecommendation?: string;
+  formData?: Partial<StepperFormData>;
 }
 
 const AGENT_BOOKING_URL =
@@ -63,6 +64,7 @@ export function OccupationCard({
   pathwaySignals,
   stateInvitingSummary,
   bestStateRecommendation,
+  formData,
 }: OccupationCardProps) {
   const [stateMatrixOpen, setStateMatrixOpen] = useState(false);
 
@@ -72,12 +74,16 @@ export function OccupationCard({
     : undefined;
 
   // Parse reasoning into bullet points (split on newline or numbered list patterns)
-  const reasoningBullets = occupation.reasoning
+  const parsedBullets = occupation.reasoning
     ? occupation.reasoning
         .split(/\n|(?:\d+\.\s)/)
         .map((s) => s.trim())
         .filter((s) => s.length > 0)
     : [];
+
+  const reasoningBullets = parsedBullets.length > 0
+    ? parsedBullets
+    : [`Matched based on your ${formData?.jobTitle || "professional"} experience and ${formData?.fieldOfStudy || "qualifications"} qualification.`];
 
   return (
     <div
@@ -181,7 +187,7 @@ export function OccupationCard({
         })()}
 
       {/* ROW 5: Why this occupation (bullet points, not paragraph) */}
-      {reasoningBullets.length > 0 && (
+      {(
         <div data-testid="match-reasoning">
           <p className="mb-2 text-[11px] font-semibold uppercase tracking-widest text-muted-foreground">
             Why this occupation

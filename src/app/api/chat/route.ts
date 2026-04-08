@@ -22,6 +22,7 @@ const messageSchema = z.object({
 const requestSchema = z.object({
   messages: z.array(messageSchema).min(1).max(100),
   assessmentId: z.string().uuid(),
+  cvData: z.record(z.string(), z.unknown()).optional(),
 });
 
 export async function POST(request: Request) {
@@ -36,7 +37,7 @@ export async function POST(request: Request) {
       );
     }
 
-    const { messages, assessmentId } = parsed.data;
+    const { messages, assessmentId, cvData } = parsed.data;
 
     // Authenticate user and verify assessment ownership
     const supabase = await createClient();
@@ -68,13 +69,23 @@ export async function POST(request: Request) {
     }
 
     // Load assessing body requirements
+    // Use selected_anzsco_code (DB source of truth), fallback to first match
     const matchedOccupations = assessment.matched_occupations as Record<string, unknown>;
-    const primaryMatch = Array.isArray(matchedOccupations?.skillsMatches)
-      ? (matchedOccupations.skillsMatches as Array<Record<string, unknown>>)[0]
-      : null;
+    const skillsMatches = Array.isArray(matchedOccupations?.skillsMatches)
+      ? (matchedOccupations.skillsMatches as Array<Record<string, unknown>>)
+      : [];
+
+    let primaryMatch: Record<string, unknown> | null = skillsMatches[0] || null;
+    const selectedAnzsco = (assessment as Record<string, unknown>).selected_anzsco_code as string | null;
+    if (selectedAnzsco) {
+      const selected = skillsMatches.find(
+        (m) => (m.anzsco_code as string) === selectedAnzsco,
+      );
+      if (selected) primaryMatch = selected;
+    }
 
     const occupationTitle = (primaryMatch?.title as string) || "";
-    const anzscoCode = (primaryMatch?.anzsco_code as string) || (primaryMatch?.anzscoCode as string) || "";
+    const anzscoCode = selectedAnzsco || (primaryMatch?.anzsco_code as string) || (primaryMatch?.anzscoCode as string) || "";
     const assessingAuthority = (primaryMatch?.assessing_authority as string) || (primaryMatch?.assessingAuthority as string) || "";
 
     let assessingBody: AssessingBodyRequirement | null = null;
@@ -111,6 +122,17 @@ export async function POST(request: Request) {
 
     const documents: DbDocument[] = existingDocs || [];
 
+    // Resolve CV data: from request body or persisted in assessment
+    const resolvedCvData = cvData || (assessment as Record<string, unknown>).cv_data as Record<string, unknown> | null;
+
+    // Persist CV data if newly provided
+    if (cvData && !((assessment as Record<string, unknown>).cv_data)) {
+      await supabase
+        .from("assessments")
+        .update({ cv_data: cvData })
+        .eq("id", assessmentId);
+    }
+
     // Build the system prompt
     const systemPrompt = buildSystemPrompt({
       assessingBody,
@@ -118,6 +140,7 @@ export async function POST(request: Request) {
       anzscoCode,
       profileData: assessment.profile_data,
       existingDocuments: documents,
+      cvData: resolvedCvData,
     });
 
     // Call Anthropic with streaming
@@ -156,14 +179,13 @@ export async function POST(request: Request) {
           );
           controller.close();
 
-          // Post-stream: save conversation and document updates
-          await saveConversationAndDocuments(
-            supabase,
-            assessmentId,
-            user.id,
-            messages,
-            fullResponse,
-          );
+          // Post-stream: save conversation and document updates independently
+          // so a failure in one does not block the other
+          await Promise.allSettled([
+            saveConversation(supabase, assessmentId, user.id, messages, fullResponse),
+            saveDocumentUpdates(supabase, assessmentId, user.id, fullResponse),
+            saveACSFormUpdates(supabase, assessmentId, user.id, fullResponse),
+          ]);
         } catch (streamError) {
           console.error("Stream error:", streamError);
           controller.error(streamError);
@@ -188,23 +210,20 @@ export async function POST(request: Request) {
 }
 
 /**
- * Save conversation messages and upsert any document updates
- * detected in the AI response.
+ * Save conversation messages (stripped of markers).
  */
-async function saveConversationAndDocuments(
+async function saveConversation(
   supabase: Awaited<ReturnType<typeof createClient>>,
   assessmentId: string,
   userId: string,
   messages: Array<{ role: string; content: string }>,
   aiResponse: string,
 ) {
-  // Build the full message history including the AI response
   const allMessages = [
     ...messages.map((m) => ({ role: m.role, content: m.content })),
     { role: "assistant", content: stripDocumentMarkers(aiResponse) },
   ];
 
-  // Upsert conversation record
   const { data: existing } = await supabase
     .from("conversations")
     .select("id")
@@ -226,8 +245,17 @@ async function saveConversationAndDocuments(
       messages: allMessages,
     });
   }
+}
 
-  // Parse and upsert document updates
+/**
+ * Parse and upsert document updates from AI response markers.
+ */
+async function saveDocumentUpdates(
+  supabase: Awaited<ReturnType<typeof createClient>>,
+  assessmentId: string,
+  userId: string,
+  aiResponse: string,
+) {
   const docUpdates = parseDocumentUpdates(aiResponse);
 
   for (const update of docUpdates) {
@@ -263,8 +291,17 @@ async function saveConversationAndDocuments(
       });
     }
   }
+}
 
-  // Parse and persist ACS form updates (stored as documents with type "acs_form_[section]")
+/**
+ * Parse and persist ACS form updates (stored as documents with type "acs_form_[section]").
+ */
+async function saveACSFormUpdates(
+  supabase: Awaited<ReturnType<typeof createClient>>,
+  assessmentId: string,
+  userId: string,
+  aiResponse: string,
+) {
   const acsUpdates = parseACSFormUpdates(aiResponse);
 
   for (const update of acsUpdates) {

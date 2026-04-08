@@ -101,17 +101,17 @@ describe("Points Calculator", () => {
     expect(result.australianExperience + result.offshoreExperience).toBe(20);
   });
 
-  it("PC-4: combined experience under cap AU=1-3(5) + Offshore=1-3(5) = 10", () => {
+  it("PC-4: combined experience under cap AU=1-3(5) + Offshore=3-5(10) = 15", () => {
     const profile = buildProfile({
       australianExperience: "1-3",
-      experience: "1-3",
+      experience: "3-5",
     });
 
     const result = estimatePoints(profile);
 
     expect(result.australianExperience).toBe(5);
-    expect(result.offshoreExperience).toBe(5);
-    expect(result.australianExperience + result.offshoreExperience).toBe(10);
+    expect(result.offshoreExperience).toBe(10);
+    expect(result.australianExperience + result.offshoreExperience).toBe(15);
   });
 
   it("PC-5: minimum viable 189 profile returns total 70", () => {
@@ -142,12 +142,12 @@ describe("Points Calculator", () => {
     expect(result.total).toBe(70);
   });
 
-  it("PC-6: below 189 threshold returns total 30", () => {
+  it("PC-6: below 189 threshold returns total 25", () => {
     const profile = buildProfile({
       age: 42,
       englishScore: "Competent",
-      australianExperience: "0-1",
-      experience: "1-3",
+      australianExperience: "0",
+      experience: "0",
       educationLevel: "Diploma",
       australianStudy: "No",
       regionalStudy: "No",
@@ -163,10 +163,22 @@ describe("Points Calculator", () => {
     expect(result.age).toBe(15);
     expect(result.english).toBe(0);
     expect(result.australianExperience).toBe(0);
-    expect(result.offshoreExperience).toBe(5);
+    expect(result.offshoreExperience).toBe(0);
     expect(result.education).toBe(10);
     expect(result.partner).toBe(0);
-    expect(result.total).toBe(30);
+    expect(result.total).toBe(25);
+  });
+
+  it("PC-6b: '0' value for both experience bands returns 0 points", () => {
+    const profile = buildProfile({
+      australianExperience: "0",
+      experience: "0",
+    });
+
+    const result = estimatePoints(profile);
+
+    expect(result.australianExperience).toBe(0);
+    expect(result.offshoreExperience).toBe(0);
   });
 
   it("PC-7: partner status combinations yield correct points", () => {
@@ -229,6 +241,7 @@ describe("calcPointsSoFar (partial data)", () => {
 
 describe("parseExperienceYears", () => {
   it("converts experience dropdown values to numeric years", () => {
+    expect(parseExperienceYears("0")).toBe(0);
     expect(parseExperienceYears("0-1")).toBe(0);
     expect(parseExperienceYears("1-3")).toBe(1);
     expect(parseExperienceYears("3-5")).toBe(3);

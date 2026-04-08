@@ -31,13 +31,19 @@ function getPersonalisedMessages(formData: Partial<StepperFormData>): string[] {
     `Scanning 574 ANZSCO codes for ${jobTitle} profiles...`,
     `Matching your ${field} to occupation requirements...`,
     `Calculating points${pointsDetail}...`,
+    `Cross-referencing ${jobTitle} with ANZSCO task descriptors...`,
+    "Checking invitation round history for your top matches...",
+    "Evaluating state nomination pathways...",
+    "Estimating points gap for 189, 190, and 491 visas...",
+    `Comparing your ${field} qualification against ICT and non-ICT pathways...`,
     "Mapping state nomination eligibility across 8 territories...",
+    "Almost there \u2014 finalising your personalised report...",
   ];
 }
 
-const STEP_DURATION_MS = 800;
-const STEP_COUNT = 4;
-const TOTAL_ANIMATION_MS = STEP_COUNT * STEP_DURATION_MS; // 3200ms
+const MESSAGE_COUNT = 10;
+const STEP_DURATION_MS = 900;
+const TOTAL_ANIMATION_MS = MESSAGE_COUNT * STEP_DURATION_MS; // 9000ms
 
 export interface AnalyzingScreenResult {
   points: number;
@@ -135,17 +141,19 @@ export function AnalyzingScreen({ formData, onComplete }: AnalyzingScreenProps) 
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  // Step through the 4 messages sequentially, then mark analyzing done
+  // Step through messages sequentially, then mark analyzing done
   useEffect(() => {
-    const timers = [
-      setTimeout(() => setStep(1), STEP_DURATION_MS),
-      setTimeout(() => setStep(2), STEP_DURATION_MS * 2),
-      setTimeout(() => setStep(3), STEP_DURATION_MS * 3),
+    const count = stepMessages.length;
+    const timers: ReturnType<typeof setTimeout>[] = [];
+    for (let i = 1; i < count; i++) {
+      timers.push(setTimeout(() => setStep(i), STEP_DURATION_MS * i));
+    }
+    timers.push(
       setTimeout(() => {
         analyzingDone.current = true;
         tryAdvance();
-      }, TOTAL_ANIMATION_MS),
-    ];
+      }, STEP_DURATION_MS * count),
+    );
 
     return () => timers.forEach(clearTimeout);
     // eslint-disable-next-line react-hooks/exhaustive-deps

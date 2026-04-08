@@ -144,7 +144,7 @@ export default function AssessmentPage() {
   }
 
   if (phase === "emailGate") {
-    return <EmailGate onSubmit={handleEmailSubmit} />;
+    return <EmailGate onSubmit={handleEmailSubmit} firstName={formData.firstName} points={result?.points} />;
   }
 
   return <StepperFlow onComplete={handleStepperComplete} />;

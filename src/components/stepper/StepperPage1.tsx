@@ -132,6 +132,18 @@ export function StepperPage1({ data, onChange }: StepperPage1Props) {
         </Select>
       </StepperField>
 
+      {data.visaStatus === "Other" && (
+        <StepperField label="Visa type" hint="Tell us which visa you're on so we can tailor the advice.">
+          <Input
+            data-testid="field-visaStatusOther"
+            value={data.visaStatusOther ?? ""}
+            onChange={(e) => onChange("visaStatusOther", e.target.value)}
+            placeholder="e.g. 491 Regional, 407 Training"
+            className="h-10"
+          />
+        </StepperField>
+      )}
+
       <StepperField label="Visa expiry (month / year)" hint="Helps us flag any timing constraints.">
         <div className="flex gap-3" data-testid="field-visaExpiry">
           <Select
