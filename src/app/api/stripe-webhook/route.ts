@@ -6,7 +6,8 @@ import { createServiceClient } from "@/lib/supabase/service";
  * POST /api/stripe-webhook
  *
  * Handles Stripe webhook events. Verifies the signature,
- * then updates the payment status in Supabase.
+ * updates the legacy payments table, and (for the chat-first flow)
+ * flips the conversation row to status='paid' using client_reference_id.
  */
 export async function POST(request: Request) {
   const body = await request.text();
@@ -41,7 +42,7 @@ export async function POST(request: Request) {
           ? session.payment_intent
           : session.payment_intent?.id;
 
-      // Update payment record
+      // Legacy payments table update.
       await serviceClient
         .from("payments")
         .update({
@@ -51,7 +52,35 @@ export async function POST(request: Request) {
         })
         .eq("stripe_checkout_session_id", session.id);
 
-      console.log(`Payment completed for user ${userId}, session ${session.id}`);
+      // Chat-first flow: flip the conversation row to paid.
+      const conversationId: string | undefined =
+        session.client_reference_id ||
+        session.metadata?.conversation_id ||
+        undefined;
+
+      if (conversationId) {
+        // Idempotent: only update if not already paid.
+        const { data: existing } = await serviceClient
+          .from("conversations")
+          .select("id, status, paid_at")
+          .eq("id", conversationId)
+          .maybeSingle();
+
+        if (existing && !existing.paid_at) {
+          await serviceClient
+            .from("conversations")
+            .update({
+              status: "paid",
+              paid_at: new Date().toISOString(),
+              updated_at: new Date().toISOString(),
+            })
+            .eq("id", conversationId);
+        }
+      }
+
+      console.log(
+        `Payment completed for user ${userId}, session ${session.id}, conversation ${conversationId ?? "none"}`,
+      );
       break;
     }
 

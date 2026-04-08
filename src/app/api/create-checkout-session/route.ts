@@ -7,13 +7,12 @@ import { stripe, STRIPE_PRICE_ID } from "@/lib/stripe";
  * POST /api/create-checkout-session
  *
  * Creates a Stripe Checkout Session for the authenticated user.
- * Uses the pre-created product/price in Stripe.
- * Allows promotion codes (e.g. BETATEST for 100% off).
- * Returns the checkout URL for client-side redirect.
+ * For the chat-first flow, accepts `conversationId` in the body and
+ * wires it through as `client_reference_id` so the webhook can
+ * flip the correct conversation row to paid.
  */
 export async function POST(request: Request) {
   try {
-    // Verify authentication
     const supabase = await createClient();
     const {
       data: { session },
@@ -26,36 +25,50 @@ export async function POST(request: Request) {
     const userId = session.user.id;
     const userEmail = session.user.email;
 
-    // Check if user already has a completed payment
-    const serviceClient = createServiceClient();
-    const { data: existingPayment } = await serviceClient
-      .from("payments")
-      .select("id")
-      .eq("user_id", userId)
-      .eq("status", "paid")
-      .limit(1)
-      .single();
-
-    if (existingPayment) {
-      return NextResponse.json({ error: "Already paid", redirectTo: "/workspace" }, { status: 400 });
-    }
-
-    // Parse optional assessment_id from request body
+    // Parse optional ids from request body
     let assessmentId: string | undefined;
+    let conversationId: string | undefined;
     try {
       const body = await request.json();
       assessmentId = body.assessmentId;
+      conversationId = body.conversationId;
     } catch {
       // No body is fine
     }
 
-    // Determine the origin for redirect URLs
+    // Block duplicate payments only when this is an assessment-first
+    // checkout (legacy flow). The chat-first flow is gated by the
+    // conversation row's paid_at, so we let it through.
+    if (!conversationId) {
+      const serviceClient = createServiceClient();
+      const { data: existingPayment } = await serviceClient
+        .from("payments")
+        .select("id")
+        .eq("user_id", userId)
+        .eq("status", "paid")
+        .limit(1)
+        .single();
+
+      if (existingPayment) {
+        return NextResponse.json(
+          { error: "Already paid", redirectTo: "/workspace" },
+          { status: 400 },
+        );
+      }
+    }
+
     const origin =
       request.headers.get("origin") ||
       process.env.NEXT_PUBLIC_SITE_URL ||
       "https://imminash-app.vercel.app";
 
-    // Create Stripe Checkout Session with real price and promo code support
+    const successUrl = conversationId
+      ? `${origin}/chat?paid=1`
+      : `${origin}/value?payment=success&session_id={CHECKOUT_SESSION_ID}`;
+    const cancelUrl = conversationId
+      ? `${origin}/chat`
+      : `${origin}/value?payment=cancelled`;
+
     const checkoutSession = await stripe.checkout.sessions.create({
       mode: "payment",
       customer_email: userEmail || undefined,
@@ -66,15 +79,18 @@ export async function POST(request: Request) {
         },
       ],
       allow_promotion_codes: true,
+      client_reference_id: conversationId || undefined,
       metadata: {
         user_id: userId,
         assessment_id: assessmentId || "",
+        conversation_id: conversationId || "",
       },
-      success_url: `${origin}/value?payment=success&session_id={CHECKOUT_SESSION_ID}`,
-      cancel_url: `${origin}/value?payment=cancelled`,
+      success_url: successUrl,
+      cancel_url: cancelUrl,
     });
 
-    // Create a pending payment record
+    // Create a pending payment record (legacy, still used for reporting).
+    const serviceClient = createServiceClient();
     await serviceClient.from("payments").insert({
       user_id: userId,
       stripe_checkout_session_id: checkoutSession.id,
