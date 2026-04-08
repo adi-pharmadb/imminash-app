@@ -499,10 +499,9 @@ async function persistTurn(args: PersistArgs) {
     .eq("id", row.id);
 
   // Doc updates -> documents table (employment_reference only).
-  // The documents table currently requires assessment_id; if the
-  // conversation is not linked to one, we skip the write.
-  // TODO: add conversation_id column to documents to decouple.
-  if (parsed.docUpdates.length > 0 && row.assessment_id) {
+  // Chat-first flow: documents are keyed by conversation_id (assessment_id
+  // is nullable for conversations not yet linked to a legacy assessment).
+  if (parsed.docUpdates.length > 0) {
     for (const doc of parsed.docUpdates) {
       if (doc.type !== "employment_reference") continue;
       const title = doc.employer
@@ -516,7 +515,7 @@ async function persistTurn(args: PersistArgs) {
       const { data: existing } = await supabase
         .from("documents")
         .select("id")
-        .eq("assessment_id", row.assessment_id)
+        .eq("conversation_id", row.id)
         .eq("document_type", "employment_reference")
         .eq("title", title)
         .maybeSingle();
@@ -532,6 +531,7 @@ async function persistTurn(args: PersistArgs) {
           .eq("id", existing.id);
       } else {
         await supabase.from("documents").insert({
+          conversation_id: row.id,
           assessment_id: row.assessment_id,
           user_id: row.user_id,
           document_type: "employment_reference",
