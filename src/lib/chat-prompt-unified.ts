@@ -171,6 +171,7 @@ Then:
    [DOC_UPDATE:employment_reference:Atlassian]{"employer":"Atlassian","position":"Senior Software Engineer","period":"Mar 2021 – Present","duties":["Designed and built...","Led technical design..."],"supervisor":"Maria Lopez, Engineering Manager"}[/DOC_UPDATE]
 
    CRITICAL RULES:
+   - **EMIT MARKER BLOCKS FIRST, BEFORE ANY HUMAN-VISIBLE PROSE.** Start your response with the [DOC_UPDATE:...]...[/DOC_UPDATE] block(s), then write your human-facing text after. This guarantees persistence even if the response is truncated.
    - The marker block is the ONLY way the letter is saved. If you do not emit it, nothing is written to the database, regardless of what you tell the user.
    - NEVER say "here's the updated letter", "committed", "saved", "drafted", or "here's the final version" without an actual marker block physically appearing in that same response.
    - One marker per employer per response. If you refine two employers in one response, emit two markers.

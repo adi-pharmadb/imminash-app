@@ -147,7 +147,7 @@ export async function POST(request: Request) {
 
             const stream = anthropic.messages.stream({
               model: AI_MODEL,
-              max_tokens: 4096,
+              max_tokens: 8192,
               system: systemBlocks,
               tools: [MATCH_OCCUPATIONS_TOOL],
               messages: turnMessages,
