@@ -225,6 +225,13 @@ export async function POST(request: Request) {
 
           // Parse markers, apply state, persist.
           const parsed = parseMarkers(fullText);
+          console.log("[chat] marker parse", {
+            convId: row.id,
+            phase: row.status,
+            profileUpdates: parsed.profileUpdates.length,
+            docUpdates: parsed.docUpdates.length,
+            docTypes: parsed.docUpdates.map((d) => `${d.type}:${d.employer ?? ""}`),
+          });
 
           const persistResult = await persistTurn({
             supabase,
