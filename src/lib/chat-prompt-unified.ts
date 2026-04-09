@@ -113,7 +113,10 @@ Emit these markers inline in your responses. The client parses them out and they
    - Inline tag (no body). Triggers the consultation booking UI. Emit when Phase 1 is complete AND the user is NOT ACS-eligible, or whenever a MARA referral is the correct next step.
 
 6. [DOC_UPDATE:employment_reference:<Employer Name>]{"employer": "...", "position": "...", "period": "...", "duties": ["...", "..."], "supervisor": "..."}[/DOC_UPDATE]
-   - Phase 2 only. One marker per employer. Use the employer's actual name in the tag.
+   - **MANDATORY in Phase 2**: Every time you draft, update, refine, or re-draft an employment reference letter you MUST emit a full [DOC_UPDATE:employment_reference:<Employer>]{...}[/DOC_UPDATE] marker containing the COMPLETE current state of the letter (not a diff). If you skip this, the document is not saved.
+   - Never say things like "here's the updated letter" or "let me emit both drafts" without actually emitting the marker blocks inline in the same response. Describing the change is not enough — the marker JSON must physically appear.
+   - One marker per employer per turn. Use the employer's actual name in the tag (e.g. \`[DOC_UPDATE:employment_reference:Atlassian]\`).
+   - The JSON body must be valid JSON with these exact keys: employer, position, period, duties (array of strings), supervisor.
 
 Never emit a marker you have not been told to emit. Never mention markers to the user.
 

@@ -31,5 +31,11 @@ export async function GET(
     return NextResponse.json({ error: "Not found" }, { status: 404 });
   }
 
-  return NextResponse.json(data);
+  const { data: documents } = await supabase
+    .from("documents")
+    .select("id, document_type, title, status, content, created_at, updated_at")
+    .eq("conversation_id", id)
+    .order("created_at", { ascending: false });
+
+  return NextResponse.json({ ...data, documents: documents ?? [] });
 }
