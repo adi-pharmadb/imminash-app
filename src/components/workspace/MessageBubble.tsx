@@ -2,7 +2,7 @@
 
 /**
  * Chat message bubble component.
- * User messages are right-aligned with amber/gold gradient.
+ * User messages are right-aligned with primary blue.
  * AI messages are left-aligned with glass-card style and markdown rendering.
  */
 
@@ -38,7 +38,7 @@ export function MessageBubble({ role, content }: MessageBubbleProps) {
       <div
         className={`max-w-[80%] rounded-2xl px-4 py-3 text-sm leading-relaxed ${
           isUser
-            ? "rounded-br-md bg-gradient-to-br from-primary to-amber-600 text-primary-foreground shadow-lg shadow-primary/10"
+            ? "rounded-br-md bg-primary text-primary-foreground shadow-lg shadow-primary/10"
             : "glass-card rounded-bl-md text-foreground"
         }`}
       >
