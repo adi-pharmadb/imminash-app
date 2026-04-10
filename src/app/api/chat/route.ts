@@ -528,7 +528,7 @@ async function persistTurn(args: PersistArgs) {
         .maybeSingle();
 
       if (existing) {
-        await supabase
+        const { error: updErr } = await supabase
           .from("documents")
           .update({
             content,
@@ -536,8 +536,9 @@ async function persistTurn(args: PersistArgs) {
             updated_at: new Date().toISOString(),
           })
           .eq("id", existing.id);
+        if (updErr) console.error("[chat] doc update error", updErr);
       } else {
-        await supabase.from("documents").insert({
+        const { error: insErr } = await supabase.from("documents").insert({
           conversation_id: row.id,
           assessment_id: row.assessment_id,
           user_id: row.user_id,
@@ -546,6 +547,7 @@ async function persistTurn(args: PersistArgs) {
           content,
           status: "draft",
         });
+        if (insErr) console.error("[chat] doc insert error", insErr, { convId: row.id, title });
       }
     }
   }
