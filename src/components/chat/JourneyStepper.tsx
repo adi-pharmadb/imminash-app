@@ -5,7 +5,9 @@
  * numbered 6-step journey. No state of its own.
  */
 
-import { Check } from "lucide-react";
+import { useRouter } from "next/navigation";
+import { Check, LogOut } from "lucide-react";
+import { createClient } from "@/lib/supabase/client";
 import type { ProjectedConversation } from "@/lib/conversation-state";
 
 interface StepDef {
@@ -48,7 +50,14 @@ function deriveStepIndex(projection: ProjectedConversation): number {
 }
 
 export function JourneyStepper({ projection }: { projection: ProjectedConversation }) {
+  const router = useRouter();
   const current = deriveStepIndex(projection);
+
+  const handleSignOut = async () => {
+    const supabase = createClient();
+    await supabase.auth.signOut();
+    router.replace("/");
+  };
 
   return (
     <div className="flex h-full flex-col p-6" data-testid="journey-stepper">
@@ -101,8 +110,17 @@ export function JourneyStepper({ projection }: { projection: ProjectedConversati
         })}
       </ol>
 
-      <div className="mt-auto pt-6 text-[11px] leading-relaxed text-muted-foreground/50">
-        General information only. Not migration advice.
+      <div className="mt-auto space-y-4 pt-6">
+        <button
+          onClick={handleSignOut}
+          className="flex w-full items-center gap-2 rounded-lg px-2 py-2 text-sm text-muted-foreground transition-colors hover:bg-secondary hover:text-foreground"
+        >
+          <LogOut className="h-4 w-4" />
+          Sign out
+        </button>
+        <p className="text-[11px] leading-relaxed text-muted-foreground/50">
+          General information only. Not migration advice.
+        </p>
       </div>
     </div>
   );
