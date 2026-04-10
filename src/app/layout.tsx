@@ -45,9 +45,9 @@ export default function RootLayout({
         />
       </head>
       <body
-        className={`${dmSans.variable} ${instrumentSerif.variable} ${geistMono.variable} antialiased bg-black selection:bg-primary/30`}
+        className={`${dmSans.variable} ${instrumentSerif.variable} ${geistMono.variable} antialiased bg-background selection:bg-primary/30`}
       >
-        <div className="bg-noise fixed inset-0 z-50 opacity-[0.04] mix-blend-overlay"></div>
+        <div className="bg-noise fixed inset-0 z-0 opacity-[0.04] mix-blend-overlay"></div>
         {children}
         <ThemeToggle />
       </body>

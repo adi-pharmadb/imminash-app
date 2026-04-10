@@ -115,7 +115,7 @@
    ══════════════════════════════════════════════════ */
 
 .dark {
-  --background: oklch(0 0 0);
+  --background: oklch(0.10 0.005 255);
   --foreground: oklch(0.93 0.01 255);
   --card: oklch(0.14 0.008 255);
   --card-foreground: oklch(0.93 0.01 255);
@@ -302,6 +302,17 @@
 /* ── Selection color ── */
 ::selection {
   background: var(--selection-bg);
+}
+
+/* ── Progress bar grow animation ── */
+@keyframes grow-width {
+  from { width: 0%; }
+  to { width: 100%; }
+}
+
+.animate-grow-width {
+  animation: grow-width 2s ease-in-out 1s forwards;
+  width: 0%;
 }
 
 /* ── Noise Overlay ── */
