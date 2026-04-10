@@ -214,8 +214,8 @@ function ValuePageContent() {
       {/* Brand header */}
       <header className="mx-auto flex w-full max-w-3xl items-center px-6 py-6">
         <span
-          className="font-display text-2xl italic tracking-tight"
-          style={{ color: "oklch(0.62 0.17 250)" }}
+          className="font-display text-2xl tracking-tight"
+          style={{ color: "var(--primary)" }}
         >
           imminash
         </span>
@@ -226,9 +226,9 @@ function ValuePageContent() {
         {paymentSuccess && (
           <div
             className="mb-8 rounded-2xl p-5 flex items-center gap-3 animate-reveal-up"
-            style={{ background: "oklch(0.72 0.17 155 / 0.1)", border: "1px solid oklch(0.72 0.17 155 / 0.3)" }}
+            style={{ background: "color-mix(in oklch, var(--success) 10%, transparent)", border: "1px solid color-mix(in oklch, var(--success) 30%, transparent)" }}
           >
-            <CheckCircle className="h-5 w-5 shrink-0" style={{ color: "oklch(0.72 0.17 155)" }} />
+            <CheckCircle className="h-5 w-5 shrink-0" style={{ color: "var(--success)" }} />
             <div>
               <p className="text-sm font-semibold text-foreground">Payment confirmed</p>
               <p className="text-sm text-muted-foreground">Your document workspace is ready. Click below to get started.</p>
@@ -238,7 +238,7 @@ function ValuePageContent() {
 
         {/* Personalised headline */}
         <div className="space-y-4 animate-reveal-up">
-          <h1 className="font-display text-3xl font-normal italic text-foreground sm:text-4xl leading-tight">
+          <h1 className="font-display text-3xl font-normal text-foreground sm:text-4xl leading-tight">
             {headline}
           </h1>
           {data.occupationTitle && (
@@ -252,7 +252,7 @@ function ValuePageContent() {
 
         {/* What you'll get */}
         <div className="mt-12 space-y-6 animate-reveal-up delay-100">
-          <h2 className="font-display text-xl italic text-foreground">
+          <h2 className="font-display text-xl text-foreground">
             What you will receive
           </h2>
 
@@ -267,11 +267,11 @@ function ValuePageContent() {
                   <div className="flex items-center gap-3">
                     <div
                       className="flex h-9 w-9 items-center justify-center rounded-xl"
-                      style={{ background: "oklch(0.62 0.17 250 / 0.12)" }}
+                      style={{ background: "color-mix(in oklch, var(--primary) 12%, transparent)" }}
                     >
                       <Icon
                         className="h-4.5 w-4.5"
-                        style={{ color: "oklch(0.62 0.17 250)" }}
+                        style={{ color: "var(--primary)" }}
                       />
                     </div>
                     <h3 className="text-sm font-semibold text-foreground">
@@ -289,7 +289,7 @@ function ValuePageContent() {
 
         {/* How it works */}
         <div className="mt-12 space-y-5 animate-reveal-up delay-200">
-          <h2 className="font-display text-xl italic text-foreground">
+          <h2 className="font-display text-xl text-foreground">
             How it works
           </h2>
 
@@ -304,8 +304,8 @@ function ValuePageContent() {
                 <div
                   className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full text-xs font-bold"
                   style={{
-                    background: "oklch(0.62 0.17 250 / 0.12)",
-                    color: "oklch(0.62 0.17 250)",
+                    background: "color-mix(in oklch, var(--primary) 12%, transparent)",
+                    color: "var(--primary)",
                   }}
                 >
                   {i + 1}
@@ -338,8 +338,8 @@ function ValuePageContent() {
               <span
                 className="rounded-full px-4 py-2 text-xs font-semibold backdrop-blur-sm"
                 style={{
-                  background: "oklch(0.62 0.17 250 / 0.15)",
-                  color: "oklch(0.62 0.17 250)",
+                  background: "color-mix(in oklch, var(--primary) 15%, transparent)",
+                  color: "var(--primary)",
                 }}
               >
                 Preview unlocked after document generation
@@ -352,7 +352,7 @@ function ValuePageContent() {
         <div className="mt-8 flex items-center justify-center gap-2 animate-reveal-up delay-300">
           <ShieldCheck
             className="h-4 w-4"
-            style={{ color: "oklch(0.72 0.17 155)" }}
+            style={{ color: "var(--success)" }}
           />
           <p className="text-xs text-muted-foreground">
             Based on official ANZSCO occupation lists and DHA points tables
@@ -364,11 +364,11 @@ function ValuePageContent() {
           <div className="glass-card rounded-2xl p-5 flex items-start gap-4">
             <div
               className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl"
-              style={{ background: "oklch(0.72 0.17 155 / 0.12)" }}
+              style={{ background: "color-mix(in oklch, var(--success) 12%, transparent)" }}
             >
               <ShieldCheck
                 className="h-5 w-5"
-                style={{ color: "oklch(0.72 0.17 155)" }}
+                style={{ color: "var(--success)" }}
               />
             </div>
             <div className="space-y-1">
@@ -440,7 +440,7 @@ function ValuePageContent() {
             <div key={badge} className="flex items-center gap-1.5">
               <CheckCircle
                 className="h-3.5 w-3.5"
-                style={{ color: "oklch(0.72 0.17 155)" }}
+                style={{ color: "var(--success)" }}
               />
               <span className="text-xs text-muted-foreground">{badge}</span>
             </div>

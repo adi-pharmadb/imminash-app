@@ -25,14 +25,14 @@ const RATING_CONFIG: Record<
   { color: string; bg: string; Icon: typeof CheckCircle; label: string }
 > = {
   Strong: {
-    color: "oklch(0.72 0.17 155)",
-    bg: "oklch(0.72 0.17 155 / 0.12)",
+    color: "var(--success)",
+    bg: "color-mix(in oklch, var(--success) 12%, transparent)",
     Icon: CheckCircle,
     label: "Strong",
   },
   Competitive: {
-    color: "oklch(0.62 0.17 250)",
-    bg: "oklch(0.62 0.17 250 / 0.12)",
+    color: "var(--primary)",
+    bg: "color-mix(in oklch, var(--primary) 12%, transparent)",
     Icon: AlertTriangle,
     label: "Competitive",
   },
@@ -110,7 +110,7 @@ export function PathwayCard({ pathway, userPoints, breakdown }: PathwayCardProps
             <span className="text-muted-foreground">
               Your points: <span className="font-semibold text-foreground">{pathway.effectivePoints}</span>
               {pathway.bonusPoints > 0 && (
-                <span style={{ color: "oklch(0.72 0.17 155)" }}>
+                <span style={{ color: "var(--success)" }}>
                   {" "}(incl. +{pathway.bonusPoints} bonus)
                 </span>
               )}
@@ -129,7 +129,7 @@ export function PathwayCard({ pathway, userPoints, breakdown }: PathwayCardProps
                 style={{
                   width: `${currentPct}%`,
                   background: pathway.effectivePoints >= targetPoints
-                    ? "oklch(0.72 0.17 155)"
+                    ? "var(--success)"
                     : "oklch(0.70 0.15 50)",
                 }}
               />
@@ -142,7 +142,7 @@ export function PathwayCard({ pathway, userPoints, breakdown }: PathwayCardProps
           ) : (
             <p
               className="text-xs font-medium"
-              style={{ color: "oklch(0.72 0.17 155)" }}
+              style={{ color: "var(--success)" }}
             >
               +{pointsAboveTarget} points above the minimum threshold
             </p>
@@ -163,9 +163,9 @@ export function PathwayCard({ pathway, userPoints, breakdown }: PathwayCardProps
                   key={state}
                   className="inline-flex items-center gap-1 rounded-md px-2.5 py-1 text-xs font-medium"
                   style={{
-                    background: "oklch(0.72 0.17 155 / 0.1)",
-                    color: "oklch(0.72 0.17 155)",
-                    border: "1px solid oklch(0.72 0.17 155 / 0.2)",
+                    background: "color-mix(in oklch, var(--success) 10%, transparent)",
+                    color: "var(--success)",
+                    border: "1px solid color-mix(in oklch, var(--success) 20%, transparent)",
                   }}
                 >
                   <MapPin className="h-3 w-3" />
@@ -220,7 +220,7 @@ export function PathwayCard({ pathway, userPoints, breakdown }: PathwayCardProps
               >
                 <ArrowRight
                   className="mt-0.5 h-3.5 w-3.5 shrink-0"
-                  style={{ color: "oklch(0.62 0.17 250)" }}
+                  style={{ color: "var(--primary)" }}
                 />
                 <span>{step}</span>
               </li>
@@ -235,7 +235,7 @@ export function PathwayCard({ pathway, userPoints, breakdown }: PathwayCardProps
           <p className="text-[11px] font-semibold uppercase tracking-widest text-muted-foreground">
             <Lightbulb
               className="inline h-3.5 w-3.5 mr-1"
-              style={{ color: "oklch(0.62 0.17 250)" }}
+              style={{ color: "var(--primary)" }}
             />
             Points Improvement Suggestions
           </p>
@@ -261,8 +261,8 @@ export function PathwayCard({ pathway, userPoints, breakdown }: PathwayCardProps
                   <span
                     className="shrink-0 rounded-full px-2 py-0.5 text-xs font-bold"
                     style={{
-                      background: "oklch(0.72 0.17 155 / 0.12)",
-                      color: "oklch(0.72 0.17 155)",
+                      background: "color-mix(in oklch, var(--success) 12%, transparent)",
+                      color: "var(--success)",
                     }}
                   >
                     +{suggestion.pointsGain}

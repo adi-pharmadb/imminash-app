@@ -10,8 +10,8 @@ interface PointsGapAnalysisProps {
 }
 
 const FEASIBILITY_STYLES: Record<string, { bg: string; color: string }> = {
-  Easy: { bg: "oklch(0.72 0.17 155 / 0.12)", color: "oklch(0.72 0.17 155)" },
-  Moderate: { bg: "oklch(0.62 0.17 250 / 0.12)", color: "oklch(0.62 0.17 250)" },
+  Easy: { bg: "color-mix(in oklch, var(--success) 12%, transparent)", color: "var(--success)" },
+  Moderate: { bg: "color-mix(in oklch, var(--primary) 12%, transparent)", color: "var(--primary)" },
   Hard: { bg: "oklch(0.70 0.15 50 / 0.12)", color: "oklch(0.70 0.15 50)" },
 };
 
@@ -51,8 +51,8 @@ export function PointsGapAnalysis({
       data-testid="points-gap-analysis"
     >
       <div className="flex items-center gap-2.5">
-        <TrendingUp className="h-5 w-5" style={{ color: "oklch(0.62 0.17 250)" }} />
-        <h3 className="font-display text-lg italic text-foreground">
+        <TrendingUp className="h-5 w-5" style={{ color: "var(--primary)" }} />
+        <h3 className="font-display text-lg text-foreground">
           Points Gap Analysis
         </h3>
       </div>
@@ -95,13 +95,13 @@ export function PointsGapAnalysis({
             <div
               className="rounded-lg px-3 py-2 flex items-center gap-2 text-sm"
               style={{
-                background: "oklch(0.72 0.17 155 / 0.08)",
-                border: "1px solid oklch(0.72 0.17 155 / 0.2)",
+                background: "color-mix(in oklch, var(--success) 8%, transparent)",
+                border: "1px solid color-mix(in oklch, var(--success) 20%, transparent)",
               }}
               data-testid="bridge-190"
             >
-              <Zap className="h-4 w-4 shrink-0" style={{ color: "oklch(0.72 0.17 155)" }} />
-              <span style={{ color: "oklch(0.72 0.17 155)" }}>
+              <Zap className="h-4 w-4 shrink-0" style={{ color: "var(--success)" }} />
+              <span style={{ color: "var(--success)" }}>
                 The +5 state nomination bonus (190) bridges this gap
               </span>
             </div>
@@ -110,13 +110,13 @@ export function PointsGapAnalysis({
             <div
               className="rounded-lg px-3 py-2 flex items-center gap-2 text-sm"
               style={{
-                background: "oklch(0.72 0.17 155 / 0.08)",
-                border: "1px solid oklch(0.72 0.17 155 / 0.2)",
+                background: "color-mix(in oklch, var(--success) 8%, transparent)",
+                border: "1px solid color-mix(in oklch, var(--success) 20%, transparent)",
               }}
               data-testid="bridge-491"
             >
-              <Zap className="h-4 w-4 shrink-0" style={{ color: "oklch(0.72 0.17 155)" }} />
-              <span style={{ color: "oklch(0.72 0.17 155)" }}>
+              <Zap className="h-4 w-4 shrink-0" style={{ color: "var(--success)" }} />
+              <span style={{ color: "var(--success)" }}>
                 The +15 regional bonus (491) bridges this gap
               </span>
             </div>
@@ -140,7 +140,7 @@ export function PointsGapAnalysis({
                   style={{
                     background: "var(--surface-1)",
                     border: suggestion.bridgesGap
-                      ? "1px solid oklch(0.72 0.17 155 / 0.3)"
+                      ? "1px solid color-mix(in oklch, var(--success) 30%, transparent)"
                       : "1px solid var(--surface-border-subtle)",
                   }}
                   data-testid="gap-suggestion"
@@ -162,8 +162,8 @@ export function PointsGapAnalysis({
                   <span
                     className="shrink-0 rounded-full px-2.5 py-1 text-xs font-bold"
                     style={{
-                      background: "oklch(0.72 0.17 155 / 0.12)",
-                      color: "oklch(0.72 0.17 155)",
+                      background: "color-mix(in oklch, var(--success) 12%, transparent)",
+                      color: "var(--success)",
                     }}
                     data-testid="suggestion-points"
                   >

@@ -54,7 +54,7 @@ export function OccupationPicker({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="glass-card border-border/50 sm:max-w-lg" data-testid="occupation-picker">
         <DialogHeader className="space-y-3">
-          <DialogTitle className="font-display text-2xl italic tracking-tight text-foreground">
+          <DialogTitle className="font-display text-2xl tracking-tight text-foreground">
             Choose your occupation
           </DialogTitle>
           <DialogDescription className="text-sm leading-relaxed text-muted-foreground">
@@ -96,8 +96,8 @@ export function OccupationPicker({
                         <span
                           className="shrink-0 rounded-md px-1.5 py-0.5 text-[9px] font-bold uppercase tracking-wider"
                           style={{
-                            background: "oklch(0.72 0.17 155 / 0.12)",
-                            color: "oklch(0.72 0.17 155)",
+                            background: "color-mix(in oklch, var(--success) 12%, transparent)",
+                            color: "var(--success)",
                           }}
                         >
                           Recommended
@@ -115,7 +115,7 @@ export function OccupationPicker({
                     {!isSupported && (
                       <p
                         className="text-[10px] mt-1 font-medium"
-                        style={{ color: "oklch(0.65 0.15 250)" }}
+                        style={{ color: "var(--primary)" }}
                       >
                         Coming soon - we currently support ACS assessments only
                       </p>

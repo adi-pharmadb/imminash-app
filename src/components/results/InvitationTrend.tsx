@@ -58,11 +58,11 @@ export function InvitationTrend({ rounds }: InvitationTrendProps) {
               <>
                 <TrendingDown
                   className="h-3.5 w-3.5"
-                  style={{ color: "oklch(0.72 0.17 155)" }}
+                  style={{ color: "var(--success)" }}
                 />
                 <span
                   className="text-[10px] font-semibold"
-                  style={{ color: "oklch(0.72 0.17 155)" }}
+                  style={{ color: "var(--success)" }}
                 >
                   Easier
                 </span>

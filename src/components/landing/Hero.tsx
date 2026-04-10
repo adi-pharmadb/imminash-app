@@ -11,12 +11,12 @@ export function Hero() {
       {/* Decorative gradient orbs */}
       <div
         className="pointer-events-none absolute top-[-20%] left-[-10%] size-[600px] rounded-full opacity-30 blur-[120px]"
-        style={{ background: "oklch(0.62 0.17 250 / 0.15)" }}
+        style={{ background: "color-mix(in oklch, var(--primary) 15%, transparent)" }}
         aria-hidden="true"
       />
       <div
         className="pointer-events-none absolute right-[-5%] bottom-[10%] size-[400px] rounded-full opacity-20 blur-[100px]"
-        style={{ background: "oklch(0.72 0.17 155 / 0.12)" }}
+        style={{ background: "color-mix(in oklch, var(--success) 12%, transparent)" }}
         aria-hidden="true"
       />
 
@@ -25,7 +25,7 @@ export function Hero() {
         className="pointer-events-none absolute bottom-[30%] left-0 h-px w-full opacity-[0.06]"
         style={{
           background:
-            "linear-gradient(90deg, transparent, oklch(0.62 0.17 250), transparent)",
+            "linear-gradient(90deg, transparent, var(--primary), transparent)",
         }}
         aria-hidden="true"
       />
@@ -33,7 +33,7 @@ export function Hero() {
       <div className="relative mx-auto max-w-3xl space-y-10">
         {/* Brand wordmark */}
         <div className="animate-reveal-up">
-          <span className="font-display text-lg italic tracking-wide text-primary/60">
+          <span className="font-display text-lg tracking-wide text-primary/60">
             imminash
           </span>
         </div>

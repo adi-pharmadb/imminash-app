@@ -80,9 +80,9 @@ export function ReassessmentTrigger({
       >
         <div
           className="mx-auto flex h-10 w-10 items-center justify-center rounded-full"
-          style={{ background: "oklch(0.72 0.17 155 / 0.12)" }}
+          style={{ background: "color-mix(in oklch, var(--success) 12%, transparent)" }}
         >
-          <Check className="h-5 w-5" style={{ color: "oklch(0.72 0.17 155)" }} />
+          <Check className="h-5 w-5" style={{ color: "var(--success)" }} />
         </div>
         <p className="text-sm font-medium text-foreground">
           We will remind you to reassess when the time comes.
@@ -97,7 +97,7 @@ export function ReassessmentTrigger({
       data-testid="reassessment-trigger"
     >
       <div className="space-y-1">
-        <h3 className="font-display text-lg italic text-foreground">
+        <h3 className="font-display text-lg text-foreground">
           When does your situation next change?
         </h3>
         <p className="text-sm text-muted-foreground">
@@ -125,7 +125,7 @@ export function ReassessmentTrigger({
                 className="h-5 w-5 mb-2"
                 style={{
                   color: isSelected
-                    ? "oklch(0.62 0.17 250)"
+                    ? "var(--primary)"
                     : "oklch(0.50 0.02 260)",
                 }}
               />

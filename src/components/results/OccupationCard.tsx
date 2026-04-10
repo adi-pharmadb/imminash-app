@@ -93,7 +93,7 @@ export function OccupationCard({
       }`}
       style={
         rank === 0
-          ? { borderColor: "oklch(0.62 0.17 250 / 0.3)" }
+          ? { borderColor: "color-mix(in oklch, var(--primary) 30%, transparent)" }
           : undefined
       }
       data-testid="occupation-card"
@@ -106,8 +106,8 @@ export function OccupationCard({
             style={
               rank === 0
                 ? {
-                    background: "oklch(0.62 0.17 250)",
-                    color: "oklch(0.13 0.01 260)",
+                    background: "var(--primary)",
+                    color: "var(--primary-foreground)",
                   }
                 : {
                     background: "var(--bar-track)",
@@ -200,7 +200,7 @@ export function OccupationCard({
               >
                 <span
                   className="mt-2 h-1 w-1 shrink-0 rounded-full"
-                  style={{ background: "oklch(0.62 0.17 250)" }}
+                  style={{ background: "var(--primary)" }}
                 />
                 {bullet}
               </li>
@@ -266,7 +266,7 @@ export function OccupationCard({
       {bestStateRecommendation && (
         <p
           className="text-sm font-medium"
-          style={{ color: "oklch(0.72 0.17 155)" }}
+          style={{ color: "var(--success)" }}
           data-testid="best-state"
         >
           {bestStateRecommendation}

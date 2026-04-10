@@ -53,7 +53,7 @@ export function JourneyStepper({ projection }: { projection: ProjectedConversati
   return (
     <div className="flex h-full flex-col p-6" data-testid="journey-stepper">
       <div className="mb-8">
-        <span className="font-display text-xl italic tracking-tight text-foreground">
+        <span className="font-display text-xl tracking-tight text-foreground">
           imminash
         </span>
       </div>
@@ -78,7 +78,7 @@ export function JourneyStepper({ projection }: { projection: ProjectedConversati
                   isDone
                     ? "border-primary/60 bg-primary/15 text-primary"
                     : isCurrent
-                      ? "border-primary bg-primary text-primary-foreground shadow-[0_0_12px_oklch(0.78_0.12_70_/_0.35)]"
+                      ? "border-primary bg-primary text-primary-foreground ring-2 ring-primary/30"
                       : "border-border/60 bg-transparent text-muted-foreground/50",
                 ].join(" ")}
               >

@@ -39,7 +39,7 @@ export function MagneticButton({
       onMouseLeave={reset}
       style={{ transform: `translate(${x}px, ${y}px)` }}
       className={cn(
-        "relative inline-flex cursor-pointer items-center justify-center overflow-hidden rounded-full bg-primary font-medium text-primary-foreground transition-transform duration-150 ease-out disabled:cursor-not-allowed disabled:opacity-50",
+        "relative inline-flex cursor-pointer items-center justify-center overflow-hidden rounded-full bg-primary font-semibold tracking-wide text-primary-foreground transition-transform duration-150 ease-out disabled:cursor-not-allowed disabled:opacity-50",
         className
       )}
       disabled={disabled}

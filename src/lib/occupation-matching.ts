@@ -63,9 +63,9 @@ export function getConfidenceColor(confidence: number): {
 } {
   if (confidence >= 70) {
     return {
-      bg: "oklch(0.72 0.17 155 / 0.15)",
-      text: "oklch(0.72 0.17 155)",
-      shadow: "0 0 12px oklch(0.72 0.17 155 / 0.2)",
+      bg: "color-mix(in oklch, var(--success) 15%, transparent)",
+      text: "var(--success)",
+      shadow: "0 0 12px color-mix(in oklch, var(--success) 20%, transparent)",
     };
   }
   if (confidence >= 50) {

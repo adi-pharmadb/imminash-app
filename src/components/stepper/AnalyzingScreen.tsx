@@ -182,14 +182,14 @@ export function AnalyzingScreen({ formData, onComplete }: AnalyzingScreenProps) 
               cy="60"
               r="54"
               fill="none"
-              stroke="oklch(0.62 0.17 250)"
+              stroke="var(--primary)"
               strokeWidth="4"
               strokeLinecap="round"
               strokeDasharray={circumference}
               strokeDashoffset={offset}
               className="transition-all duration-700 ease-out"
               style={{
-                filter: "drop-shadow(0 0 8px oklch(0.62 0.17 250 / 0.4))",
+                filter: "drop-shadow(0 0 8px color-mix(in oklch, var(--primary) 40%, transparent))",
               }}
             />
           </svg>
@@ -205,7 +205,7 @@ export function AnalyzingScreen({ formData, onComplete }: AnalyzingScreenProps) 
 
         {/* Editorial heading */}
         <div className="animate-reveal-up delay-100">
-          <h2 className="font-display text-3xl italic text-foreground">
+          <h2 className="font-display text-3xl text-foreground">
             Analysing your profile{formData.firstName ? `, ${formData.firstName}` : ""}
           </h2>
           <p className="mt-2 text-sm text-muted-foreground">
@@ -226,7 +226,7 @@ export function AnalyzingScreen({ formData, onComplete }: AnalyzingScreenProps) 
             >
               <div className="relative flex h-6 w-6 shrink-0 items-center justify-center">
                 {i < step ? (
-                  <div className="h-2 w-2 rounded-full bg-primary" style={{ boxShadow: "0 0 8px oklch(0.62 0.17 250 / 0.5)" }} />
+                  <div className="h-2 w-2 rounded-full bg-primary" style={{ boxShadow: "0 0 8px color-mix(in oklch, var(--primary) 50%, transparent)" }} />
                 ) : i === step ? (
                   <div className="h-2.5 w-2.5 rounded-full bg-primary animate-pulse-glow" />
                 ) : (

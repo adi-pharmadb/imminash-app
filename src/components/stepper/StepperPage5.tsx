@@ -62,7 +62,7 @@ export function StepperPage5({ data, onChange }: StepperPage5Props) {
         />
         <p
           className="mt-1.5 text-xs"
-          style={{ color: meetsMinimum ? "oklch(0.55 0.02 260)" : "oklch(0.65 0.2 25)" }}
+          style={{ color: meetsMinimum ? "var(--muted-foreground)" : "oklch(0.65 0.2 25)" }}
           data-testid="char-counter"
         >
           {currentLength}/{MIN_CHARS} minimum

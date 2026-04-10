@@ -225,8 +225,8 @@ export default function ResultsPage() {
       {/* Brand header */}
       <header className="mx-auto flex w-full max-w-3xl items-center justify-between px-6 py-6">
         <span
-          className="font-display text-2xl italic tracking-tight"
-          style={{ color: "oklch(0.62 0.17 250)" }}
+          className="font-display text-2xl tracking-tight"
+          style={{ color: "var(--primary)" }}
         >
           imminash
         </span>
@@ -235,7 +235,7 @@ export default function ResultsPage() {
       <div className="mx-auto max-w-3xl space-y-8 px-6">
         {/* Heading */}
         <div className="space-y-3 animate-reveal-up">
-          <h1 className="font-display text-3xl font-normal italic text-foreground sm:text-4xl">
+          <h1 className="font-display text-3xl font-normal text-foreground sm:text-4xl">
             {formData.firstName
               ? `${formData.firstName}'s PR Eligibility Report`
               : "Your PR Eligibility Report"}
@@ -273,7 +273,7 @@ export default function ResultsPage() {
         {gapAnalysis.gap > 0 && gapAnalysis.suggestions.length > 0 && (
           <div className="animate-reveal-up delay-100">
             <div className="space-y-2 mb-4">
-              <h2 className="font-display text-xl italic text-foreground">
+              <h2 className="font-display text-xl text-foreground">
                 How to improve your score
               </h2>
               <p className="text-sm text-muted-foreground leading-relaxed">
@@ -296,7 +296,7 @@ export default function ResultsPage() {
         {/* Recommended Occupations */}
         <div className="animate-reveal-up delay-200">
           <div className="space-y-2 mb-5">
-            <h2 className="font-display text-xl italic text-foreground">
+            <h2 className="font-display text-xl text-foreground">
               Recommended Occupations
             </h2>
             <p className="text-sm text-muted-foreground leading-relaxed">
@@ -377,7 +377,7 @@ export default function ResultsPage() {
           </div>
         ) : (
           <div className="animate-reveal-up delay-300 glass-card rounded-2xl p-6 space-y-4 text-center" data-testid="ineligible-cta">
-            <h3 className="font-display text-xl italic text-foreground">
+            <h3 className="font-display text-xl text-foreground">
               Next Steps
             </h3>
             <p className="text-sm text-muted-foreground leading-relaxed">
@@ -418,13 +418,13 @@ export default function ResultsPage() {
             href="/pathway"
             className="glass-card glow-primary group flex w-full items-center justify-between rounded-2xl px-6 py-5 transition-all duration-300 hover:scale-[1.01] active:scale-[0.99]"
             style={{
-              borderColor: "oklch(0.62 0.17 250 / 0.4)",
+              borderColor: "color-mix(in oklch, var(--primary) 40%, transparent)",
             }}
           >
             <div className="space-y-1">
               <p
-                className="font-display text-lg font-semibold italic"
-                style={{ color: "oklch(0.62 0.17 250)" }}
+                className="font-display text-lg font-semibold"
+                style={{ color: "var(--primary)" }}
               >
                 Which visa should you go for?
               </p>
@@ -435,7 +435,7 @@ export default function ResultsPage() {
             </div>
             <ArrowRight
               className="ml-4 h-5 w-5 shrink-0 transition-transform duration-300 group-hover:translate-x-1"
-              style={{ color: "oklch(0.62 0.17 250)" }}
+              style={{ color: "var(--primary)" }}
             />
           </Link>
         </div>}

@@ -110,8 +110,8 @@ export default function AdminKnowledgePage() {
       <header className="mx-auto w-full max-w-3xl px-6 py-6">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <BookOpen className="h-5 w-5" style={{ color: "oklch(0.62 0.17 250)" }} />
-            <h1 className="font-display text-xl italic text-foreground">Agent Knowledge Base</h1>
+            <BookOpen className="h-5 w-5" style={{ color: "var(--primary)" }} />
+            <h1 className="font-display text-xl text-foreground">Agent Knowledge Base</h1>
           </div>
           <span className="text-xs text-muted-foreground">
             {occupations.filter((o) => o.has_knowledge).length}/{occupations.length} enriched
@@ -148,7 +148,7 @@ export default function AdminKnowledgePage() {
                 className="h-2 w-2 shrink-0 rounded-full"
                 style={{
                   background: occ.has_knowledge
-                    ? "oklch(0.72 0.17 155)"
+                    ? "var(--success)"
                     : "oklch(0.35 0.015 260)",
                 }}
               />

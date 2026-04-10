@@ -148,7 +148,7 @@ export default function AdminKnowledgeEditPage() {
           Back to list
         </button>
         <div>
-          <h1 className="font-display text-xl italic text-foreground">
+          <h1 className="font-display text-xl text-foreground">
             {occupationTitle || anzscoCode}
           </h1>
           <p className="text-sm text-muted-foreground mt-1">
@@ -187,7 +187,7 @@ export default function AdminKnowledgeEditPage() {
           </Button>
 
           {saved && (
-            <span className="flex items-center gap-1.5 text-sm" style={{ color: "oklch(0.72 0.17 155)" }}>
+            <span className="flex items-center gap-1.5 text-sm" style={{ color: "var(--success)" }}>
               <CheckCircle className="h-4 w-4" />
               Saved successfully
             </span>

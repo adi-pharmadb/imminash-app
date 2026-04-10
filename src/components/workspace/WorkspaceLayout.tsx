@@ -558,7 +558,7 @@ export function WorkspaceLayout({
                   <button
                     onClick={handleApproveDocument}
                     className="flex-1 flex items-center justify-center gap-2 rounded-lg py-2.5 text-sm font-semibold transition-all hover:brightness-110"
-                    style={{ background: "oklch(0.72 0.17 155)", color: "oklch(0.13 0.01 260)" }}
+                    style={{ background: "var(--success)", color: "var(--primary-foreground)" }}
                     data-testid="approve-document"
                   >
                     <Check className="h-4 w-4" />
@@ -624,7 +624,7 @@ export function WorkspaceLayout({
               <button
                 onClick={handleApproveDocument}
                 className="flex-1 flex items-center justify-center gap-2 rounded-lg py-2.5 text-sm font-semibold transition-all hover:brightness-110"
-                style={{ background: "oklch(0.72 0.17 155)", color: "oklch(0.13 0.01 260)" }}
+                style={{ background: "var(--success)", color: "var(--primary-foreground)" }}
               >
                 <Check className="h-4 w-4" />
                 Approve

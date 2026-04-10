@@ -36,14 +36,14 @@ export function CompletionDashboard({
       <div className="text-center space-y-3">
         <div
           className="mx-auto flex h-16 w-16 items-center justify-center rounded-full"
-          style={{ background: "oklch(0.72 0.17 155 / 0.15)" }}
+          style={{ background: "color-mix(in oklch, var(--success) 15%, transparent)" }}
         >
           <CheckCircle2
             className="h-8 w-8"
-            style={{ color: "oklch(0.72 0.17 155)" }}
+            style={{ color: "var(--success)" }}
           />
         </div>
-        <h2 className="font-display text-2xl italic text-foreground">
+        <h2 className="font-display text-2xl text-foreground">
           Your package is ready{firstName ? `, ${firstName}` : ""}
         </h2>
         <p className="text-sm text-muted-foreground leading-relaxed">
@@ -61,7 +61,7 @@ export function CompletionDashboard({
             <div key={doc.id} className="flex items-center gap-2.5">
               <CheckCircle2
                 className="h-4 w-4 shrink-0"
-                style={{ color: "oklch(0.72 0.17 155)" }}
+                style={{ color: "var(--success)" }}
               />
               <span className="text-sm text-foreground">{doc.label}</span>
               <span className="text-[10px] text-muted-foreground ml-auto">PDF + DOCX</span>

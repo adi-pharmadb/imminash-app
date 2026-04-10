@@ -113,7 +113,7 @@ export function ChatPanel({ projection, onStateUpdate }: ChatPanelProps) {
         <div className="mx-auto max-w-2xl space-y-1">
           {showIntro && (
             <div className="py-8 text-center">
-              <p className="font-display text-2xl italic text-foreground">
+              <p className="font-display text-2xl text-foreground">
                 Welcome to Imminash.
               </p>
               <p className="mt-3 text-sm leading-relaxed text-muted-foreground">

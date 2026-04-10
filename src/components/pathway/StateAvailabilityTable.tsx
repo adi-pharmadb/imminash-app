@@ -25,7 +25,7 @@ function StatusDot({ status }: { status: boolean | "closed" }) {
     return (
       <span
         className="flex items-center gap-1 text-xs font-medium"
-        style={{ color: "oklch(0.72 0.17 155)" }}
+        style={{ color: "var(--success)" }}
         data-testid="status-open"
       >
         <CheckCircle className="h-3.5 w-3.5" />
@@ -58,8 +58,8 @@ export function StateAvailabilityTable({
   return (
     <div className="glass-card rounded-2xl p-6 space-y-4" data-testid="state-availability-table">
       <div className="flex items-center gap-2.5">
-        <MapPin className="h-5 w-5" style={{ color: "oklch(0.62 0.17 250)" }} />
-        <h3 className="font-display text-lg italic text-foreground">
+        <MapPin className="h-5 w-5" style={{ color: "var(--primary)" }} />
+        <h3 className="font-display text-lg text-foreground">
           State Availability
         </h3>
       </div>

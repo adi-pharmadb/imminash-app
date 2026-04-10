@@ -52,13 +52,13 @@ export function ReferralPrompt({ open, onOpenChange }: ReferralPromptProps) {
         <div className="text-center space-y-4">
           <div
             className="mx-auto flex h-12 w-12 items-center justify-center rounded-full"
-            style={{ background: "oklch(0.62 0.17 250 / 0.1)" }}
+            style={{ background: "color-mix(in oklch, var(--primary) 10%, transparent)" }}
           >
-            <Share2 className="h-5 w-5" style={{ color: "oklch(0.62 0.17 250)" }} />
+            <Share2 className="h-5 w-5" style={{ color: "var(--primary)" }} />
           </div>
 
           <div className="space-y-2">
-            <h3 className="font-display text-lg italic text-foreground">
+            <h3 className="font-display text-lg text-foreground">
               Know someone applying for PR?
             </h3>
             <p className="text-sm text-muted-foreground leading-relaxed">

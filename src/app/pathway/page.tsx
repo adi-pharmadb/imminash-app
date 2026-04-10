@@ -137,14 +137,14 @@ function StateDataErrorNote() {
     <div
       className="rounded-xl px-4 py-3 flex items-start gap-2.5 animate-reveal-up delay-100"
       style={{
-        background: "oklch(0.62 0.17 250 / 0.06)",
-        border: "1px solid oklch(0.62 0.17 250 / 0.2)",
+        background: "color-mix(in oklch, var(--primary) 6%, transparent)",
+        border: "1px solid color-mix(in oklch, var(--primary) 20%, transparent)",
       }}
       data-testid="state-data-error"
     >
       <AlertCircle
         className="h-4 w-4 shrink-0 mt-0.5"
-        style={{ color: "oklch(0.62 0.17 250)" }}
+        style={{ color: "var(--primary)" }}
       />
       <p className="text-sm text-muted-foreground leading-relaxed">
         State nomination data could not be loaded. Pathway analysis below is based on
@@ -167,12 +167,12 @@ function EmptyPathwayState() {
     >
       <div
         className="mx-auto flex h-14 w-14 items-center justify-center rounded-full"
-        style={{ background: "oklch(0.62 0.17 250 / 0.1)" }}
+        style={{ background: "color-mix(in oklch, var(--primary) 10%, transparent)" }}
       >
-        <Search className="h-7 w-7" style={{ color: "oklch(0.62 0.17 250)" }} />
+        <Search className="h-7 w-7" style={{ color: "var(--primary)" }} />
       </div>
       <div className="space-y-2">
-        <h2 className="font-display text-xl italic text-foreground">
+        <h2 className="font-display text-xl text-foreground">
           Points-tested visas are a stretch right now
         </h2>
         <p className="mx-auto max-w-md text-sm text-muted-foreground leading-relaxed">
@@ -188,8 +188,8 @@ function EmptyPathwayState() {
         rel="noopener noreferrer"
         className="inline-flex items-center gap-2 rounded-xl px-6 py-3.5 text-sm font-semibold transition-all duration-300 hover:scale-[1.02] active:scale-[0.98] glow-primary"
         style={{
-          background: "oklch(0.62 0.17 250)",
-          color: "oklch(0.13 0.01 260)",
+          background: "var(--primary)",
+          color: "var(--primary-foreground)",
         }}
         data-testid="empty-state-consultation-cta"
       >
@@ -312,8 +312,8 @@ export default function PathwayPage() {
       {/* Brand header */}
       <header className="mx-auto flex w-full max-w-3xl items-center justify-between px-6 py-6">
         <span
-          className="font-display text-2xl italic tracking-tight"
-          style={{ color: "oklch(0.62 0.17 250)" }}
+          className="font-display text-2xl tracking-tight"
+          style={{ color: "var(--primary)" }}
         >
           imminash
         </span>
@@ -329,7 +329,7 @@ export default function PathwayPage() {
       <div className="mx-auto max-w-3xl space-y-8 px-6">
         {/* Heading */}
         <div className="space-y-3 animate-reveal-up">
-          <h1 className="font-display text-3xl font-normal italic text-foreground sm:text-4xl">
+          <h1 className="font-display text-3xl font-normal text-foreground sm:text-4xl">
             {formData.firstName
               ? `${formData.firstName}'s Visa Pathway Roadmap`
               : "Your Visa Pathway Roadmap"}
@@ -370,7 +370,7 @@ export default function PathwayPage() {
               <div key={analysis.occupation.anzsco_code} className="space-y-5">
                 {analyses.length > 1 && (
                   <div className={`animate-reveal-up delay-${Math.min((aIdx + 2) * 100, 600)}`}>
-                    <h2 className="font-display text-xl italic text-foreground">
+                    <h2 className="font-display text-xl text-foreground">
                       {analysis.occupation.title}
                       <span className="text-sm text-muted-foreground ml-2 not-italic">
                         ANZSCO {analysis.occupation.anzsco_code}
@@ -464,7 +464,7 @@ export default function PathwayPage() {
             {primaryAnalysis && (
               <div className="animate-reveal-up delay-600">
                 <div className="glass-card rounded-2xl p-6 space-y-4">
-                  <h3 className="font-display text-lg italic text-foreground">
+                  <h3 className="font-display text-lg text-foreground">
                     Employer Sponsored Route
                   </h3>
                   <p className="text-sm text-muted-foreground leading-relaxed">
@@ -477,7 +477,7 @@ export default function PathwayPage() {
                           key={i}
                           className="flex items-start gap-2 text-sm text-foreground leading-relaxed"
                         >
-                          <span style={{ color: "oklch(0.62 0.17 250)" }}>-</span>
+                          <span style={{ color: "var(--primary)" }}>-</span>
                           {step}
                         </li>
                       ))}
@@ -528,8 +528,8 @@ export default function PathwayPage() {
                 rel="noopener noreferrer"
                 className="block w-full max-w-md rounded-xl py-4 text-center font-semibold transition-all duration-300 hover:scale-[1.02] active:scale-[0.98] glow-primary"
                 style={{
-                  background: "oklch(0.62 0.17 250)",
-                  color: "oklch(0.13 0.01 260)",
+                  background: "var(--primary)",
+                  color: "var(--primary-foreground)",
                 }}
                 data-testid="cta-consultation"
               >

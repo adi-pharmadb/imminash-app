@@ -20,14 +20,14 @@ export function PointsBreakdownCard({
       data-testid="points-breakdown"
     >
       <div className="flex items-center justify-between">
-        <p className="font-display text-lg italic text-foreground">
+        <p className="font-display text-lg text-foreground">
           Points Breakdown
         </p>
         <span
           className="rounded-full px-4 py-1.5 text-sm font-bold glow-primary animate-pulse-glow"
           style={{
-            background: "oklch(0.62 0.17 250 / 0.15)",
-            color: "oklch(0.62 0.17 250)",
+            background: "color-mix(in oklch, var(--primary) 15%, transparent)",
+            color: "var(--primary)",
           }}
         >
           {breakdown.total} pts
@@ -54,8 +54,8 @@ export function PointsBreakdownCard({
                     width: `${Math.min(ratio * 100, 100)}%`,
                     background:
                       ratio >= 1
-                        ? "oklch(0.72 0.17 155)"
-                        : "oklch(0.62 0.17 250)",
+                        ? "var(--success)"
+                        : "var(--primary)",
                   }}
                 />
               </div>

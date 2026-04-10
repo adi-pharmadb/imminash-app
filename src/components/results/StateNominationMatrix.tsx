@@ -25,7 +25,7 @@ function StatusCell({ status }: { status: boolean | "closed" }) {
     return (
       <span
         className="flex items-center gap-1 text-xs font-medium"
-        style={{ color: "oklch(0.72 0.17 155)" }}
+        style={{ color: "var(--success)" }}
         data-status="eligible"
       >
         <CheckCircle className="h-3.5 w-3.5" />
@@ -88,7 +88,7 @@ export function StateNominationMatrix({
                     ? { borderBottom: "1px solid oklch(0.24 0.015 260 / 0.3)" }
                     : {}),
                   ...(isHighlighted
-                    ? { background: "oklch(0.72 0.17 155 / 0.08)" }
+                    ? { background: "color-mix(in oklch, var(--success) 8%, transparent)" }
                     : {}),
                 }}
                 className="transition-colors hover:bg-white/[0.02]"
@@ -98,7 +98,7 @@ export function StateNominationMatrix({
                   <span className="flex items-center gap-1.5">
                     {row.state}
                     {isHighlighted && (
-                      <span className="text-[10px] font-bold uppercase tracking-wider" style={{ color: "oklch(0.72 0.17 155)" }}>
+                      <span className="text-[10px] font-bold uppercase tracking-wider" style={{ color: "var(--success)" }}>
                         Best
                       </span>
                     )}

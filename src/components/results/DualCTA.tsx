@@ -94,17 +94,17 @@ export function DualCTA({
           href={AGENT_BOOKING_URL}
           className="glass-card group flex w-full items-center gap-4 rounded-2xl px-6 py-5 transition-all duration-300 hover:scale-[1.01] active:scale-[0.99]"
           style={{
-            borderColor: "oklch(0.62 0.17 250 / 0.25)",
+            borderColor: "color-mix(in oklch, var(--primary) 25%, transparent)",
           }}
           data-testid="secondary-cta"
         >
           <div
             className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl"
-            style={{ background: "oklch(0.62 0.17 250 / 0.12)" }}
+            style={{ background: "color-mix(in oklch, var(--primary) 12%, transparent)" }}
           >
             <MessageCircle
               className="h-5 w-5"
-              style={{ color: "oklch(0.62 0.17 250)" }}
+              style={{ color: "var(--primary)" }}
             />
           </div>
           <p className="text-sm text-muted-foreground leading-relaxed">

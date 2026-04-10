@@ -26,8 +26,8 @@ function EligibilityRow({
     <div
       className="rounded-xl p-4 space-y-2"
       style={{
-        background: "oklch(0.18 0.012 260 / 0.6)",
-        border: "1px solid oklch(0.28 0.015 260 / 0.3)",
+        background: "var(--surface-1)",
+        border: "1px solid var(--surface-border-subtle)",
       }}
       data-testid={`eligibility-${label}`}
     >
@@ -35,7 +35,7 @@ function EligibilityRow({
         {eligible ? (
           <CheckCircle
             className="h-4 w-4"
-            style={{ color: "oklch(0.72 0.17 155)" }}
+            style={{ color: "var(--success)" }}
           />
         ) : (
           <XCircle
@@ -49,8 +49,8 @@ function EligibilityRow({
           style={
             eligible
               ? {
-                  background: "oklch(0.72 0.17 155 / 0.15)",
-                  color: "oklch(0.72 0.17 155)",
+                  background: "color-mix(in oklch, var(--success) 15%, transparent)",
+                  color: "var(--success)",
                 }
               : {
                   background: "oklch(0.65 0.2 25 / 0.15)",
@@ -82,11 +82,11 @@ export function EmployerCard({ occupation, eligibility }: EmployerCardProps) {
         <div className="flex items-start gap-3">
           <span
             className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full"
-            style={{ background: "oklch(0.62 0.17 250 / 0.12)" }}
+            style={{ background: "color-mix(in oklch, var(--primary) 12%, transparent)" }}
           >
             <Briefcase
               className="h-4 w-4"
-              style={{ color: "oklch(0.62 0.17 250)" }}
+              style={{ color: "var(--primary)" }}
             />
           </span>
           <div>
@@ -125,13 +125,13 @@ export function EmployerCard({ occupation, eligibility }: EmployerCardProps) {
           href={AGENT_BOOKING_URL}
           className="block rounded-xl p-4 transition-all hover:scale-[1.01]"
           style={{
-            background: "oklch(0.62 0.17 250 / 0.08)",
-            border: "1px solid oklch(0.62 0.17 250 / 0.2)",
+            background: "color-mix(in oklch, var(--primary) 8%, transparent)",
+            border: "1px solid color-mix(in oklch, var(--primary) 20%, transparent)",
           }}
           data-testid="agent-cta"
         >
           <div className="flex items-center gap-3">
-            <MessageCircle className="h-5 w-5 shrink-0" style={{ color: "oklch(0.62 0.17 250)" }} />
+            <MessageCircle className="h-5 w-5 shrink-0" style={{ color: "var(--primary)" }} />
             <div>
               <p className="text-sm font-semibold text-foreground">
                 Need help with this occupation?

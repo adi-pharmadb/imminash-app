@@ -222,8 +222,8 @@ function UploadHistorySection({ data }: { data: ACSApplicationData }) {
             className="shrink-0 rounded-full px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wider"
             style={
               item.status === "ready" || item.status === "uploaded"
-                ? { background: "oklch(0.45 0.15 155 / 0.15)", color: "oklch(0.75 0.15 155)" }
-                : { background: "oklch(0.62 0.17 250 / 0.15)", color: "oklch(0.62 0.17 250)" }
+                ? { background: "color-mix(in oklch, var(--success) 15%, transparent)", color: "var(--success)" }
+                : { background: "color-mix(in oklch, var(--primary) 15%, transparent)", color: "var(--primary)" }
             }
           >
             {item.status}
@@ -423,8 +423,8 @@ function SummarySection({ data }: { data: ACSApplicationData }) {
         <div
           className="mt-4 rounded-xl p-4 text-center"
           style={{
-            background: "oklch(0.45 0.15 155 / 0.1)",
-            border: "1px solid oklch(0.45 0.15 155 / 0.2)",
+            background: "color-mix(in oklch, var(--success) 10%, transparent)",
+            border: "1px solid color-mix(in oklch, var(--success) 20%, transparent)",
           }}
         >
           <Check className="mx-auto h-6 w-6 text-emerald-400" />
@@ -479,8 +479,8 @@ export function ACSApplicationPanel({
         <div
           className="flex h-7 w-7 items-center justify-center rounded-md text-xs font-black"
           style={{
-            background: "oklch(0.62 0.17 250)",
-            color: "oklch(0.13 0.01 260)",
+            background: "var(--primary)",
+            color: "var(--primary-foreground)",
           }}
         >
           ACS
@@ -525,8 +525,8 @@ export function ACSApplicationPanel({
                   style={{
                     background:
                       completeness === "complete"
-                        ? "oklch(0.75 0.15 155)"
-                        : "oklch(0.62 0.17 250)",
+                        ? "var(--success)"
+                        : "var(--primary)",
                   }}
                 />
               )}
@@ -550,7 +550,7 @@ export function ACSApplicationPanel({
         <div className="mb-5">
           <div className="flex items-center gap-2">
             <span className="text-primary/70">{SECTION_ICONS[activeSection]}</span>
-            <h3 className="font-display text-lg italic text-foreground">
+            <h3 className="font-display text-lg text-foreground">
               {ACS_SECTIONS.find((s) => s.key === activeSection)?.label}
             </h3>
           </div>

@@ -85,7 +85,7 @@ export function AuthModal({ open, onOpenChange, defaultEmail = "" }: AuthModalPr
     <Dialog open={open} onOpenChange={handleOpenChange}>
       <DialogContent className="glass-card border-border/50 sm:max-w-md" data-testid="auth-modal">
         <DialogHeader className="space-y-3">
-          <DialogTitle className="font-display text-2xl italic tracking-tight text-foreground">
+          <DialogTitle className="font-display text-2xl tracking-tight text-foreground">
             {sent ? "Check your inbox" : "Sign in to continue"}
           </DialogTitle>
           <DialogDescription className="text-sm leading-relaxed text-muted-foreground">

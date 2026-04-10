@@ -26,7 +26,7 @@ interface DocumentPanelProps {
  */
 function renderDocumentContent(content: Record<string, unknown> | null): string {
   if (!content) {
-    return "<p class='text-muted-foreground/60 italic font-display text-lg'>No content yet. Start chatting to generate this document.</p>";
+    return "<p class='text-muted-foreground/60 font-display text-lg'>No content yet. Start chatting to generate this document.</p>";
   }
 
   // If content has a "raw" key (fallback from unparsed AI response)

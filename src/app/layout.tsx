@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import { DM_Sans } from "next/font/google";
-import { Instrument_Serif } from "next/font/google";
+import { Inter_Tight } from "next/font/google";
 import { Geist_Mono } from "next/font/google";
 import { ThemeToggle } from "@/components/ui/ThemeToggle";
 import "./globals.css";
@@ -11,11 +11,10 @@ const dmSans = DM_Sans({
   weight: ["400", "500", "600", "700"],
 });
 
-const instrumentSerif = Instrument_Serif({
+const interTight = Inter_Tight({
   variable: "--font-display",
   subsets: ["latin"],
-  weight: "400",
-  style: ["normal", "italic"],
+  weight: ["400", "500", "600", "700"],
 });
 
 const geistMono = Geist_Mono({
@@ -45,9 +44,8 @@ export default function RootLayout({
         />
       </head>
       <body
-        className={`${dmSans.variable} ${instrumentSerif.variable} ${geistMono.variable} antialiased bg-background selection:bg-primary/30`}
+        className={`${dmSans.variable} ${interTight.variable} ${geistMono.variable} antialiased bg-background selection:bg-primary/30`}
       >
-        <div className="bg-noise fixed inset-0 z-0 opacity-[0.04] mix-blend-overlay"></div>
         {children}
         <ThemeToggle />
       </body>

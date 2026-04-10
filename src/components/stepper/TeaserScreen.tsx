@@ -73,7 +73,7 @@ export function TeaserScreen({ points, matchedOccupations, firstName, onUnlock }
     <div className="flex min-h-screen flex-col bg-background gradient-mesh">
       {/* Brand header */}
       <header className="mx-auto flex w-full max-w-2xl items-center justify-between px-6 py-6">
-        <span className="font-display text-xl italic tracking-tight text-foreground">
+        <span className="font-display text-xl tracking-tight text-foreground">
           imminash
         </span>
       </header>
@@ -82,7 +82,7 @@ export function TeaserScreen({ points, matchedOccupations, firstName, onUnlock }
         <div className="w-full max-w-lg space-y-10">
           {/* Editorial heading */}
           <div className="space-y-3 animate-reveal-up">
-            <h2 className="font-display text-3xl italic text-foreground sm:text-4xl">
+            <h2 className="font-display text-3xl text-foreground sm:text-4xl">
               {firstName ? `${firstName}, here's` : "Here's"} what we found
             </h2>
             <p className="text-muted-foreground leading-relaxed">
@@ -140,7 +140,7 @@ export function TeaserScreen({ points, matchedOccupations, firstName, onUnlock }
               </div>
             </div>
             <div>
-              <p className="font-display text-lg italic text-foreground">Estimated Points</p>
+              <p className="font-display text-lg text-foreground">Estimated Points</p>
               <p className="mt-1 text-sm leading-relaxed text-muted-foreground">
                 {points >= 65
                   ? "Above 65-point threshold"

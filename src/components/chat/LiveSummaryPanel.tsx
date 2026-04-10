@@ -108,7 +108,7 @@ export function LiveSummaryPanel({ projection }: { projection: ProjectedConversa
                   Points estimate
                 </span>
                 {totalPoints !== null && (
-                  <span className="font-display text-lg italic text-primary">
+                  <span className="font-display text-lg text-primary">
                     {totalPoints}
                   </span>
                 )}

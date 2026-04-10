@@ -47,7 +47,7 @@ function getStatusIcon(status: DocumentStatus) {
       return (
         <CheckCircle2
           className="h-3.5 w-3.5"
-          style={{ color: "oklch(0.72 0.17 155)" }}
+          style={{ color: "var(--success)" }}
         />
       );
     case "in_progress":
@@ -65,7 +65,7 @@ function getStatusIcon(status: DocumentStatus) {
 function getStatusDotColor(status: DocumentStatus): string {
   switch (status) {
     case "approved":
-      return "oklch(0.72 0.17 155)";
+      return "var(--success)";
     case "in_progress":
       return "oklch(0.78 0.12 70)";
     default:
@@ -104,8 +104,8 @@ export function DocumentSidebar({
       {/* Logo */}
       <div className="px-5 pt-5 pb-4">
         <span
-          className="font-display text-lg italic tracking-tight"
-          style={{ color: "oklch(0.62 0.17 250)" }}
+          className="font-display text-lg tracking-tight"
+          style={{ color: "var(--primary)" }}
         >
           imminash
         </span>
@@ -116,8 +116,8 @@ export function DocumentSidebar({
         <div
           className="rounded-xl p-3 space-y-1"
           style={{
-            background: "oklch(0.62 0.17 250 / 0.08)",
-            border: "1px solid oklch(0.62 0.17 250 / 0.15)",
+            background: "color-mix(in oklch, var(--primary) 8%, transparent)",
+            border: "1px solid color-mix(in oklch, var(--primary) 15%, transparent)",
           }}
         >
           <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">
@@ -169,7 +169,7 @@ export function DocumentSidebar({
             {showSaved && (
               <span
                 className="flex items-center gap-1 text-[10px] font-medium animate-in fade-in duration-300"
-                style={{ color: "oklch(0.72 0.17 155)" }}
+                style={{ color: "var(--success)" }}
               >
                 <Check className="h-3 w-3" />
                 Saved
@@ -187,8 +187,8 @@ export function DocumentSidebar({
               width: `${progressPct}%`,
               background:
                 progressPct === 100
-                  ? "oklch(0.72 0.17 155)"
-                  : "oklch(0.62 0.17 250)",
+                  ? "var(--success)"
+                  : "var(--primary)",
             }}
           />
         </div>

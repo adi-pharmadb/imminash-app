@@ -205,7 +205,7 @@ export function StepperFlow({ onComplete }: StepperFlowProps) {
       {/* Brand header */}
       <header className="relative mx-auto w-full max-w-2xl px-6 pt-6 pb-2">
         <div className="flex items-center justify-between">
-          <span className="font-display text-xl italic tracking-tight text-foreground">
+          <span className="font-display text-xl tracking-tight text-foreground">
             imminash
           </span>
           <div className="flex items-center gap-5">

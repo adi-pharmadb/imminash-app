@@ -115,7 +115,7 @@ export function CaseDashboard({
           <FileText className="h-4 w-4" />
           ANZSCO {anzscoCode}
         </div>
-        <h2 className="font-display text-xl italic text-foreground">
+        <h2 className="font-display text-xl text-foreground">
           {occupationTitle}
         </h2>
         <p className="text-sm text-muted-foreground">

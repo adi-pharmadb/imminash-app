@@ -40,7 +40,7 @@ export function EmailGate({ onSubmit, firstName, points }: EmailGateProps) {
 
           {/* Editorial heading */}
           <div className="space-y-3 animate-reveal-up delay-100">
-            <h2 className="font-display text-3xl italic text-foreground">
+            <h2 className="font-display text-3xl text-foreground">
               Your results are ready
             </h2>
             <p className="text-sm leading-relaxed text-muted-foreground">

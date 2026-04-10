@@ -10,14 +10,14 @@ const POSSIBILITY_ICONS: Record<PossibilityRating, typeof CheckCircle> = {
 };
 
 const POSSIBILITY_COLORS: Record<PossibilityRating, string> = {
-  High: "oklch(0.72 0.17 155)",
-  Medium: "oklch(0.62 0.17 250)",
+  High: "var(--success)",
+  Medium: "var(--primary)",
   Low: "oklch(0.65 0.2 25)",
 };
 
 const ICON_BG_COLORS: Record<PossibilityRating, string> = {
-  High: "oklch(0.72 0.17 155 / 0.12)",
-  Medium: "oklch(0.62 0.17 250 / 0.12)",
+  High: "color-mix(in oklch, var(--success) 12%, transparent)",
+  Medium: "color-mix(in oklch, var(--primary) 12%, transparent)",
   Low: "oklch(0.65 0.2 25 / 0.12)",
 };
 
@@ -62,11 +62,11 @@ export function StatGrid({
         <div className="flex items-center gap-2 mb-1.5">
           <div
             className="flex h-5 w-5 items-center justify-center rounded-md"
-            style={{ background: "oklch(0.62 0.17 250 / 0.12)" }}
+            style={{ background: "color-mix(in oklch, var(--primary) 12%, transparent)" }}
           >
             <span
               className="text-[10px] font-bold"
-              style={{ color: "oklch(0.62 0.17 250)" }}
+              style={{ color: "var(--primary)" }}
             >
               L
             </span>
@@ -90,11 +90,11 @@ export function StatGrid({
         <div className="flex items-center gap-2 mb-1.5">
           <div
             className="flex h-5 w-5 items-center justify-center rounded-md"
-            style={{ background: "oklch(0.65 0.15 250 / 0.12)" }}
+            style={{ background: "color-mix(in oklch, var(--primary) 12%, transparent)" }}
           >
             <span
               className="text-[10px] font-bold"
-              style={{ color: "oklch(0.65 0.15 250)" }}
+              style={{ color: "var(--primary)" }}
             >
               #
             </span>
@@ -141,11 +141,11 @@ export function StatGrid({
         <div className="flex items-center gap-2 mb-1.5">
           <div
             className="flex h-5 w-5 items-center justify-center rounded-md"
-            style={{ background: "oklch(0.62 0.17 250 / 0.12)" }}
+            style={{ background: "color-mix(in oklch, var(--primary) 12%, transparent)" }}
           >
             <MapPin
               className="h-3 w-3"
-              style={{ color: "oklch(0.62 0.17 250)" }}
+              style={{ color: "var(--primary)" }}
             />
           </div>
           <p className="text-[11px] text-muted-foreground">State Nomination</p>
@@ -156,7 +156,7 @@ export function StatGrid({
             style={{
               color:
                 stateNomCount > 0
-                  ? "oklch(0.72 0.17 155)"
+                  ? "var(--success)"
                   : "oklch(0.60 0.02 260)",
             }}
           >

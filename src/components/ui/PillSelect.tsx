@@ -31,7 +31,7 @@ export function PillSelect({ options, value, onChange, className }: PillSelectPr
             aria-checked={selected}
             onClick={() => onChange(opt.value)}
             className={cn(
-              "px-4 py-2.5 rounded-lg text-sm font-medium transition-all duration-200 border cursor-pointer",
+              "px-4 py-2.5 rounded-full text-sm font-medium transition-all duration-200 border cursor-pointer",
               selected
                 ? "bg-primary text-primary-foreground border-primary shadow-sm"
                 : "bg-card text-foreground border-border hover:border-primary/40 hover:bg-primary/5",
