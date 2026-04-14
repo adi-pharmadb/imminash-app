@@ -116,7 +116,12 @@ export function LiveSummaryPanel({ projection }: { projection: ProjectedConversa
               {pointsOpen && (
                 <div className="mt-3 space-y-1.5 border-t border-border/30 pt-3 text-xs">
                   {Object.entries(points)
-                    .filter(([k]) => k !== "total" && k !== "totalPoints")
+                    .filter(
+                      ([k, v]) =>
+                        k !== "total" &&
+                        k !== "totalPoints" &&
+                        (typeof v === "number" || typeof v === "string"),
+                    )
                     .map(([k, v]) => (
                       <div key={k} className="flex justify-between text-muted-foreground">
                         <span className="capitalize">{k.replace(/([A-Z])/g, " $1")}</span>
