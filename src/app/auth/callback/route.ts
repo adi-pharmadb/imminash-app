@@ -22,16 +22,18 @@ export async function GET(request: Request) {
       try {
         const userId = data.session.user.id;
         const email = data.session.user.email ?? "";
-        await ensureProfile(userId, email);
 
-        // Ensure a conversation exists for this user.
-        const { data: existing } = await supabase
-          .from("conversations")
-          .select("id")
-          .eq("user_id", userId)
-          .order("created_at", { ascending: false })
-          .limit(1)
-          .maybeSingle();
+        // Run profile + conversation lookup in parallel (independent queries).
+        const [, { data: existing }] = await Promise.all([
+          ensureProfile(userId, email),
+          supabase
+            .from("conversations")
+            .select("id")
+            .eq("user_id", userId)
+            .order("created_at", { ascending: false })
+            .limit(1)
+            .maybeSingle(),
+        ]);
 
         if (!existing) {
           await supabase.from("conversations").insert({
