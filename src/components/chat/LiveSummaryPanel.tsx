@@ -205,13 +205,24 @@ export function LiveSummaryPanel({ projection }: { projection: ProjectedConversa
               />
             ))}
 
-            {/* Static rows for docs not yet implemented */}
             <DocRow
               label="CV (structured)"
               state={projection.cvData ? "ready" : "pending"}
             />
-            <DocRow label="Document checklist" state="pending" />
-            <DocRow label="Submission guide" state="pending" />
+            <DocRow
+              label="Document checklist"
+              state={
+                projection.phase === "done"
+                  ? "ready"
+                  : projection.documents.length > 0
+                    ? "drafting"
+                    : "pending"
+              }
+            />
+            <DocRow
+              label="Submission guide"
+              state={projection.phase === "done" ? "ready" : "pending"}
+            />
           </div>
         </section>
       )}
