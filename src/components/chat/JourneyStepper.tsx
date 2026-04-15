@@ -56,17 +56,35 @@ function deriveStepIndex(projection: ProjectedConversation): number {
 
 export function JourneyStepper({ projection }: { projection: ProjectedConversation }) {
   const current = deriveStepIndex(projection);
+  const isPremium =
+    projection.phase === "paid" ||
+    projection.phase === "phase2" ||
+    projection.phase === "done" ||
+    Boolean(projection.paidAt);
 
   return (
     <div className="flex h-full flex-col p-6" data-testid="journey-stepper">
-      <h2 className="mb-6 text-xs font-medium uppercase tracking-wider text-muted-foreground/70">
-        Your journey
+      <h2
+        className={[
+          "mb-6 font-medium uppercase",
+          isPremium
+            ? "font-premium-body text-[10px] tracking-[0.14em] text-gold"
+            : "text-xs tracking-wider text-muted-foreground/70",
+        ].join(" ")}
+      >
+        {isPremium ? "Application progress" : "Your journey"}
       </h2>
 
       <ol className="space-y-4">
         {STEPS.map((step, i) => {
           const isDone = i < current;
           const isCurrent = i === current;
+          const doneClasses = isPremium
+            ? "border-gold/60 bg-gold-soft text-gold"
+            : "border-primary/60 bg-primary/15 text-primary";
+          const currentClasses = isPremium
+            ? "border-gold bg-gold text-gold-foreground ring-2 ring-gold/30"
+            : "border-primary bg-primary text-primary-foreground ring-2 ring-primary/30";
           return (
             <li
               key={step.key}
@@ -77,9 +95,9 @@ export function JourneyStepper({ projection }: { projection: ProjectedConversati
                 className={[
                   "mt-0.5 flex h-6 w-6 shrink-0 items-center justify-center rounded-full border text-[11px] font-semibold transition-colors",
                   isDone
-                    ? "border-primary/60 bg-primary/15 text-primary"
+                    ? doneClasses
                     : isCurrent
-                      ? "border-primary bg-primary text-primary-foreground ring-2 ring-primary/30"
+                      ? currentClasses
                       : "border-border/60 bg-transparent text-muted-foreground/50",
                 ].join(" ")}
               >
@@ -88,6 +106,7 @@ export function JourneyStepper({ projection }: { projection: ProjectedConversati
               <span
                 className={[
                   "pt-0.5 text-sm leading-tight",
+                  isPremium ? "font-serif-premium text-[15px]" : "",
                   isCurrent
                     ? "font-medium text-foreground"
                     : isDone
@@ -103,7 +122,11 @@ export function JourneyStepper({ projection }: { projection: ProjectedConversati
       </ol>
 
       <div className="mt-auto pt-6">
-        <p className="text-[11px] leading-relaxed text-muted-foreground/50">
+        <p
+          className={`leading-relaxed text-muted-foreground/50 ${
+            isPremium ? "font-premium-body text-[11px] italic" : "text-[11px]"
+          }`}
+        >
           General information only. Not migration advice.
         </p>
       </div>

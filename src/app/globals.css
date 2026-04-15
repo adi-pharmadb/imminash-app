@@ -441,6 +441,39 @@
     radial-gradient(ellipse at top, color-mix(in oklch, var(--gold) 4%, transparent), transparent 60%);
 }
 
+/* Assistant messages inside premium mode: serif body to feel like legal drafting */
+.premium [data-testid="message-assistant"] > div {
+  font-family: var(--font-serif), Georgia, serif;
+  font-size: 14px;
+  line-height: 1.65;
+  letter-spacing: -0.005em;
+}
+.premium [data-testid="message-assistant"] .prose strong {
+  font-family: var(--font-serif), Georgia, serif;
+}
+
+/* Premium send button overrides (gold accent) */
+.premium button[data-testid="send-button"] {
+  background-color: var(--gold);
+  color: var(--gold-foreground);
+  box-shadow: none;
+}
+.premium button[data-testid="send-button"]:hover:not(:disabled) {
+  filter: brightness(1.1);
+}
+
+/* Premium input border on focus-within */
+.premium .glass-card:focus-within {
+  border-color: color-mix(in oklch, var(--gold) 45%, transparent);
+}
+
+/* Brand wordmark in nav: serif in premium mode */
+.premium header > div:first-child > span.font-display {
+  font-family: var(--font-serif), Georgia, serif;
+  letter-spacing: -0.015em;
+  font-weight: 500;
+}
+
 /* Print-optimised styles for submission guide + letter drafts */
 @media print {
   .premium,
