@@ -8,7 +8,11 @@
 
 import { useState } from "react";
 import { ChevronDown, ChevronRight, FileText } from "lucide-react";
-import type { ProjectedConversation } from "@/lib/conversation-state";
+import { DocumentViewer } from "./DocumentViewer";
+import type {
+  ConversationDocument,
+  ProjectedConversation,
+} from "@/lib/conversation-state";
 
 interface Match {
   title?: string;
@@ -42,6 +46,7 @@ const PROFILE_LABELS: Array<[string, string]> = [
 
 export function LiveSummaryPanel({ projection }: { projection: ProjectedConversation }) {
   const [pointsOpen, setPointsOpen] = useState(true);
+  const [openDoc, setOpenDoc] = useState<ConversationDocument | null>(null);
 
   const isPhase2 =
     projection.phase === "phase2" ||
@@ -177,13 +182,42 @@ export function LiveSummaryPanel({ projection }: { projection: ProjectedConversa
       {isPhase2 && (
         <section>
           <div className="space-y-2">
-            {/* We render a static known list for now; real doc events populate later. */}
-            <DocRow label="Employment reference" state={projection.phase === "done" ? "ready" : "drafting"} />
-            <DocRow label="CV (structured)" state={projection.cvData ? "ready" : "pending"} />
+            {/* Real documents from the database (clickable to open viewer) */}
+            {projection.documents.length === 0 && (
+              <DocRow
+                label="Employment reference"
+                state="drafting"
+                subtle="Will appear once the draft is ready"
+              />
+            )}
+            {projection.documents.map((d) => (
+              <DocRow
+                key={d.id}
+                label={d.title}
+                state={
+                  d.status === "approved"
+                    ? "ready"
+                    : d.status === "in_review" || d.status === "in_progress"
+                      ? "drafting"
+                      : "drafting"
+                }
+                onClick={() => setOpenDoc(d)}
+              />
+            ))}
+
+            {/* Static rows for docs not yet implemented */}
+            <DocRow
+              label="CV (structured)"
+              state={projection.cvData ? "ready" : "pending"}
+            />
             <DocRow label="Document checklist" state="pending" />
             <DocRow label="Submission guide" state="pending" />
           </div>
         </section>
+      )}
+
+      {openDoc && (
+        <DocumentViewer document={openDoc} onClose={() => setOpenDoc(null)} />
       )}
     </div>
   );
@@ -192,9 +226,13 @@ export function LiveSummaryPanel({ projection }: { projection: ProjectedConversa
 function DocRow({
   label,
   state,
+  subtle,
+  onClick,
 }: {
   label: string;
   state: "pending" | "drafting" | "ready";
+  subtle?: string;
+  onClick?: () => void;
 }) {
   const color =
     state === "ready"
@@ -202,13 +240,25 @@ function DocRow({
       : state === "drafting"
         ? "text-foreground/80"
         : "text-muted-foreground/40";
+  const clickable = Boolean(onClick);
+  const Wrapper: React.ElementType = clickable ? "button" : "div";
   return (
-    <div className="flex items-center justify-between rounded-lg border border-border/40 bg-secondary/10 p-3 text-sm">
+    <Wrapper
+      {...(clickable ? { onClick, type: "button" } : {})}
+      className={`flex w-full items-center justify-between rounded-lg border border-border/40 bg-secondary/10 p-3 text-left text-sm transition-colors ${
+        clickable ? "cursor-pointer hover:border-primary/30 hover:bg-secondary/30" : ""
+      }`}
+    >
       <span className="flex items-center gap-2">
         <FileText className={`h-4 w-4 ${color}`} />
-        <span className="text-foreground/90">{label}</span>
+        <span className="flex flex-col">
+          <span className="text-foreground/90">{label}</span>
+          {subtle && (
+            <span className="text-[11px] text-muted-foreground/60">{subtle}</span>
+          )}
+        </span>
       </span>
       <span className={`text-[11px] uppercase tracking-wider ${color}`}>{state}</span>
-    </div>
+    </Wrapper>
   );
 }

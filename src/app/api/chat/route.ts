@@ -18,6 +18,7 @@ import {
   projectConversation,
   type ConversationRow,
   type ChatMessage,
+  type ConversationDocument,
 } from "@/lib/conversation-state";
 import { parseMarkers } from "@/lib/marker-parser";
 import { estimatePoints } from "@/lib/points-calculator";
@@ -588,7 +589,20 @@ async function persistTurn(args: PersistArgs) {
     matched_occupations: newMatches,
     status: newStatus,
   };
-  return { projection: projectConversation(updatedRow) };
+
+  // Fetch latest documents so the LiveSummaryPanel can render them.
+  const { data: docs } = await supabase
+    .from("documents")
+    .select("id, document_type, title, status, content, created_at, updated_at")
+    .eq("conversation_id", row.id)
+    .order("created_at", { ascending: false });
+
+  return {
+    projection: projectConversation(
+      updatedRow,
+      (docs ?? []) as ConversationDocument[],
+    ),
+  };
 }
 
 /**

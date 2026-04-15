@@ -17,6 +17,16 @@ export interface ChatMessage {
   [key: string]: unknown;
 }
 
+export interface ConversationDocument {
+  id: string;
+  document_type: string;
+  title: string;
+  status: string;
+  content: Record<string, unknown> | null;
+  created_at?: string;
+  updated_at?: string;
+}
+
 export interface ConversationRow {
   id: string;
   user_id: string;
@@ -44,9 +54,13 @@ export interface ProjectedConversation {
   cvData: Record<string, unknown> | null;
   paidAt: string | null;
   messages: ChatMessage[];
+  documents: ConversationDocument[];
 }
 
-export function projectConversation(row: ConversationRow): ProjectedConversation {
+export function projectConversation(
+  row: ConversationRow,
+  documents: ConversationDocument[] = [],
+): ProjectedConversation {
   const matchesRaw = row.matched_occupations;
   let matches: unknown[] = [];
   if (Array.isArray(matchesRaw)) {
@@ -75,5 +89,6 @@ export function projectConversation(row: ConversationRow): ProjectedConversation
     cvData: row.cv_data,
     paidAt: row.paid_at,
     messages: Array.isArray(row.messages) ? row.messages : [],
+    documents,
   };
 }

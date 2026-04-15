@@ -1,6 +1,10 @@
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
-import { projectConversation, type ConversationRow } from "@/lib/conversation-state";
+import {
+  projectConversation,
+  type ConversationRow,
+  type ConversationDocument,
+} from "@/lib/conversation-state";
 import { ChatLayout } from "@/components/chat/ChatLayout";
 
 /**
@@ -46,7 +50,16 @@ export default async function ChatPage({
 
   if (!row) redirect("/");
 
-  const projection = projectConversation(row as unknown as ConversationRow);
+  const { data: docs } = await supabase
+    .from("documents")
+    .select("id, document_type, title, status, content, created_at, updated_at")
+    .eq("conversation_id", row.id)
+    .order("created_at", { ascending: false });
+
+  const projection = projectConversation(
+    row as unknown as ConversationRow,
+    (docs ?? []) as ConversationDocument[],
+  );
 
   return <ChatLayout initialProjection={projection} paidFlag={sp.paid === "1"} />;
 }
