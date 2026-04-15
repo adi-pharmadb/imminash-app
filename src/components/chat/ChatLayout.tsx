@@ -30,6 +30,7 @@ export function ChatLayout({ initialProjection, paidFlag }: ChatLayoutProps) {
   const [projection, setProjection] = useState<ProjectedConversation>(initialProjection);
   const [leftOpen, setLeftOpen] = useState(true);
   const [rightOpen, setRightOpen] = useState(true);
+  const [shouldKickoff, setShouldKickoff] = useState(false);
   const kickedOffRef = useRef(false);
 
   // Restore panel visibility from localStorage on mount.
@@ -59,7 +60,9 @@ export function ChatLayout({ initialProjection, paidFlag }: ChatLayoutProps) {
     setProjection(next);
   }, []);
 
-  // Paid return flow: poll conversation until status='paid', then kick off Phase 2.
+  // Paid return flow: poll conversation until status='paid', then signal
+  // ChatPanel to fire a hidden __continue__ (which uses the normal streaming
+  // UI so the user sees a loading bubble + streamed Phase 2 greeting).
   useEffect(() => {
     if (!paidFlag) return;
     if (kickedOffRef.current) return;
@@ -80,10 +83,8 @@ export function ChatLayout({ initialProjection, paidFlag }: ChatLayoutProps) {
             if (row.status === "paid" || row.status === "phase2") {
               if (!kickedOffRef.current) {
                 kickedOffRef.current = true;
-                // Remove ?paid=1 from URL
                 router.replace("/chat");
-                // Kick off phase 2
-                triggerContinue();
+                setShouldKickoff(true);
               }
               return;
             }
@@ -92,44 +93,6 @@ export function ChatLayout({ initialProjection, paidFlag }: ChatLayoutProps) {
           // ignore
         }
         await new Promise((r) => setTimeout(r, 2000));
-      }
-    }
-
-    async function triggerContinue() {
-      try {
-        const res = await fetch("/api/chat", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            conversationId: projection.id,
-            message: "__continue__",
-          }),
-        });
-        if (!res.ok || !res.body) return;
-
-        const reader = res.body.getReader();
-        const decoder = new TextDecoder();
-        let buffer = "";
-        while (true) {
-          const { done, value } = await reader.read();
-          if (done) break;
-          buffer += decoder.decode(value, { stream: true });
-          const lines = buffer.split("\n\n");
-          buffer = lines.pop() || "";
-          for (const line of lines) {
-            if (!line.startsWith("data: ")) continue;
-            try {
-              const data = JSON.parse(line.replace("data: ", ""));
-              if (data.type === "state") {
-                setProjection(data.state);
-              }
-            } catch {
-              // skip
-            }
-          }
-        }
-      } catch (err) {
-        console.error("phase2 kickoff failed:", err);
       }
     }
 
@@ -157,7 +120,12 @@ export function ChatLayout({ initialProjection, paidFlag }: ChatLayoutProps) {
 
         {/* Center: Chat */}
         <main className="flex min-w-0 flex-1 flex-col">
-          <ChatPanel projection={projection} onStateUpdate={handleStateUpdate} />
+          <ChatPanel
+            projection={projection}
+            onStateUpdate={handleStateUpdate}
+            kickoffContinue={shouldKickoff}
+            onKickoffDone={() => setShouldKickoff(false)}
+          />
         </main>
 
         {/* Right: Live summary */}

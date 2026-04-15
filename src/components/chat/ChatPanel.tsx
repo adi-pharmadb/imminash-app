@@ -18,6 +18,12 @@ import type { ProjectedConversation, ChatMessage } from "@/lib/conversation-stat
 interface ChatPanelProps {
   projection: ProjectedConversation;
   onStateUpdate: (next: ProjectedConversation) => void;
+  /**
+   * When true, ChatPanel fires a hidden "__continue__" to /api/chat on mount
+   * to resume Phase 2 after payment. Shows the normal streaming UI.
+   */
+  kickoffContinue?: boolean;
+  onKickoffDone?: () => void;
 }
 
 interface AskChoiceState {
@@ -25,7 +31,12 @@ interface AskChoiceState {
   multi?: boolean;
 }
 
-export function ChatPanel({ projection, onStateUpdate }: ChatPanelProps) {
+export function ChatPanel({
+  projection,
+  onStateUpdate,
+  kickoffContinue,
+  onKickoffDone,
+}: ChatPanelProps) {
   const [input, setInput] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [streamingText, setStreamingText] = useState("");
@@ -44,7 +55,7 @@ export function ChatPanel({ projection, onStateUpdate }: ChatPanelProps) {
   }, [messages, streamingText, choice, form]);
 
   const sendMessage = useCallback(
-    async (text: string) => {
+    async (text: string, opts: { hidden?: boolean } = {}) => {
       const trimmed = text.trim();
       if (!trimmed || isLoading) return;
 
@@ -53,14 +64,16 @@ export function ChatPanel({ projection, onStateUpdate }: ChatPanelProps) {
       setIsLoading(true);
       setStreamingText("");
 
-      const optimistic: ProjectedConversation = {
-        ...projection,
-        messages: [
-          ...messages,
-          { role: "user", content: trimmed, createdAt: new Date().toISOString() },
-        ],
-      };
-      onStateUpdate(optimistic);
+      if (!opts.hidden) {
+        const optimistic: ProjectedConversation = {
+          ...projection,
+          messages: [
+            ...messages,
+            { role: "user", content: trimmed, createdAt: new Date().toISOString() },
+          ],
+        };
+        onStateUpdate(optimistic);
+      }
 
       try {
         const response = await fetch("/api/chat", {
@@ -119,6 +132,21 @@ export function ChatPanel({ projection, onStateUpdate }: ChatPanelProps) {
     setInput("");
     await sendMessage(value);
   }, [input, sendMessage]);
+
+  // Fire a hidden __continue__ exactly once when the parent signals a paid
+  // kickoff. Uses the normal streaming UI so the user sees a loading bubble
+  // and the Phase 2 greeting as it arrives.
+  const kickoffFiredRef = useRef(false);
+  useEffect(() => {
+    if (!kickoffContinue) return;
+    if (kickoffFiredRef.current) return;
+    if (isLoading) return;
+    kickoffFiredRef.current = true;
+    (async () => {
+      await sendMessage("__continue__", { hidden: true });
+      onKickoffDone?.();
+    })();
+  }, [kickoffContinue, isLoading, sendMessage, onKickoffDone]);
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
     if (e.key === "Enter" && !e.shiftKey) {
