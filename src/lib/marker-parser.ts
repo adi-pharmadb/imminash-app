@@ -90,6 +90,20 @@ function collectBlock(
   return { bodies, stripped };
 }
 
+/**
+ * Stream-safe marker strip for in-flight text. Hides any unclosed marker
+ * opening (and everything after it) so the user never sees raw marker JSON
+ * flash by while the model is mid-emit. Use only for rendering the live
+ * streaming bubble; for final persistence use parseMarkers.
+ */
+export function stripInFlightMarkers(text: string): string {
+  // First run the full parser to strip completed markers.
+  const cleaned = parseMarkers(text).cleanText;
+  // Then drop anything from an unclosed opening tag onward.
+  const trimmed = cleaned.replace(/\[(PROFILE_UPDATE|POINTS_UPDATE|MATCH_UPDATE|DOC_UPDATE(?::[^\]]*)?|ASK_CHOICE|ASK_FORM)\][\s\S]*$/, "");
+  return trimmed;
+}
+
 export function parseMarkers(text: string): ParsedMarkers {
   let working = text;
 

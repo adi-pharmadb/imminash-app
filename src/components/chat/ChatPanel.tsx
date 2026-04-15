@@ -12,7 +12,7 @@ import { Send } from "lucide-react";
 import { MessageBubble } from "@/components/workspace/MessageBubble";
 import { PaywallMessage } from "./PaywallMessage";
 import { ChatForm } from "./ChatForm";
-import { parseMarkers, type AskForm } from "@/lib/marker-parser";
+import { parseMarkers, stripInFlightMarkers, type AskForm } from "@/lib/marker-parser";
 import type { ProjectedConversation, ChatMessage } from "@/lib/conversation-state";
 
 interface ChatPanelProps {
@@ -103,7 +103,7 @@ export function ChatPanel({
               const data = JSON.parse(line.replace("data: ", ""));
               if (data.type === "text") {
                 fullText += data.text;
-                setStreamingText(parseMarkers(fullText).cleanText);
+                setStreamingText(stripInFlightMarkers(fullText));
               } else if (data.type === "state") {
                 onStateUpdate(data.state as ProjectedConversation);
               } else if (data.type === "choice") {
