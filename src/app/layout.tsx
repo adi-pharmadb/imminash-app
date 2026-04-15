@@ -2,7 +2,6 @@ import type { Metadata } from "next";
 import { DM_Sans } from "next/font/google";
 import { Inter_Tight } from "next/font/google";
 import { Geist_Mono } from "next/font/google";
-import { ThemeToggle } from "@/components/ui/ThemeToggle";
 import "./globals.css";
 
 const dmSans = DM_Sans({
@@ -47,7 +46,6 @@ export default function RootLayout({
         className={`${dmSans.variable} ${interTight.variable} ${geistMono.variable} antialiased bg-background selection:bg-primary/30`}
       >
         {children}
-        <ThemeToggle />
       </body>
     </html>
   );

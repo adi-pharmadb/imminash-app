@@ -5,9 +5,7 @@
  * numbered 6-step journey. No state of its own.
  */
 
-import { useRouter } from "next/navigation";
-import { Check, LogOut } from "lucide-react";
-import { createClient } from "@/lib/supabase/client";
+import { Check } from "lucide-react";
 import type { ProjectedConversation } from "@/lib/conversation-state";
 
 interface StepDef {
@@ -30,16 +28,13 @@ function deriveStepIndex(projection: ProjectedConversation): number {
   const hasMatches = projection.matches.length > 0;
   const hasCv = !!projection.cvData;
 
-  // Phase 2 and beyond
   if (phase === "done") return STEPS.length - 1;
   if (phase === "phase2" || phase === "paid") {
-    // We could introspect docUpdates later; for now assume reference step.
     if (hasCv) return 3;
     return 2;
   }
   if (phase === "awaiting_payment") return 1;
 
-  // Phase 1: walk through personal -> occupation.
   const hasBasics =
     profile.age !== undefined &&
     profile.visaStatus !== undefined &&
@@ -50,23 +45,10 @@ function deriveStepIndex(projection: ProjectedConversation): number {
 }
 
 export function JourneyStepper({ projection }: { projection: ProjectedConversation }) {
-  const router = useRouter();
   const current = deriveStepIndex(projection);
-
-  const handleSignOut = async () => {
-    const supabase = createClient();
-    await supabase.auth.signOut();
-    router.replace("/");
-  };
 
   return (
     <div className="flex h-full flex-col p-6" data-testid="journey-stepper">
-      <div className="mb-8">
-        <span className="font-display text-xl tracking-tight text-foreground">
-          imminash
-        </span>
-      </div>
-
       <h2 className="mb-6 text-xs font-medium uppercase tracking-wider text-muted-foreground/70">
         Your journey
       </h2>
@@ -110,14 +92,7 @@ export function JourneyStepper({ projection }: { projection: ProjectedConversati
         })}
       </ol>
 
-      <div className="mt-auto space-y-4 pt-6">
-        <button
-          onClick={handleSignOut}
-          className="flex w-full items-center gap-2 rounded-lg px-2 py-2 text-sm text-muted-foreground transition-colors hover:bg-secondary hover:text-foreground"
-        >
-          <LogOut className="h-4 w-4" />
-          Sign out
-        </button>
+      <div className="mt-auto pt-6">
         <p className="text-[11px] leading-relaxed text-muted-foreground/50">
           General information only. Not migration advice.
         </p>

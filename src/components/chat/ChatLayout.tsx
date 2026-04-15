@@ -15,6 +15,7 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import type { ProjectedConversation } from "@/lib/conversation-state";
+import { AppNav } from "@/components/nav/AppNav";
 import { JourneyStepper } from "./JourneyStepper";
 import { LiveSummaryPanel } from "./LiveSummaryPanel";
 import { ChatPanel } from "./ChatPanel";
@@ -27,7 +28,32 @@ interface ChatLayoutProps {
 export function ChatLayout({ initialProjection, paidFlag }: ChatLayoutProps) {
   const router = useRouter();
   const [projection, setProjection] = useState<ProjectedConversation>(initialProjection);
+  const [leftOpen, setLeftOpen] = useState(true);
+  const [rightOpen, setRightOpen] = useState(true);
   const kickedOffRef = useRef(false);
+
+  // Restore panel visibility from localStorage on mount.
+  useEffect(() => {
+    const l = localStorage.getItem("imminash_chat_left_panel");
+    const r = localStorage.getItem("imminash_chat_right_panel");
+    if (l !== null) setLeftOpen(l === "1");
+    if (r !== null) setRightOpen(r === "1");
+  }, []);
+
+  const toggleLeft = useCallback(() => {
+    setLeftOpen((v) => {
+      const next = !v;
+      localStorage.setItem("imminash_chat_left_panel", next ? "1" : "0");
+      return next;
+    });
+  }, []);
+  const toggleRight = useCallback(() => {
+    setRightOpen((v) => {
+      const next = !v;
+      localStorage.setItem("imminash_chat_right_panel", next ? "1" : "0");
+      return next;
+    });
+  }, []);
 
   const handleStateUpdate = useCallback((next: ProjectedConversation) => {
     setProjection(next);
@@ -115,11 +141,19 @@ export function ChatLayout({ initialProjection, paidFlag }: ChatLayoutProps) {
 
   return (
     <div className="flex h-screen w-full flex-col bg-background" data-testid="chat-layout">
+      <AppNav
+        leftPanelOpen={leftOpen}
+        rightPanelOpen={rightOpen}
+        onToggleLeft={toggleLeft}
+        onToggleRight={toggleRight}
+      />
       <div className="flex min-h-0 flex-1">
         {/* Left: Journey stepper */}
-        <aside className="hidden w-64 shrink-0 border-r border-border/40 lg:flex lg:flex-col">
-          <JourneyStepper projection={projection} />
-        </aside>
+        {leftOpen && (
+          <aside className="hidden w-64 shrink-0 border-r border-border/40 lg:flex lg:flex-col">
+            <JourneyStepper projection={projection} />
+          </aside>
+        )}
 
         {/* Center: Chat */}
         <main className="flex min-w-0 flex-1 flex-col">
@@ -127,9 +161,11 @@ export function ChatLayout({ initialProjection, paidFlag }: ChatLayoutProps) {
         </main>
 
         {/* Right: Live summary */}
-        <aside className="hidden w-80 shrink-0 border-l border-border/40 lg:flex lg:flex-col">
-          <LiveSummaryPanel projection={projection} />
-        </aside>
+        {rightOpen && (
+          <aside className="hidden w-80 shrink-0 border-l border-border/40 lg:flex lg:flex-col">
+            <LiveSummaryPanel projection={projection} />
+          </aside>
+        )}
       </div>
     </div>
   );

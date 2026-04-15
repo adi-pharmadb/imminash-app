@@ -7,6 +7,7 @@ import { AuthModal } from "@/components/auth/AuthModal";
 import { createClient } from "@/lib/supabase/client";
 import { MagneticButton } from "@/components/ui/MagneticButton";
 import { SpotlightCard } from "@/components/ui/SpotlightCard";
+import { ThemeToggle } from "@/components/ui/ThemeToggle";
 
 export default function HomePage() {
   const router = useRouter();
@@ -198,6 +199,7 @@ export default function HomePage() {
       </footer>
 
       <AuthModal open={authOpen} onOpenChange={setAuthOpen} />
+      <ThemeToggle />
     </main>
   );
 }
