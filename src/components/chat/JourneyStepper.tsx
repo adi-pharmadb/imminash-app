@@ -27,14 +27,24 @@ function deriveStepIndex(projection: ProjectedConversation): number {
   const profile = projection.profile ?? {};
   const hasMatches = projection.matches.length > 0;
   const hasCv = !!projection.cvData;
+  const refDocs = projection.documents.filter(
+    (d) => d.document_type === "employment_reference",
+  );
+  const hasReferences = refDocs.length > 0;
 
+  // Phase 2 wrap-up / fully done.
   if (phase === "done") return STEPS.length - 1;
+
+  // Paid / Phase 2 in progress.
   if (phase === "phase2" || phase === "paid") {
-    if (hasCv) return 3;
-    return 2;
+    if (hasReferences) return 4; // Document checklist active once refs are drafted
+    if (hasCv) return 3; // Employer reference
+    return 2; // CV
   }
+
   if (phase === "awaiting_payment") return 1;
 
+  // Phase 1: walk from personal details -> occupation.
   const hasBasics =
     profile.age !== undefined &&
     profile.visaStatus !== undefined &&

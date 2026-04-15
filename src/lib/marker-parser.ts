@@ -73,6 +73,7 @@ export interface ParsedMarkers {
   askChoice: AskChoice | null;
   askForm: AskForm | null;
   askFile: AskFile | null;
+  hasConversationDone: boolean;
   cleanText: string;
 }
 
@@ -107,7 +108,9 @@ export function stripInFlightMarkers(text: string): string {
   // First run the full parser to strip completed markers.
   const cleaned = parseMarkers(text).cleanText;
   // Then drop anything from an unclosed opening tag onward.
-  const trimmed = cleaned.replace(/\[(PROFILE_UPDATE|POINTS_UPDATE|MATCH_UPDATE|DOC_UPDATE(?::[^\]]*)?|ASK_CHOICE|ASK_FORM|ASK_FILE)\][\s\S]*$/, "");
+  const trimmed = cleaned
+    .replace(/\[(PROFILE_UPDATE|POINTS_UPDATE|MATCH_UPDATE|DOC_UPDATE(?::[^\]]*)?|ASK_CHOICE|ASK_FORM|ASK_FILE)\][\s\S]*$/, "")
+    .replace(/\[CONVERSATION_DONE\]/g, "");
   return trimmed;
 }
 
@@ -294,7 +297,11 @@ export function parseMarkers(text: string): ParsedMarkers {
   // Inline tags
   const hasPaywall = /\[PAYWALL\]/.test(working);
   const hasCalendly = /\[CALENDLY\]/.test(working);
-  working = working.replace(/\[PAYWALL\]/g, "").replace(/\[CALENDLY\]/g, "");
+  const hasConversationDone = /\[CONVERSATION_DONE\]/.test(working);
+  working = working
+    .replace(/\[PAYWALL\]/g, "")
+    .replace(/\[CALENDLY\]/g, "")
+    .replace(/\[CONVERSATION_DONE\]/g, "");
 
   const cleanText = working.replace(/\n{3,}/g, "\n\n").trim();
 
@@ -308,6 +315,7 @@ export function parseMarkers(text: string): ParsedMarkers {
     askChoice,
     askForm,
     askFile,
+    hasConversationDone,
     cleanText,
   };
 }

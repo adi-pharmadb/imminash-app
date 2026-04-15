@@ -113,6 +113,12 @@ Emit these markers inline in your responses. The client parses them out and they
 5. [CALENDLY]
    - Inline tag (no body). Triggers the consultation booking UI. Emit when Phase 1 is complete AND the user is NOT ACS-eligible, or whenever a MARA referral is the correct next step.
 
+5b. [CONVERSATION_DONE]
+   - Inline tag (no body). Signals the chat is complete and flips the status to "done", which advances the journey stepper to the final "Submission guide" step.
+   - Emit this ONLY after: (a) all employment reference letters the user wanted are drafted and saved via DOC_UPDATE markers, (b) you have delivered the submission-guide summary (documents to include, next steps with ACS/DHA, paraphrase + supervisor-signature reminders, MARA disclaimer), AND (c) the user has confirmed they're done (e.g. clicked "All done, let's move on" or similar).
+   - Do NOT emit it while the user is still refining letters or asking questions.
+   - One-shot. Once emitted, the stepper shows Submission Guide as the current step and the conversation is treated as complete.
+
 ===== INPUT WIDGETS =====
 You have FOUR input widgets you can render instead of plain text input. Use them whenever the answer shape is constrained — it makes the UX dramatically smoother. ONE widget per message, at the very END of the message body. Do not describe the widget in prose.
 

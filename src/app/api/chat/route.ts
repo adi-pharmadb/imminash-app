@@ -501,6 +501,12 @@ async function persistTurn(args: PersistArgs) {
     newStatus = "phase2";
   }
 
+  // Phase 2 wrap-up: model emits [CONVERSATION_DONE] when the user signals
+  // they're finished and has what they need.
+  if (parsed.hasConversationDone && (newStatus === "phase2" || newStatus === "paid")) {
+    newStatus = "done";
+  }
+
   // Append messages jsonb.
   const existingMessages: ChatMessage[] = Array.isArray(row.messages)
     ? (row.messages as ChatMessage[])
