@@ -260,6 +260,15 @@ export async function POST(request: Request) {
             );
           }
 
+          // Emit ASK_FILE (ephemeral).
+          if (parsed.askFile) {
+            controller.enqueue(
+              encoder.encode(
+                `data: ${JSON.stringify({ type: "file", file: parsed.askFile })}\n\n`,
+              ),
+            );
+          }
+
           // Emit final state projection to the client.
           controller.enqueue(
             encoder.encode(

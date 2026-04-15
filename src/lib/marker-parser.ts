@@ -57,6 +57,12 @@ export interface AskForm {
   submitLabel?: string;
 }
 
+export interface AskFile {
+  accept?: string;
+  label?: string;
+  purpose?: string;
+}
+
 export interface ParsedMarkers {
   profileUpdates: Record<string, unknown>[];
   pointsUpdate: Record<string, unknown> | null;
@@ -66,6 +72,7 @@ export interface ParsedMarkers {
   docUpdates: DocUpdate[];
   askChoice: AskChoice | null;
   askForm: AskForm | null;
+  askFile: AskFile | null;
   cleanText: string;
 }
 
@@ -100,7 +107,7 @@ export function stripInFlightMarkers(text: string): string {
   // First run the full parser to strip completed markers.
   const cleaned = parseMarkers(text).cleanText;
   // Then drop anything from an unclosed opening tag onward.
-  const trimmed = cleaned.replace(/\[(PROFILE_UPDATE|POINTS_UPDATE|MATCH_UPDATE|DOC_UPDATE(?::[^\]]*)?|ASK_CHOICE|ASK_FORM)\][\s\S]*$/, "");
+  const trimmed = cleaned.replace(/\[(PROFILE_UPDATE|POINTS_UPDATE|MATCH_UPDATE|DOC_UPDATE(?::[^\]]*)?|ASK_CHOICE|ASK_FORM|ASK_FILE)\][\s\S]*$/, "");
   return trimmed;
 }
 
@@ -113,6 +120,7 @@ export function parseMarkers(text: string): ParsedMarkers {
   let matchUpdate: Record<string, unknown> | null = null;
   let askChoice: AskChoice | null = null;
   let askForm: AskForm | null = null;
+  let askFile: AskFile | null = null;
 
   // PROFILE_UPDATE
   {
@@ -258,6 +266,31 @@ export function parseMarkers(text: string): ParsedMarkers {
     }
   }
 
+  // ASK_FILE (last one wins) — body optional
+  {
+    // Handle both [ASK_FILE]{json}[/ASK_FILE] and bare [ASK_FILE][/ASK_FILE]
+    const re = /\[ASK_FILE\]([\s\S]*?)\[\/ASK_FILE\]/g;
+    working = working.replace(re, (_m, body: string) => {
+      const trimmed = body.trim();
+      if (trimmed.length === 0) {
+        askFile = {};
+      } else {
+        const parsed = safeJson(trimmed);
+        if (parsed && typeof parsed === "object") {
+          const p = parsed as { accept?: unknown; label?: unknown; purpose?: unknown };
+          askFile = {
+            accept: typeof p.accept === "string" ? p.accept : undefined,
+            label: typeof p.label === "string" ? p.label : undefined,
+            purpose: typeof p.purpose === "string" ? p.purpose : undefined,
+          };
+        } else {
+          askFile = {};
+        }
+      }
+      return "";
+    });
+  }
+
   // Inline tags
   const hasPaywall = /\[PAYWALL\]/.test(working);
   const hasCalendly = /\[CALENDLY\]/.test(working);
@@ -274,6 +307,7 @@ export function parseMarkers(text: string): ParsedMarkers {
     docUpdates,
     askChoice,
     askForm,
+    askFile,
     cleanText,
   };
 }

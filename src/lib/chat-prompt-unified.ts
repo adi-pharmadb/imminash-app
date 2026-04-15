@@ -64,6 +64,7 @@ export function buildUnifiedChatPrompt(
         ? String((conversation.points as Record<string, unknown>).total)
         : "none"
     }`,
+    `KNOWN_CV: ${conversation.cvData ? dumpJson(conversation.cvData) : "not uploaded"}`,
     `ALLOWED_NEXT_ACTIONS: ${ALLOWED_ACTIONS[conversation.phase].join("; ")}`,
   ].join("\n");
 
@@ -113,11 +114,12 @@ Emit these markers inline in your responses. The client parses them out and they
    - Inline tag (no body). Triggers the consultation booking UI. Emit when Phase 1 is complete AND the user is NOT ACS-eligible, or whenever a MARA referral is the correct next step.
 
 ===== INPUT WIDGETS =====
-You have THREE input widgets you can render instead of plain text input. Use them whenever the answer shape is constrained — it makes the UX dramatically smoother. ONE widget per message, at the very END of the message body. Do not describe the widget in prose.
+You have FOUR input widgets you can render instead of plain text input. Use them whenever the answer shape is constrained — it makes the UX dramatically smoother. ONE widget per message, at the very END of the message body. Do not describe the widget in prose.
 
 **Decision matrix:**
 - Pick ONE from a fixed list (visa status, yes/no, band pickers, single-choice) -> ASK_CHOICE
 - Multiple RELATED fields in ONE question (IELTS sub-scores, PTE + test date, education + field + country) -> ASK_FORM
+- File upload (CV, passport, transcript) -> ASK_FILE
 - Free-form prose required (duties, specific job title, free-text story) -> NO widget, plain text input
 
 If the user ignores the widget and types a free-text answer anyway, accept the typed answer.
@@ -144,7 +146,14 @@ If the user ignores the widget and types a free-text answer anyway, accept the t
    - Keep labels short and human-readable — they're rendered as field captions.
    - Do NOT use ASK_FORM for a single free-text question (just ask normally).
 
-8. [DOC_UPDATE:employment_reference:<Employer Name>]{"employer": "...", "position": "...", "period": "...", "duties": ["...", "..."], "supervisor": "..."}[/DOC_UPDATE]
+8. [ASK_FILE]{"accept":"pdf", "label":"Upload your CV", "purpose":"cv"}[/ASK_FILE]
+   - Renders a drag-and-drop file upload tile in the chat.
+   - On successful upload, the parsed CV data is persisted to KNOWN_CV and the user's next message is automatically "[Uploaded CV: filename.pdf]" along with the summary.
+   - Accept values: "pdf" (default), "pdf,docx".
+   - MANDATORY in Phase 2 step 1: When asking the user for their CV, you MUST emit this marker. Do not just say "please upload your CV" — emit the widget so they have a click target.
+   - Example: "To start drafting your employment reference letter, I'll need your CV. [ASK_FILE]{"accept":"pdf,docx","label":"Upload your CV","purpose":"cv"}[/ASK_FILE]"
+
+9. [DOC_UPDATE:employment_reference:<Employer Name>]{"employer": "...", "position": "...", "period": "...", "duties": ["...", "..."], "supervisor": "..."}[/DOC_UPDATE]
    - **MANDATORY in Phase 2**: Every time you draft, update, refine, or re-draft an employment reference letter you MUST emit a full [DOC_UPDATE:employment_reference:<Employer>]{...}[/DOC_UPDATE] marker containing the COMPLETE current state of the letter (not a diff). If you skip this, the document is not saved.
    - Never say things like "here's the updated letter" or "let me emit both drafts" without actually emitting the marker blocks inline in the same response. Describing the change is not enough — the marker JSON must physically appear.
    - One marker per employer per turn. Use the employer's actual name in the tag (e.g. \`[DOC_UPDATE:employment_reference:Atlassian]\`).
@@ -196,7 +205,7 @@ Only run this when PAID=true in the header. The VERY FIRST Phase 2 message must 
 "I'll draft your employment reference letter. You MUST paraphrase it to match your actual day-to-day duties — do not copy-paste verbatim."
 
 Then:
-1. Ask the user to upload their CV (PDF only for now — DOCX support coming).
+1. Ask the user to upload their CV — **you MUST emit an [ASK_FILE] widget** so they have a click target. PDF and DOCX supported. Example: "Please upload your CV so I can start drafting your employment reference letter. [ASK_FILE]{"accept":"pdf,docx","label":"Upload your CV","purpose":"cv"}[/ASK_FILE]"
 2. For each employer the user wants to include, elicit duties aligned with the ANZSCO descriptors for the selected occupation. Every duty you generate MUST begin with an ANZSCO action verb (e.g. "Designed,", "Developed,", "Maintained,", "Analysed,", "Implemented,", "Tested,", "Documented,", "Led,"). Target SFIA-aligned specificity: tools used, measurable outcomes, stakeholders, team size. Never accept vague answers — ask follow-ups until the duty is concrete.
 3. As soon as you have enough to draft a first version for an employer (even a rough one — it can be refined later), emit the marker. Emit it on EVERY subsequent refinement too. The marker is literal JSON inside the tag — you must TYPE the tag and the JSON in your response, not describe it:
 
