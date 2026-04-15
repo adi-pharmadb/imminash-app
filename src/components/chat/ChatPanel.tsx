@@ -216,11 +216,21 @@ export function ChatPanel({
   }, [kickoffContinue, isLoading, sendMessage, onKickoffDone]);
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
-    if (e.key === "Enter" && !e.shiftKey) {
+    // Enter sends; Shift+Enter, Alt+Enter, Cmd+Enter, Ctrl+Enter = newline
+    if (e.key === "Enter" && !e.shiftKey && !e.altKey && !e.metaKey && !e.ctrlKey) {
       e.preventDefault();
       handleSend();
     }
   };
+
+  // Auto-grow the textarea based on content (up to ~8 lines, then scroll).
+  useEffect(() => {
+    const ta = inputRef.current;
+    if (!ta) return;
+    ta.style.height = "auto";
+    const maxHeight = 200; // ~8 lines
+    ta.style.height = `${Math.min(ta.scrollHeight, maxHeight)}px`;
+  }, [input]);
 
   return (
     <div className="flex h-full flex-col bg-background" data-testid="chat-panel">
@@ -337,7 +347,8 @@ export function ChatPanel({
             onKeyDown={handleKeyDown}
             placeholder={showPaywall ? "Complete payment to continue…" : "Type your message..."}
             rows={1}
-            className="flex-1 resize-none bg-transparent px-3 py-2.5 text-sm leading-relaxed text-foreground outline-none placeholder:text-muted-foreground/50"
+            className="flex-1 resize-none overflow-y-auto bg-transparent px-3 py-2.5 text-sm leading-relaxed text-foreground outline-none placeholder:text-muted-foreground/50"
+            style={{ maxHeight: "200px" }}
             disabled={isLoading || isUploading || showPaywall}
             data-testid="chat-input"
           />
