@@ -251,6 +251,15 @@ export async function POST(request: Request) {
             );
           }
 
+          // Emit ASK_FORM (ephemeral).
+          if (parsed.askForm) {
+            controller.enqueue(
+              encoder.encode(
+                `data: ${JSON.stringify({ type: "form", form: parsed.askForm })}\n\n`,
+              ),
+            );
+          }
+
           // Emit final state projection to the client.
           controller.enqueue(
             encoder.encode(

@@ -21,6 +21,42 @@ export interface AskChoice {
   multi?: boolean;
 }
 
+export type AskFormField =
+  | {
+      key: string;
+      type: "choice";
+      label: string;
+      options: string[];
+      required?: boolean;
+    }
+  | {
+      key: string;
+      type: "number";
+      label: string;
+      min?: number;
+      max?: number;
+      step?: number;
+      required?: boolean;
+    }
+  | {
+      key: string;
+      type: "text";
+      label: string;
+      placeholder?: string;
+      required?: boolean;
+    }
+  | {
+      key: string;
+      type: "date";
+      label: string;
+      required?: boolean;
+    };
+
+export interface AskForm {
+  fields: AskFormField[];
+  submitLabel?: string;
+}
+
 export interface ParsedMarkers {
   profileUpdates: Record<string, unknown>[];
   pointsUpdate: Record<string, unknown> | null;
@@ -29,6 +65,7 @@ export interface ParsedMarkers {
   hasCalendly: boolean;
   docUpdates: DocUpdate[];
   askChoice: AskChoice | null;
+  askForm: AskForm | null;
   cleanText: string;
 }
 
@@ -61,6 +98,7 @@ export function parseMarkers(text: string): ParsedMarkers {
   let pointsUpdate: Record<string, unknown> | null = null;
   let matchUpdate: Record<string, unknown> | null = null;
   let askChoice: AskChoice | null = null;
+  let askForm: AskForm | null = null;
 
   // PROFILE_UPDATE
   {
@@ -136,6 +174,76 @@ export function parseMarkers(text: string): ParsedMarkers {
     }
   }
 
+  // ASK_FORM (last one wins)
+  {
+    const { bodies, stripped } = collectBlock(working, "ASK_FORM");
+    working = stripped;
+    for (const b of bodies) {
+      const parsed = safeJson(b);
+      if (
+        parsed &&
+        typeof parsed === "object" &&
+        Array.isArray((parsed as { fields?: unknown }).fields)
+      ) {
+        const p = parsed as { fields: unknown[]; submitLabel?: unknown };
+        const fields: AskFormField[] = [];
+        for (const raw of p.fields) {
+          if (!raw || typeof raw !== "object") continue;
+          const f = raw as Record<string, unknown>;
+          const key = typeof f.key === "string" ? f.key : null;
+          const label = typeof f.label === "string" ? f.label : null;
+          const type = f.type;
+          if (!key || !label) continue;
+          if (type === "choice" && Array.isArray(f.options)) {
+            const options = (f.options as unknown[]).filter(
+              (o): o is string => typeof o === "string",
+            );
+            if (options.length > 0) {
+              fields.push({
+                key,
+                type: "choice",
+                label,
+                options,
+                required: typeof f.required === "boolean" ? f.required : undefined,
+              });
+            }
+          } else if (type === "number") {
+            fields.push({
+              key,
+              type: "number",
+              label,
+              min: typeof f.min === "number" ? f.min : undefined,
+              max: typeof f.max === "number" ? f.max : undefined,
+              step: typeof f.step === "number" ? f.step : undefined,
+              required: typeof f.required === "boolean" ? f.required : undefined,
+            });
+          } else if (type === "text") {
+            fields.push({
+              key,
+              type: "text",
+              label,
+              placeholder: typeof f.placeholder === "string" ? f.placeholder : undefined,
+              required: typeof f.required === "boolean" ? f.required : undefined,
+            });
+          } else if (type === "date") {
+            fields.push({
+              key,
+              type: "date",
+              label,
+              required: typeof f.required === "boolean" ? f.required : undefined,
+            });
+          }
+        }
+        if (fields.length > 0) {
+          askForm = {
+            fields,
+            submitLabel: typeof p.submitLabel === "string" ? p.submitLabel : undefined,
+          };
+        }
+      }
+    }
+  }
+
   // Inline tags
   const hasPaywall = /\[PAYWALL\]/.test(working);
   const hasCalendly = /\[CALENDLY\]/.test(working);
@@ -151,6 +259,7 @@ export function parseMarkers(text: string): ParsedMarkers {
     hasCalendly,
     docUpdates,
     askChoice,
+    askForm,
     cleanText,
   };
 }

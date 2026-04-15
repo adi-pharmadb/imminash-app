@@ -11,7 +11,8 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { Send } from "lucide-react";
 import { MessageBubble } from "@/components/workspace/MessageBubble";
 import { PaywallMessage } from "./PaywallMessage";
-import { parseMarkers } from "@/lib/marker-parser";
+import { ChatForm } from "./ChatForm";
+import { parseMarkers, type AskForm } from "@/lib/marker-parser";
 import type { ProjectedConversation, ChatMessage } from "@/lib/conversation-state";
 
 interface ChatPanelProps {
@@ -29,6 +30,7 @@ export function ChatPanel({ projection, onStateUpdate }: ChatPanelProps) {
   const [isLoading, setIsLoading] = useState(false);
   const [streamingText, setStreamingText] = useState("");
   const [choice, setChoice] = useState<AskChoiceState | null>(null);
+  const [form, setForm] = useState<AskForm | null>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLTextAreaElement>(null);
 
@@ -39,7 +41,7 @@ export function ChatPanel({ projection, onStateUpdate }: ChatPanelProps) {
 
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
-  }, [messages, streamingText, choice]);
+  }, [messages, streamingText, choice, form]);
 
   const sendMessage = useCallback(
     async (text: string) => {
@@ -47,6 +49,7 @@ export function ChatPanel({ projection, onStateUpdate }: ChatPanelProps) {
       if (!trimmed || isLoading) return;
 
       setChoice(null);
+      setForm(null);
       setIsLoading(true);
       setStreamingText("");
 
@@ -92,6 +95,8 @@ export function ChatPanel({ projection, onStateUpdate }: ChatPanelProps) {
                 onStateUpdate(data.state as ProjectedConversation);
               } else if (data.type === "choice") {
                 setChoice(data.choice as AskChoiceState);
+              } else if (data.type === "form") {
+                setForm(data.form as AskForm);
               }
             } catch {
               // skip malformed events
@@ -179,6 +184,14 @@ export function ChatPanel({ projection, onStateUpdate }: ChatPanelProps) {
                 </button>
               ))}
             </div>
+          )}
+
+          {form && !isLoading && !showPaywall && (
+            <ChatForm
+              form={form}
+              onSubmit={(serialised) => sendMessage(serialised)}
+              onCancel={() => setForm(null)}
+            />
           )}
 
           <div ref={messagesEndRef} />
