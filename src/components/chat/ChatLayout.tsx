@@ -102,8 +102,20 @@ export function ChatLayout({ initialProjection, paidFlag }: ChatLayoutProps) {
     };
   }, [paidFlag, projection.id, projection.phase, router]);
 
+  const isPremium =
+    projection.phase === "paid" ||
+    projection.phase === "phase2" ||
+    projection.phase === "done" ||
+    Boolean(projection.paidAt);
+
   return (
-    <div className="flex h-screen w-full flex-col bg-background" data-testid="chat-layout">
+    <div
+      className={`flex h-screen w-full flex-col bg-background ${
+        isPremium ? "premium" : ""
+      }`}
+      data-testid="chat-layout"
+      data-premium={isPremium ? "true" : "false"}
+    >
       <AppNav
         leftPanelOpen={leftOpen}
         rightPanelOpen={rightOpen}
@@ -119,7 +131,11 @@ export function ChatLayout({ initialProjection, paidFlag }: ChatLayoutProps) {
         )}
 
         {/* Center: Chat */}
-        <main className="flex min-w-0 flex-1 flex-col">
+        <main
+          className={`flex min-w-0 flex-1 flex-col ${
+            isPremium ? "premium-canvas" : ""
+          }`}
+        >
           <ChatPanel
             projection={projection}
             onStateUpdate={handleStateUpdate}
@@ -128,7 +144,7 @@ export function ChatLayout({ initialProjection, paidFlag }: ChatLayoutProps) {
           />
         </main>
 
-        {/* Right: Live summary */}
+        {/* Right: Live summary / Application Pack (in premium mode) */}
         {rightOpen && (
           <aside className="hidden w-80 shrink-0 border-l border-border/40 lg:flex lg:flex-col">
             <LiveSummaryPanel projection={projection} />

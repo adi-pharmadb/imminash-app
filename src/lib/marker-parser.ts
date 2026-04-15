@@ -74,6 +74,7 @@ export interface ParsedMarkers {
   askForm: AskForm | null;
   askFile: AskFile | null;
   hasConversationDone: boolean;
+  hasSubmissionGuideLink: boolean;
   cleanText: string;
 }
 
@@ -110,7 +111,8 @@ export function stripInFlightMarkers(text: string): string {
   // Then drop anything from an unclosed opening tag onward.
   const trimmed = cleaned
     .replace(/\[(PROFILE_UPDATE|POINTS_UPDATE|MATCH_UPDATE|DOC_UPDATE(?::[^\]]*)?|ASK_CHOICE|ASK_FORM|ASK_FILE)\][\s\S]*$/, "")
-    .replace(/\[CONVERSATION_DONE\]/g, "");
+    .replace(/\[CONVERSATION_DONE\]/g, "")
+    .replace(/\[SUBMISSION_GUIDE_LINK\]/g, "");
   return trimmed;
 }
 
@@ -298,10 +300,12 @@ export function parseMarkers(text: string): ParsedMarkers {
   const hasPaywall = /\[PAYWALL\]/.test(working);
   const hasCalendly = /\[CALENDLY\]/.test(working);
   const hasConversationDone = /\[CONVERSATION_DONE\]/.test(working);
+  const hasSubmissionGuideLink = /\[SUBMISSION_GUIDE_LINK\]/.test(working);
   working = working
     .replace(/\[PAYWALL\]/g, "")
     .replace(/\[CALENDLY\]/g, "")
-    .replace(/\[CONVERSATION_DONE\]/g, "");
+    .replace(/\[CONVERSATION_DONE\]/g, "")
+    .replace(/\[SUBMISSION_GUIDE_LINK\]/g, "");
 
   const cleanText = working.replace(/\n{3,}/g, "\n\n").trim();
 
@@ -316,6 +320,7 @@ export function parseMarkers(text: string): ParsedMarkers {
     askForm,
     askFile,
     hasConversationDone,
+    hasSubmissionGuideLink,
     cleanText,
   };
 }

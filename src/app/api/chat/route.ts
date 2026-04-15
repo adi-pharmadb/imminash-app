@@ -270,6 +270,16 @@ export async function POST(request: Request) {
             );
           }
 
+          // Emit submission guide link (ephemeral signal for the client to
+          // render a CTA below the message).
+          if (parsed.hasSubmissionGuideLink) {
+            controller.enqueue(
+              encoder.encode(
+                `data: ${JSON.stringify({ type: "submission_guide_link", conversationId: row.id })}\n\n`,
+              ),
+            );
+          }
+
           // Emit final state projection to the client.
           controller.enqueue(
             encoder.encode(

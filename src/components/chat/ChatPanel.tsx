@@ -8,7 +8,8 @@
  */
 
 import { useCallback, useEffect, useRef, useState } from "react";
-import { Paperclip, Send } from "lucide-react";
+import Link from "next/link";
+import { ArrowUpRight, Paperclip, Send } from "lucide-react";
 import { MessageBubble } from "@/components/workspace/MessageBubble";
 import { PaywallMessage } from "./PaywallMessage";
 import { ChatForm } from "./ChatForm";
@@ -50,6 +51,7 @@ export function ChatPanel({
   const [form, setForm] = useState<AskForm | null>(null);
   const [fileAsk, setFileAsk] = useState<AskFile | null>(null);
   const [isUploading, setIsUploading] = useState(false);
+  const [submissionLink, setSubmissionLink] = useState<string | null>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLTextAreaElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -122,6 +124,10 @@ export function ChatPanel({
                 setForm(data.form as AskForm);
               } else if (data.type === "file") {
                 setFileAsk(data.file as AskFile);
+              } else if (data.type === "submission_guide_link") {
+                setSubmissionLink(
+                  `/chat/submission-guide/${(data.conversationId as string) ?? projection.id}`,
+                );
               }
             } catch {
               // skip malformed events
@@ -313,6 +319,18 @@ export function ChatPanel({
                 <div className="h-2 w-2 animate-pulse rounded-full bg-primary" />
                 Parsing your CV…
               </div>
+            </div>
+          )}
+
+          {submissionLink && !isLoading && (
+            <div className="mb-3 mt-3 flex justify-start" data-testid="submission-guide-cta">
+              <Link
+                href={submissionLink}
+                className="inline-flex items-center gap-2 rounded-full bg-gold px-4 py-2.5 font-premium-body text-xs font-semibold uppercase tracking-[0.08em] text-gold-foreground shadow-sm transition-[filter,transform] duration-200 hover:brightness-110 hover:-translate-y-[1px]"
+              >
+                Open your submission guide
+                <ArrowUpRight className="h-3.5 w-3.5" />
+              </Link>
             </div>
           )}
 

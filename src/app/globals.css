@@ -50,6 +50,14 @@
   --color-bar-marker: var(--bar-marker);
   --color-section-alt: var(--section-alt);
   --color-section-alt-foreground: var(--section-alt-foreground);
+  --color-gold: var(--gold);
+  --color-gold-foreground: var(--gold-foreground);
+  --color-gold-soft: var(--gold-soft);
+  --color-premium-canvas: var(--premium-canvas);
+  --color-premium-border: var(--premium-border);
+  --font-serif: var(--font-serif);
+  --font-premium-sans: var(--font-premium-sans);
+  --radius-premium: 0.375rem;
   --radius-sm: calc(var(--radius) * 0.6);
   --radius-md: calc(var(--radius) * 0.8);
   --radius-lg: var(--radius);
@@ -114,6 +122,12 @@
   --sidebar-accent-foreground: oklch(0.16 0.005 260);
   --sidebar-border: oklch(0.50 0.01 250 / 0.2);
   --sidebar-ring: oklch(0.45 0.31 264);
+  /* Premium tokens: defaults (only used when .premium wrapper is present). */
+  --gold: oklch(0.53 0.14 55);
+  --gold-foreground: oklch(1.0 0 0);
+  --gold-soft: oklch(0.53 0.14 55 / 0.12);
+  --premium-canvas: oklch(0.985 0.005 85);
+  --premium-border: oklch(0.30 0.04 265 / 0.15);
 }
 
 /* ══════════════════════════════════════════════════
@@ -167,6 +181,30 @@
   --sidebar-accent-foreground: oklch(0.92 0.01 250);
   --sidebar-border: oklch(0.50 0.01 250 / 0.15);
   --sidebar-ring: oklch(0.64 0.19 264);
+  --gold: oklch(0.72 0.16 60);
+  --gold-foreground: oklch(0.10 0.005 260);
+  --gold-soft: oklch(0.72 0.16 60 / 0.18);
+  --premium-canvas: oklch(0.10 0.005 260);
+  --premium-border: oklch(0.72 0.14 265 / 0.20);
+}
+
+/* ══════════════════════════════════════════════════
+   PREMIUM SCOPED TOKENS — Trust & Authority (paid Phase 2+)
+   ══════════════════════════════════════════════════ */
+
+.premium {
+  --primary: oklch(0.30 0.13 265);          /* #1E3A8A authority navy */
+  --primary-foreground: oklch(1.0 0 0);
+  --ring: oklch(0.53 0.14 55);              /* gold focus ring */
+  --background: var(--premium-canvas);
+  --border: var(--premium-border);
+  --radius: var(--radius-premium);
+}
+
+.dark .premium {
+  --primary: oklch(0.72 0.14 265);
+  --primary-foreground: oklch(0.10 0.005 260);
+  --ring: oklch(0.72 0.16 60);
 }
 
 @layer base {
@@ -315,4 +353,107 @@
 .animate-grow-width {
   animation: grow-width 2s ease-in-out 1s forwards;
   width: 0%;
+}
+
+/* ══════════════════════════════════════════════════
+   PREMIUM TIER UTILITIES
+   ══════════════════════════════════════════════════ */
+
+/* Serif display for premium headings — opts out of Inter Tight default */
+.font-serif-premium {
+  font-family: var(--font-serif), Georgia, 'Times New Roman', serif;
+  font-feature-settings: 'liga' 1, 'kern' 1;
+  letter-spacing: -0.005em;
+}
+
+/* Premium body font (Lato) */
+.font-premium-body {
+  font-family: var(--font-premium-sans), system-ui, -apple-system, sans-serif;
+}
+
+/* Gold focus ring for premium CTAs */
+.premium *:focus-visible {
+  outline: 2px solid var(--gold);
+  outline-offset: 2px;
+  border-radius: var(--radius-premium);
+}
+
+/* Stat reveal (count-up entrance) */
+@keyframes premium-stat-reveal {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.premium-stat-reveal {
+  animation: premium-stat-reveal 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  opacity: 0;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .premium-stat-reveal {
+    animation: none;
+    opacity: 1;
+    transform: none;
+  }
+}
+
+/* Soft pulse for count-up numbers during streaming */
+@keyframes premium-count-pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.55; }
+}
+
+.premium-count-pulse {
+  animation: premium-count-pulse 1.4s ease-in-out infinite;
+}
+
+/* Gold certificate seal base */
+.premium-seal {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 9999px;
+  background: var(--gold-soft);
+  color: var(--gold);
+  border: 1px solid color-mix(in oklch, var(--gold) 40%, transparent);
+}
+
+.premium-seal::after {
+  content: '';
+  position: absolute;
+  inset: -3px;
+  border-radius: 9999px;
+  border: 1px solid color-mix(in oklch, var(--gold) 25%, transparent);
+  pointer-events: none;
+}
+
+/* Paper-like canvas for premium docs */
+.premium-canvas {
+  background-color: var(--premium-canvas);
+  background-image:
+    radial-gradient(ellipse at top, color-mix(in oklch, var(--gold) 4%, transparent), transparent 60%);
+}
+
+/* Print-optimised styles for submission guide + letter drafts */
+@media print {
+  .premium,
+  .premium * {
+    color: #000 !important;
+    background: #fff !important;
+  }
+  .premium .no-print,
+  nav,
+  header.no-print {
+    display: none !important;
+  }
+  .premium a {
+    text-decoration: underline;
+  }
 }

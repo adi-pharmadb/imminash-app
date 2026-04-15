@@ -2,6 +2,8 @@ import type { Metadata } from "next";
 import { DM_Sans } from "next/font/google";
 import { Inter_Tight } from "next/font/google";
 import { Geist_Mono } from "next/font/google";
+import { EB_Garamond } from "next/font/google";
+import { Lato } from "next/font/google";
 import "./globals.css";
 
 const dmSans = DM_Sans({
@@ -19,6 +21,20 @@ const interTight = Inter_Tight({
 const geistMono = Geist_Mono({
   variable: "--font-mono",
   subsets: ["latin"],
+});
+
+// Premium tier (paid Phase 2+) typography — Trust & Authority pairing.
+const ebGaramond = EB_Garamond({
+  variable: "--font-serif",
+  subsets: ["latin"],
+  weight: ["400", "500", "600", "700"],
+  style: ["normal", "italic"],
+});
+
+const lato = Lato({
+  variable: "--font-premium-sans",
+  subsets: ["latin"],
+  weight: ["300", "400", "700"],
 });
 
 export const metadata: Metadata = {
@@ -43,7 +59,7 @@ export default function RootLayout({
         />
       </head>
       <body
-        className={`${dmSans.variable} ${interTight.variable} ${geistMono.variable} antialiased bg-background selection:bg-primary/30`}
+        className={`${dmSans.variable} ${interTight.variable} ${geistMono.variable} ${ebGaramond.variable} ${lato.variable} antialiased bg-background selection:bg-primary/30`}
       >
         {children}
       </body>

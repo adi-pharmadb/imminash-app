@@ -9,6 +9,7 @@
 import { useState } from "react";
 import { ChevronDown, ChevronRight, FileText } from "lucide-react";
 import { DocumentViewer } from "./DocumentViewer";
+import { ApplicationPackPanel } from "./premium/ApplicationPackPanel";
 import type {
   ConversationDocument,
   ProjectedConversation,
@@ -62,10 +63,15 @@ export function LiveSummaryPanel({ projection }: { projection: ProjectedConversa
 
   const matches = extractMatches(projection.matches).slice(0, 4);
 
+  // Phase 2+ delegates entirely to the premium ApplicationPackPanel.
+  if (isPhase2) {
+    return <ApplicationPackPanel projection={projection} />;
+  }
+
   return (
     <div className="flex h-full flex-col overflow-y-auto p-6" data-testid="live-summary">
       <h2 className="mb-6 text-xs font-medium uppercase tracking-wider text-muted-foreground/70">
-        {isPhase2 ? "Your documents" : "Your profile"}
+        Your profile
       </h2>
 
       {!isPhase2 && (
@@ -177,54 +183,6 @@ export function LiveSummaryPanel({ projection }: { projection: ProjectedConversa
             </section>
           )}
         </>
-      )}
-
-      {isPhase2 && (
-        <section>
-          <div className="space-y-2">
-            {/* Real documents from the database (clickable to open viewer) */}
-            {projection.documents.length === 0 && (
-              <DocRow
-                label="Employment reference"
-                state="drafting"
-                subtle="Will appear once the draft is ready"
-              />
-            )}
-            {projection.documents.map((d) => (
-              <DocRow
-                key={d.id}
-                label={d.title}
-                state={
-                  d.status === "approved"
-                    ? "ready"
-                    : d.status === "in_review" || d.status === "in_progress"
-                      ? "drafting"
-                      : "drafting"
-                }
-                onClick={() => setOpenDoc(d)}
-              />
-            ))}
-
-            <DocRow
-              label="CV (structured)"
-              state={projection.cvData ? "ready" : "pending"}
-            />
-            <DocRow
-              label="Document checklist"
-              state={
-                projection.phase === "done"
-                  ? "ready"
-                  : projection.documents.length > 0
-                    ? "drafting"
-                    : "pending"
-              }
-            />
-            <DocRow
-              label="Submission guide"
-              state={projection.phase === "done" ? "ready" : "pending"}
-            />
-          </div>
-        </section>
       )}
 
       {openDoc && (
