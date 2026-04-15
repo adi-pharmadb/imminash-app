@@ -19,86 +19,101 @@ interface ChatPanelProps {
   onStateUpdate: (next: ProjectedConversation) => void;
 }
 
+interface AskChoiceState {
+  options: string[];
+  multi?: boolean;
+}
+
 export function ChatPanel({ projection, onStateUpdate }: ChatPanelProps) {
   const [input, setInput] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [streamingText, setStreamingText] = useState("");
+  const [choice, setChoice] = useState<AskChoiceState | null>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLTextAreaElement>(null);
 
   const messages: ChatMessage[] = projection.messages ?? [];
   const showPaywall = projection.phase === "awaiting_payment";
 
-  // Show an opening greeting when there are no messages yet.
   const showIntro = messages.length === 0 && !isLoading && !streamingText;
 
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
-  }, [messages, streamingText]);
+  }, [messages, streamingText, choice]);
 
-  const handleSend = useCallback(async () => {
-    const trimmed = input.trim();
-    if (!trimmed || isLoading) return;
+  const sendMessage = useCallback(
+    async (text: string) => {
+      const trimmed = text.trim();
+      if (!trimmed || isLoading) return;
 
-    setInput("");
-    setIsLoading(true);
-    setStreamingText("");
+      setChoice(null);
+      setIsLoading(true);
+      setStreamingText("");
 
-    // Optimistically append the user message to local projection.
-    const optimistic: ProjectedConversation = {
-      ...projection,
-      messages: [
-        ...messages,
-        { role: "user", content: trimmed, createdAt: new Date().toISOString() },
-      ],
-    };
-    onStateUpdate(optimistic);
+      const optimistic: ProjectedConversation = {
+        ...projection,
+        messages: [
+          ...messages,
+          { role: "user", content: trimmed, createdAt: new Date().toISOString() },
+        ],
+      };
+      onStateUpdate(optimistic);
 
-    try {
-      const response = await fetch("/api/chat", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          conversationId: projection.id,
-          message: trimmed,
-        }),
-      });
-      if (!response.ok || !response.body) {
-        throw new Error(`Chat API returned ${response.status}`);
-      }
-      const reader = response.body.getReader();
-      const decoder = new TextDecoder();
-      let fullText = "";
-      let buffer = "";
-      while (true) {
-        const { done, value } = await reader.read();
-        if (done) break;
-        buffer += decoder.decode(value, { stream: true });
-        const lines = buffer.split("\n\n");
-        buffer = lines.pop() || "";
-        for (const line of lines) {
-          if (!line.startsWith("data: ")) continue;
-          try {
-            const data = JSON.parse(line.replace("data: ", ""));
-            if (data.type === "text") {
-              fullText += data.text;
-              setStreamingText(parseMarkers(fullText).cleanText);
-            } else if (data.type === "state") {
-              onStateUpdate(data.state as ProjectedConversation);
+      try {
+        const response = await fetch("/api/chat", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            conversationId: projection.id,
+            message: trimmed,
+          }),
+        });
+        if (!response.ok || !response.body) {
+          throw new Error(`Chat API returned ${response.status}`);
+        }
+        const reader = response.body.getReader();
+        const decoder = new TextDecoder();
+        let fullText = "";
+        let buffer = "";
+        while (true) {
+          const { done, value } = await reader.read();
+          if (done) break;
+          buffer += decoder.decode(value, { stream: true });
+          const lines = buffer.split("\n\n");
+          buffer = lines.pop() || "";
+          for (const line of lines) {
+            if (!line.startsWith("data: ")) continue;
+            try {
+              const data = JSON.parse(line.replace("data: ", ""));
+              if (data.type === "text") {
+                fullText += data.text;
+                setStreamingText(parseMarkers(fullText).cleanText);
+              } else if (data.type === "state") {
+                onStateUpdate(data.state as ProjectedConversation);
+              } else if (data.type === "choice") {
+                setChoice(data.choice as AskChoiceState);
+              }
+            } catch {
+              // skip malformed events
             }
-          } catch {
-            // skip malformed events
           }
         }
+        setStreamingText("");
+      } catch (err) {
+        console.error("chat send error:", err);
+        setStreamingText("");
+      } finally {
+        setIsLoading(false);
       }
-      setStreamingText("");
-    } catch (err) {
-      console.error("chat send error:", err);
-      setStreamingText("");
-    } finally {
-      setIsLoading(false);
-    }
-  }, [input, isLoading, messages, projection, onStateUpdate]);
+    },
+    [isLoading, messages, projection, onStateUpdate],
+  );
+
+  const handleSend = useCallback(async () => {
+    const value = input;
+    setInput("");
+    await sendMessage(value);
+  }, [input, sendMessage]);
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
     if (e.key === "Enter" && !e.shiftKey) {
@@ -149,6 +164,20 @@ export function ChatPanel({ projection, onStateUpdate }: ChatPanelProps) {
                   <div className="h-2 w-2 animate-bounce rounded-full bg-primary/70 [animation-delay:300ms]" />
                 </div>
               </div>
+            </div>
+          )}
+
+          {choice && !isLoading && !showPaywall && (
+            <div className="mb-3 mt-2 flex flex-wrap gap-2" data-testid="choice-pills">
+              {choice.options.map((opt) => (
+                <button
+                  key={opt}
+                  onClick={() => sendMessage(opt)}
+                  className="rounded-full border border-primary/40 bg-primary/5 px-4 py-2 text-sm font-medium text-primary transition-colors hover:border-primary hover:bg-primary/10"
+                >
+                  {opt}
+                </button>
+              ))}
             </div>
           )}
 

@@ -16,6 +16,11 @@ export interface DocUpdate {
   content: unknown;
 }
 
+export interface AskChoice {
+  options: string[];
+  multi?: boolean;
+}
+
 export interface ParsedMarkers {
   profileUpdates: Record<string, unknown>[];
   pointsUpdate: Record<string, unknown> | null;
@@ -23,6 +28,7 @@ export interface ParsedMarkers {
   hasPaywall: boolean;
   hasCalendly: boolean;
   docUpdates: DocUpdate[];
+  askChoice: AskChoice | null;
   cleanText: string;
 }
 
@@ -54,6 +60,7 @@ export function parseMarkers(text: string): ParsedMarkers {
   const docUpdates: DocUpdate[] = [];
   let pointsUpdate: Record<string, unknown> | null = null;
   let matchUpdate: Record<string, unknown> | null = null;
+  let askChoice: AskChoice | null = null;
 
   // PROFILE_UPDATE
   {
@@ -106,6 +113,29 @@ export function parseMarkers(text: string): ParsedMarkers {
     });
   }
 
+  // ASK_CHOICE (last one wins — only one choice picker per response)
+  {
+    const { bodies, stripped } = collectBlock(working, "ASK_CHOICE");
+    working = stripped;
+    for (const b of bodies) {
+      const parsed = safeJson(b);
+      if (
+        parsed &&
+        typeof parsed === "object" &&
+        Array.isArray((parsed as { options?: unknown }).options)
+      ) {
+        const p = parsed as { options: unknown[]; multi?: unknown };
+        const options = p.options.filter((o): o is string => typeof o === "string");
+        if (options.length > 0) {
+          askChoice = {
+            options,
+            multi: typeof p.multi === "boolean" ? p.multi : undefined,
+          };
+        }
+      }
+    }
+  }
+
   // Inline tags
   const hasPaywall = /\[PAYWALL\]/.test(working);
   const hasCalendly = /\[CALENDLY\]/.test(working);
@@ -120,6 +150,7 @@ export function parseMarkers(text: string): ParsedMarkers {
     hasPaywall,
     hasCalendly,
     docUpdates,
+    askChoice,
     cleanText,
   };
 }

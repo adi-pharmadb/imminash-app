@@ -242,6 +242,15 @@ export async function POST(request: Request) {
             parsed,
           });
 
+          // Emit ASK_CHOICE (ephemeral; not persisted, only this turn).
+          if (parsed.askChoice) {
+            controller.enqueue(
+              encoder.encode(
+                `data: ${JSON.stringify({ type: "choice", choice: parsed.askChoice })}\n\n`,
+              ),
+            );
+          }
+
           // Emit final state projection to the client.
           controller.enqueue(
             encoder.encode(
