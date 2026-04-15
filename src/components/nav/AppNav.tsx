@@ -117,47 +117,45 @@ export function AppNav({
         )}
       </div>
 
-      {/* Right: user menu */}
-      <div className="relative" ref={menuRef}>
-        <button
-          onClick={() => setMenuOpen((v) => !v)}
-          className="flex h-9 w-9 items-center justify-center rounded-full border border-border/60 bg-card text-foreground/80 transition-colors hover:border-primary/40 hover:text-foreground"
-          aria-label="Account menu"
-          aria-expanded={menuOpen}
-        >
-          <UserIcon className="h-4 w-4" />
-        </button>
-
-        {menuOpen && mounted && (
-          <div className="absolute right-0 top-11 z-50 w-56 overflow-hidden rounded-lg border border-border bg-popover text-popover-foreground shadow-lg">
-            <button
-              onClick={() => {
-                toggleTheme();
-              }}
-              className="flex w-full items-center gap-2 px-3 py-2.5 text-sm text-foreground/90 transition-colors hover:bg-secondary"
-            >
-              {dark ? (
-                <>
-                  <Sun className="h-4 w-4 text-primary" />
-                  Switch to light mode
-                </>
-              ) : (
-                <>
-                  <Moon className="h-4 w-4 text-foreground/70" />
-                  Switch to dark mode
-                </>
-              )}
-            </button>
-            <div className="h-px bg-border/60" />
-            <button
-              onClick={handleSignOut}
-              className="flex w-full items-center gap-2 px-3 py-2.5 text-sm text-foreground/90 transition-colors hover:bg-secondary"
-            >
-              <LogOut className="h-4 w-4" />
-              Sign out
-            </button>
-          </div>
+      {/* Right: theme toggle + user menu */}
+      <div className="flex items-center gap-2">
+        {mounted && (
+          <button
+            onClick={toggleTheme}
+            className="flex h-9 w-9 items-center justify-center rounded-full border border-border/60 bg-card text-foreground/80 transition-colors hover:border-primary/40 hover:text-foreground"
+            aria-label={dark ? "Switch to light mode" : "Switch to dark mode"}
+            title={dark ? "Switch to light mode" : "Switch to dark mode"}
+          >
+            {dark ? (
+              <Sun className="h-4 w-4 text-primary" />
+            ) : (
+              <Moon className="h-4 w-4" />
+            )}
+          </button>
         )}
+
+        <div className="relative" ref={menuRef}>
+          <button
+            onClick={() => setMenuOpen((v) => !v)}
+            className="flex h-9 w-9 items-center justify-center rounded-full border border-border/60 bg-card text-foreground/80 transition-colors hover:border-primary/40 hover:text-foreground"
+            aria-label="Account menu"
+            aria-expanded={menuOpen}
+          >
+            <UserIcon className="h-4 w-4" />
+          </button>
+
+          {menuOpen && mounted && (
+            <div className="absolute right-0 top-11 z-50 w-56 overflow-hidden rounded-lg border border-border bg-popover text-popover-foreground shadow-lg">
+              <button
+                onClick={handleSignOut}
+                className="flex w-full items-center gap-2 px-3 py-2.5 text-sm text-foreground/90 transition-colors hover:bg-secondary"
+              >
+                <LogOut className="h-4 w-4" />
+                Sign out
+              </button>
+            </div>
+          )}
+        </div>
       </div>
     </header>
   );
