@@ -240,16 +240,19 @@ export function ChatPanel({
 
   return (
     <div className="flex h-full flex-col bg-background" data-testid="chat-panel">
-      <div className="flex-1 overflow-y-auto px-5 py-6 md:px-6 lg:px-8">
-        <div className="mx-auto max-w-2xl space-y-1">
+      <div className="flex-1 overflow-y-auto px-4 py-6 sm:px-6 lg:px-8">
+        <div className="mx-auto max-w-3xl">
           {showIntro && (
-            <div className="py-8 text-center">
-              <p className="font-display text-2xl text-foreground">
-                Welcome to Imminash.
-              </p>
-              <p className="mt-3 text-sm leading-relaxed text-muted-foreground">
-                Tell me a bit about yourself and I&apos;ll start mapping your pathway.
-                You can say something like <em>&quot;I&apos;m 29, on a 485 visa, software engineer&quot;</em>.
+            <div className="py-12 text-center">
+              <h2 className="text-xl font-semibold tracking-tight text-foreground sm:text-2xl">
+                Hey there. Let&apos;s map your PR pathway.
+              </h2>
+              <p className="mx-auto mt-3 max-w-md text-sm leading-relaxed text-muted-foreground">
+                Tell me a bit about yourself. You can say something like{" "}
+                <span className="text-foreground/80">
+                  &ldquo;I&apos;m 29, on a 485 visa, software engineer&rdquo;
+                </span>
+                .
               </p>
             </div>
           )}
@@ -268,18 +271,17 @@ export function ChatPanel({
           {showPaywall && <PaywallMessage conversationId={projection.id} />}
 
           {isLoading && streamingText && (
-            <MessageBubble role="assistant" content={streamingText} />
+            <MessageBubble role="assistant" content={streamingText} isStreaming />
           )}
 
           {isLoading && !streamingText && (
-            <div className="mb-3 flex justify-start" data-testid="loading-indicator">
-              <div className="glass-card rounded-2xl rounded-bl-md px-5 py-3.5">
-                <div className="flex items-center gap-2">
-                  <div className="h-2 w-2 animate-bounce rounded-full bg-primary/70 [animation-delay:0ms]" />
-                  <div className="h-2 w-2 animate-bounce rounded-full bg-primary/70 [animation-delay:150ms]" />
-                  <div className="h-2 w-2 animate-bounce rounded-full bg-primary/70 [animation-delay:300ms]" />
-                </div>
-              </div>
+            <div
+              className="mb-6 flex items-center gap-1.5 px-1 py-2"
+              data-testid="loading-indicator"
+            >
+              <span className="h-1.5 w-1.5 animate-bounce rounded-full bg-muted-foreground/60 [animation-delay:0ms]" />
+              <span className="h-1.5 w-1.5 animate-bounce rounded-full bg-muted-foreground/60 [animation-delay:150ms]" />
+              <span className="h-1.5 w-1.5 animate-bounce rounded-full bg-muted-foreground/60 [animation-delay:300ms]" />
             </div>
           )}
 
@@ -339,10 +341,10 @@ export function ChatPanel({
       </div>
 
       <div
-        className="border-t border-border/30 p-4 md:p-5"
-        style={{ paddingBottom: "max(1rem, env(safe-area-inset-bottom))" }}
+        className="border-t border-border/30 bg-background p-3"
+        style={{ paddingBottom: "max(0.75rem, env(safe-area-inset-bottom))" }}
       >
-        <div className="glass-card mx-auto flex max-w-2xl items-end gap-2 rounded-xl p-2">
+        <div className="mx-auto max-w-2xl">
           <input
             ref={fileInputRef}
             type="file"
@@ -351,37 +353,56 @@ export function ChatPanel({
             className="hidden"
             data-testid="cv-file-input"
           />
-          <button
-            onClick={() => fileInputRef.current?.click()}
-            disabled={isLoading || isUploading || showPaywall}
-            className="flex h-11 w-11 shrink-0 items-center justify-center rounded-lg text-muted-foreground transition-colors hover:bg-secondary hover:text-foreground disabled:opacity-30"
-            aria-label="Upload CV"
-            title="Upload CV (PDF or DOCX)"
-            data-testid="cv-upload-button"
-          >
-            <Paperclip className="h-4 w-4" />
-          </button>
-          <textarea
-            ref={inputRef}
-            value={input}
-            onChange={(e) => setInput(e.target.value)}
-            onKeyDown={handleKeyDown}
-            placeholder={showPaywall ? "Complete payment to continue…" : "Type your message..."}
-            rows={1}
-            className="flex-1 resize-none overflow-y-auto bg-transparent px-3 py-2.5 text-base leading-relaxed text-foreground outline-none placeholder:text-muted-foreground/50 sm:text-sm"
-            style={{ maxHeight: "200px" }}
-            disabled={isLoading || isUploading || showPaywall}
-            data-testid="chat-input"
-          />
-          <button
-            onClick={handleSend}
-            disabled={!input.trim() || isLoading || isUploading || showPaywall}
-            className="glow-primary flex h-11 w-11 shrink-0 items-center justify-center rounded-lg bg-primary text-primary-foreground transition-all hover:brightness-110 disabled:opacity-30 disabled:shadow-none"
-            aria-label="Send message"
-            data-testid="send-button"
-          >
-            <Send className="h-4 w-4" />
-          </button>
+
+          {/* Composer card — textarea on top, action row below, all inside one bordered container */}
+          <div className="relative w-full rounded-xl border border-border bg-muted/30 transition-colors focus-within:border-primary/50 focus-within:bg-background">
+            <textarea
+              ref={inputRef}
+              value={input}
+              onChange={(e) => setInput(e.target.value)}
+              onKeyDown={handleKeyDown}
+              placeholder={
+                showPaywall
+                  ? "Complete payment to continue…"
+                  : "Message Imminash..."
+              }
+              rows={1}
+              className="block w-full resize-none overflow-y-auto border-0 bg-transparent px-3.5 pb-1 pt-3 text-base leading-relaxed text-foreground outline-none placeholder:text-muted-foreground/50 sm:text-sm"
+              style={{ maxHeight: "200px", minHeight: "44px" }}
+              disabled={isLoading || isUploading || showPaywall}
+              data-testid="chat-input"
+            />
+
+            {/* Action row inside the same card */}
+            <div className="flex items-center justify-between gap-1 px-2 pb-2 pt-0">
+              <button
+                onClick={() => fileInputRef.current?.click()}
+                disabled={isLoading || isUploading || showPaywall}
+                className="flex h-9 w-9 cursor-pointer items-center justify-center rounded-md text-muted-foreground transition-colors hover:bg-secondary hover:text-foreground disabled:opacity-30"
+                aria-label="Upload CV"
+                title="Upload CV (PDF or DOCX)"
+                data-testid="cv-upload-button"
+              >
+                <Paperclip className="h-4 w-4" />
+              </button>
+
+              <button
+                onClick={handleSend}
+                disabled={
+                  !input.trim() || isLoading || isUploading || showPaywall
+                }
+                className="flex h-9 w-9 cursor-pointer items-center justify-center rounded-full bg-primary text-primary-foreground transition-colors hover:brightness-110 disabled:cursor-not-allowed disabled:bg-muted disabled:text-muted-foreground"
+                aria-label="Send message"
+                data-testid="send-button"
+              >
+                <Send className="h-4 w-4" />
+              </button>
+            </div>
+          </div>
+
+          <p className="mt-1.5 text-center text-[10px] text-muted-foreground/50">
+            Imminash can make mistakes. Verify important info. Not migration advice.
+          </p>
         </div>
       </div>
     </div>

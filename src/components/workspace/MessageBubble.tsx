@@ -1,56 +1,47 @@
 "use client";
 
 /**
- * Chat message bubble component.
- * User messages are right-aligned with primary blue.
- * AI messages are left-aligned with glass-card style and markdown rendering.
+ * Message — flowing prose layout (inspired by Fred's clean chat pattern).
+ *
+ * - Assistant messages render as pure markdown prose with no bubble/box.
+ *   Attribution is inferred from position and a tiny "imminash" label.
+ * - User messages are a subtle bordered card with muted bg.
+ *
+ * This is the opposite of the bubble pattern. The goal is for responses
+ * to feel like documents, not chat-app messages. Tables, headings, lists,
+ * and code render naturally inside the flow.
  */
+
+import { MarkdownRenderer } from "@/components/chat/MarkdownRenderer";
 
 interface MessageBubbleProps {
   role: "user" | "assistant";
   content: string;
+  isStreaming?: boolean;
 }
 
-/**
- * Minimal markdown rendering: bold, italic, line breaks, and lists.
- * Avoids adding a heavy dependency for simple formatting.
- */
-function renderMarkdown(text: string): string {
-  return text
-    .replace(/&/g, "&amp;")
-    .replace(/</g, "&lt;")
-    .replace(/>/g, "&gt;")
-    .replace(/\*\*(.+?)\*\*/g, "<strong>$1</strong>")
-    .replace(/\*(.+?)\*/g, "<em>$1</em>")
-    .replace(/^\d+\.\s+(.+)$/gm, "<li>$1</li>")
-    .replace(/^[-*]\s+(.+)$/gm, "<li>$1</li>")
-    .replace(/\n/g, "<br />");
-}
-
-export function MessageBubble({ role, content }: MessageBubbleProps) {
+export function MessageBubble({ role, content, isStreaming }: MessageBubbleProps) {
   const isUser = role === "user";
+
+  if (isUser) {
+    return (
+      <div className="mb-4 flex justify-end" data-testid="message-user">
+        <div className="max-w-[85%] rounded-xl border border-border bg-muted px-4 py-2.5 text-sm leading-relaxed text-foreground">
+          <p className="whitespace-pre-wrap">{content}</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div
-      className={`flex ${isUser ? "justify-end" : "justify-start"} mb-4`}
-      data-testid={`message-${role}`}
+      className="group mb-6 px-1"
+      data-testid="message-assistant"
     >
-      <div
-        className={`max-w-[80%] rounded-2xl px-4 py-3 text-sm leading-relaxed ${
-          isUser
-            ? "rounded-br-md bg-primary text-primary-foreground shadow-lg shadow-primary/10"
-            : "glass-card rounded-bl-md text-foreground"
-        }`}
-      >
-        {isUser ? (
-          <p className="whitespace-pre-wrap">{content}</p>
-        ) : (
-          <div
-            className="prose prose-sm max-w-none prose-headings:text-foreground prose-strong:text-foreground prose-p:text-foreground/90 [&_li]:ml-4 [&_li]:list-disc [&_li]:text-foreground/90"
-            dangerouslySetInnerHTML={{ __html: renderMarkdown(content) }}
-          />
-        )}
-      </div>
+      <MarkdownRenderer content={content} />
+      {isStreaming && (
+        <span className="ml-0.5 inline-block h-4 w-[3px] animate-pulse bg-primary" />
+      )}
     </div>
   );
 }
