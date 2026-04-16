@@ -77,14 +77,15 @@ export function AppNav({
 
   return (
     <header className="flex h-14 shrink-0 items-center justify-between border-b border-border/40 bg-background/80 px-4 backdrop-blur-md">
-      {/* Left: brand + panel toggles */}
-      <div className="flex items-center gap-2">
-        <span className="font-display text-lg tracking-tight text-foreground select-none">
-          imminash
-        </span>
+      {/* Left: brand only */}
+      <span className="font-display text-lg tracking-tight text-foreground select-none">
+        imminash
+      </span>
 
+      {/* Right: panel toggles + theme toggle + user menu */}
+      <div className="flex items-center gap-2">
         {(onToggleLeft || onToggleRight) && (
-          <div className="ml-4 flex items-center gap-1 border-l border-border/40 pl-4">
+          <div className="flex items-center gap-1 border-r border-border/40 pr-2 mr-1">
             {onToggleLeft && (
               <button
                 onClick={onToggleLeft}
@@ -115,10 +116,7 @@ export function AppNav({
             )}
           </div>
         )}
-      </div>
 
-      {/* Right: theme toggle + user menu */}
-      <div className="flex items-center gap-2">
         {mounted && (
           <button
             onClick={toggleTheme}
