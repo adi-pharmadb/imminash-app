@@ -146,7 +146,11 @@ export function ChatLayout({ initialProjection, paidFlag }: ChatLayoutProps) {
 
         {/* Right: Live summary / Application Pack (in premium mode) */}
         {rightOpen && (
-          <aside className="hidden w-80 shrink-0 border-l border-border/40 lg:flex lg:flex-col">
+          <aside
+            className={`hidden shrink-0 border-l border-border/40 lg:flex lg:flex-col ${
+              isPremium ? "lg:w-[26rem] xl:w-[28rem]" : "w-80"
+            }`}
+          >
             <LiveSummaryPanel projection={projection} />
           </aside>
         )}
