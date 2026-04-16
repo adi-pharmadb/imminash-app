@@ -39,7 +39,9 @@ type StrengthProps = BaseProps & {
 type CountProps = BaseProps & {
   variant: "count";
   value: number;
-  total: number;
+  /** Optional denominator. If omitted, renders just the value (no fraction, no progress bar). */
+  total?: number;
+  unit?: string;
   caption?: string;
 };
 
@@ -182,8 +184,9 @@ export function StatCard(props: StatCardProps) {
   }
 
   // count variant
-  const { value, total, caption, highlight, label, delay, className } = props;
-  const pct = total > 0 ? Math.min(1, value / total) * 100 : 0;
+  const { value, total, unit, caption, highlight, label, delay, className } = props;
+  const showFraction = typeof total === "number" && total > 0;
+  const pct = showFraction ? Math.min(1, value / total) * 100 : 0;
   return (
     <Frame
       label={label}
@@ -191,23 +194,29 @@ export function StatCard(props: StatCardProps) {
       delay={delay}
       className={className}
     >
-      <div className="flex items-baseline gap-1">
+      <div className="flex items-baseline gap-1.5">
         <span className="font-serif-premium text-4xl font-medium leading-none text-foreground">
           {value}
         </span>
-        <span className="font-serif-premium text-xl leading-none text-muted-foreground">
-          / {total}
-        </span>
+        {showFraction ? (
+          <span className="font-serif-premium text-xl leading-none text-muted-foreground">
+            / {total}
+          </span>
+        ) : unit ? (
+          <span className="text-xs text-muted-foreground">{unit}</span>
+        ) : null}
       </div>
-      <div className="mt-3 h-1.5 rounded-full bg-muted" aria-hidden>
-        <span
-          className={cn(
-            "block h-1.5 rounded-full transition-[width] duration-500",
-            highlight ? "bg-gold" : "bg-primary",
-          )}
-          style={{ width: `${pct}%` }}
-        />
-      </div>
+      {showFraction && (
+        <div className="mt-3 h-1.5 rounded-full bg-muted" aria-hidden>
+          <span
+            className={cn(
+              "block h-1.5 rounded-full transition-[width] duration-500",
+              highlight ? "bg-gold" : "bg-primary",
+            )}
+            style={{ width: `${pct}%` }}
+          />
+        </div>
+      )}
       {caption && (
         <p className="mt-1.5 font-premium-body text-[11px] text-muted-foreground/80">
           {caption}

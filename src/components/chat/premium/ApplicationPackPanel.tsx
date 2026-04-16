@@ -105,8 +105,6 @@ export function ApplicationPackPanel({
   const refDocs = projection.documents.filter(
     (d) => d.document_type === "employment_reference",
   );
-  const EXPECTED_PACK_SIZE = 6; // references + cv + checklist + submission guide + transcripts + passport
-  const docsReady = projection.documents.length;
 
   const [downloadError, setDownloadError] = useState<string | null>(null);
 
@@ -235,13 +233,13 @@ export function ApplicationPackPanel({
         />
         <StatCard
           variant="count"
-          label="Documents drafted"
-          value={docsReady}
-          total={EXPECTED_PACK_SIZE}
-          highlight={docsReady >= refDocs.length + 1 && refDocs.length > 0}
+          label="Reference letters drafted"
+          value={refDocs.length}
+          unit={refDocs.length === 1 ? "letter" : "letters"}
+          highlight={refDocs.length > 0}
           caption={
             refDocs.length > 0
-              ? `${refDocs.length} employment reference${refDocs.length === 1 ? "" : "s"} ready`
+              ? `Ready to download as PDF or DOCX`
               : "Drafting starts when you upload your CV"
           }
           delay={120}
