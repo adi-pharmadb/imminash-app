@@ -274,16 +274,6 @@ export function JourneyStepper({ projection }: { projection: ProjectedConversati
         </section>
       )}
 
-      {/* ── Footer ────────────────────────────────────────────── */}
-      <div className="mt-auto pt-4">
-        <p
-          className={`leading-relaxed text-muted-foreground/50 ${
-            isPremium ? "font-premium-body text-[11px] italic" : "text-[11px]"
-          }`}
-        >
-          General information only. Not migration advice.
-        </p>
-      </div>
     </div>
   );
 }
