@@ -50,16 +50,69 @@ function firstMatch(projection: ProjectedConversation): Match | null {
   return null;
 }
 
+/**
+ * Application strength combines BOTH factors:
+ *  - Points (hard floor: 65 is the 189 visa minimum)
+ *  - ACS occupation match confidence
+ *
+ * Rules:
+ *  - Strong:    points >= 80 AND ACS confidence is "Strong"
+ *  - Developing: points < 65  OR  ACS confidence is "Weak"
+ *  - Moderate:   everything in between
+ *
+ * Points can never be "masked" by a strong ACS fit — below 65 the user
+ * isn't eligible for 189 at all, regardless of how well their ANZSCO
+ * aligns. Conversely, great points with a weak occupation match isn't
+ * "Strong" because the ACS letters might be challenged.
+ */
 function deriveStrength(
   pointsTotal: number | null,
   topMatch: Match | null,
 ): "Strong" | "Moderate" | "Developing" {
-  if (pointsTotal === null || pointsTotal < 50) return "Developing";
   const conf = topMatch?.confidence;
   const confStr = typeof conf === "string" ? conf.toLowerCase() : "";
-  if (pointsTotal >= 80 || confStr.includes("strong")) return "Strong";
-  if (pointsTotal >= 65 || confStr.includes("moderate")) return "Moderate";
-  return "Developing";
+  const acsStrong = confStr.includes("strong");
+  const acsWeak = confStr.includes("weak");
+
+  if (pointsTotal === null || pointsTotal < 65 || acsWeak) return "Developing";
+  if (pointsTotal >= 80 && acsStrong) return "Strong";
+  return "Moderate";
+}
+
+/**
+ * Explain WHY the strength landed where it did — call out the limiting
+ * factor honestly so the user knows what to work on.
+ */
+function deriveStrengthCaption(
+  pointsTotal: number | null,
+  topMatch: Match | null,
+  strength: "Strong" | "Moderate" | "Developing",
+): string {
+  const conf = topMatch?.confidence;
+  const confStr = typeof conf === "string" ? conf.toLowerCase() : "";
+  const acsStrong = confStr.includes("strong");
+  const acsWeak = confStr.includes("weak");
+
+  if (strength === "Strong") {
+    return "Competitive points + strong ACS fit. Ready to submit.";
+  }
+  if (strength === "Developing") {
+    if (pointsTotal !== null && pointsTotal < 65) {
+      return `At ${pointsTotal} pts you're below the 65-point 189 minimum. State sponsorship (190) or regional (491) pathways are worth considering.`;
+    }
+    if (acsWeak) {
+      return "Your ANZSCO match is weak — refining your duties could strengthen the ACS case.";
+    }
+    return "A few levers to raise this. Keep chatting to unlock them.";
+  }
+  // Moderate
+  if (pointsTotal !== null && pointsTotal < 80) {
+    return `Eligible at ${pointsTotal} pts, but competitive rounds sit at 85+. Lifting English to Superior adds 20 pts.`;
+  }
+  if (!acsStrong) {
+    return "Points are competitive; tightening your duty descriptors can lift ACS fit to Strong.";
+  }
+  return "Solid foundation. A few levers can raise this to Strong.";
 }
 
 function formatDate(): string {
@@ -222,13 +275,7 @@ export function ApplicationPackPanel({
           variant="strength"
           label="Application strength"
           strength={strength}
-          caption={
-            strength === "Strong"
-              ? "Profile aligns well with ACS 2026 criteria."
-              : strength === "Moderate"
-                ? "Solid foundation. A few levers can raise this."
-                : "Let's work on a few gaps together."
-          }
+          caption={deriveStrengthCaption(pointsTotal, topMatch, strength)}
           delay={60}
         />
         <StatCard
