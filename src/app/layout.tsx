@@ -1,46 +1,67 @@
 import type { Metadata } from "next";
-import { DM_Sans } from "next/font/google";
-import { Inter_Tight } from "next/font/google";
-import { Geist_Mono } from "next/font/google";
-import { EB_Garamond } from "next/font/google";
-import { Lato } from "next/font/google";
+import { DM_Sans, Inter_Tight, Geist_Mono, EB_Garamond, Lato } from "next/font/google";
 import "./globals.css";
+
+/**
+ * Font loading strategy:
+ *  - display: "swap" so text renders immediately with a system fallback,
+ *    then the web font fades in. No blocking FOIT.
+ *  - preload: true only for fonts used above-the-fold on first paint
+ *    (DM Sans + Inter Tight for chat + landing; EB Garamond for hero).
+ *  - Trimmed weights to only what's actually used to reduce bytes.
+ */
 
 const dmSans = DM_Sans({
   variable: "--font-sans",
   subsets: ["latin"],
   weight: ["400", "500", "600", "700"],
+  display: "swap",
+  preload: true,
 });
 
 const interTight = Inter_Tight({
   variable: "--font-display",
   subsets: ["latin"],
-  weight: ["400", "500", "600", "700"],
+  weight: ["500", "600", "700"],
+  display: "swap",
+  preload: true,
 });
 
 const geistMono = Geist_Mono({
   variable: "--font-mono",
   subsets: ["latin"],
+  display: "swap",
+  preload: false,
 });
 
-// Premium tier (paid Phase 2+) typography — Trust & Authority pairing.
+// Premium tier headings + landing serif
 const ebGaramond = EB_Garamond({
   variable: "--font-serif",
   subsets: ["latin"],
-  weight: ["400", "500", "600", "700"],
-  style: ["normal", "italic"],
+  weight: ["400", "500", "600"],
+  display: "swap",
+  preload: true,
 });
 
+// Only loaded for premium tier (paid view) body text — defer
 const lato = Lato({
   variable: "--font-premium-sans",
   subsets: ["latin"],
-  weight: ["300", "400", "700"],
+  weight: ["400", "700"],
+  display: "swap",
+  preload: false,
 });
 
 export const metadata: Metadata = {
-  title: "Imminash - Australian Migration Intelligence",
+  title: "Imminash — Find out if you qualify for Australian PR",
   description:
-    "AI-powered skill assessment matching and document preparation for Australian migration. Find your best ANZSCO occupation match, estimate your points score, and prepare your assessment documents.",
+    "Answer 7 questions. Get your points score, best occupation match, and visa pathway in under 3 minutes. Completely free.",
+  openGraph: {
+    title: "Imminash — Find out if you qualify for Australian PR",
+    description:
+      "Answer 7 questions. Get your points score, best occupation match, and visa pathway in under 3 minutes. Completely free.",
+    type: "website",
+  },
 };
 
 export default function RootLayout({
@@ -51,6 +72,10 @@ export default function RootLayout({
   return (
     <html lang="en" className="dark" suppressHydrationWarning>
       <head>
+        <meta
+          name="viewport"
+          content="width=device-width, initial-scale=1, viewport-fit=cover"
+        />
         {/* Prevent flash of wrong theme */}
         <script
           dangerouslySetInnerHTML={{

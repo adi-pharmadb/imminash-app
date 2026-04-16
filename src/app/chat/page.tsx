@@ -17,8 +17,8 @@ export default async function ChatPage({
 }: {
   searchParams: Promise<{ paid?: string }>;
 }) {
-  const sp = await searchParams;
-  const supabase = await createClient();
+  // Run the three independent awaits in parallel instead of sequentially.
+  const [sp, supabase] = await Promise.all([searchParams, createClient()]);
 
   const {
     data: { user },
@@ -26,7 +26,7 @@ export default async function ChatPage({
 
   if (!user) redirect("/");
 
-  let { data: row } = await supabase
+  const { data: row0 } = await supabase
     .from("conversations")
     .select("*")
     .eq("user_id", user.id)
@@ -34,6 +34,7 @@ export default async function ChatPage({
     .limit(1)
     .maybeSingle();
 
+  let row = row0;
   if (!row) {
     const { data: inserted } = await supabase
       .from("conversations")

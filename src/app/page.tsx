@@ -22,6 +22,7 @@
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
+import dynamic from "next/dynamic";
 import {
   ArrowRight,
   Check,
@@ -36,9 +37,24 @@ import {
   X,
   Zap,
 } from "lucide-react";
-import { AuthModal } from "@/components/auth/AuthModal";
 import { createClient } from "@/lib/supabase/client";
 import { ThemeToggle } from "@/components/ui/ThemeToggle";
+
+// Auth modal is heavy (@base-ui/react/dialog) and only needed on click.
+// Dynamic import keeps it out of the initial landing bundle.
+const AuthModal = dynamic(
+  () => import("@/components/auth/AuthModal").then((m) => m.AuthModal),
+  { ssr: false },
+);
+
+const COMPARE_ROWS: Array<[string, "yes" | "no" | "partial", "yes" | "no" | "partial", "yes" | "no" | "partial"]> = [
+  ["Points calculation", "partial", "yes", "yes"],
+  ["ANZSCO occupation matching", "no", "yes", "yes"],
+  ["Employment reference drafts", "no", "yes", "yes"],
+  ["ACS submission guide", "no", "yes", "yes"],
+  ["Available 24/7", "yes", "no", "yes"],
+  ["Results in minutes", "no", "no", "yes"],
+];
 
 export default function HomePage() {
   const router = useRouter();
@@ -57,6 +73,10 @@ export default function HomePage() {
   }, [router]);
 
   const openAuth = () => setAuthOpen(true);
+  // Preload auth modal when user hovers any CTA (intent signal).
+  const preloadAuth = () => {
+    void import("@/components/auth/AuthModal");
+  };
 
   return (
     <main className="relative flex min-h-screen flex-col bg-background text-foreground" data-testid="home-page">
@@ -72,9 +92,10 @@ export default function HomePage() {
             <button
               onClick={openAuth}
               disabled={checking}
-              className="hidden cursor-pointer items-center gap-1.5 rounded-full bg-primary px-4 py-2 text-xs font-semibold text-primary-foreground transition-all duration-200 hover:brightness-110 disabled:opacity-50 sm:inline-flex"
+              className="inline-flex cursor-pointer items-center gap-1.5 rounded-full bg-primary px-3 py-2 text-xs font-semibold text-primary-foreground transition-all duration-200 hover:brightness-110 disabled:opacity-50 sm:px-4"
             >
-              Get started
+              <span className="hidden sm:inline">Get started</span>
+              <span className="sm:hidden">Start</span>
               <ChevronRight className="h-3.5 w-3.5" />
             </button>
           </div>
@@ -82,7 +103,10 @@ export default function HomePage() {
       </nav>
 
       {/* ═══════ HERO — full viewport, dramatic ═══════ */}
-      <section className="relative flex min-h-screen items-center justify-center overflow-hidden bg-section-alt text-section-alt-foreground">
+      <section
+        className="relative flex items-center justify-center overflow-hidden bg-section-alt text-section-alt-foreground"
+        style={{ minHeight: "100dvh" }}
+      >
         {/* Ambient glow orbs */}
         <div
           aria-hidden
@@ -146,6 +170,8 @@ export default function HomePage() {
           <div className="animate-reveal-up delay-300 mt-10">
             <button
               onClick={openAuth}
+              onMouseEnter={preloadAuth}
+              onFocus={preloadAuth}
               disabled={checking}
               className="group relative inline-flex h-[56px] cursor-pointer items-center justify-center gap-2.5 rounded-full px-10 text-base font-semibold tracking-wide transition-all duration-300 hover:-translate-y-0.5 disabled:cursor-not-allowed disabled:opacity-50"
               style={{
@@ -181,8 +207,8 @@ export default function HomePage() {
           </div>
         </div>
 
-        {/* Scroll indicator */}
-        <div className="absolute bottom-8 left-1/2 -translate-x-1/2 animate-bounce">
+        {/* Scroll indicator (hidden on mobile for space) */}
+        <div className="absolute bottom-8 left-1/2 hidden -translate-x-1/2 animate-bounce sm:block">
           <div className="h-8 w-5 rounded-full border-2 border-section-alt-foreground/20 p-1">
             <div className="mx-auto h-2 w-1 rounded-full bg-section-alt-foreground/30" />
           </div>
@@ -252,7 +278,8 @@ export default function HomePage() {
             </p>
           </div>
 
-          <div className="mt-14 overflow-hidden rounded-2xl border border-section-alt-foreground/[0.06]">
+          {/* Desktop table */}
+          <div className="mt-14 hidden overflow-hidden rounded-2xl border border-section-alt-foreground/[0.06] sm:block">
             <table className="w-full border-collapse text-sm">
               <thead>
                 <tr className="border-b border-section-alt-foreground/[0.06]">
@@ -278,21 +305,10 @@ export default function HomePage() {
                 </tr>
               </thead>
               <tbody>
-                {[
-                  ["Points calculation", "partial", "yes", "yes"],
-                  ["ANZSCO occupation matching", "no", "yes", "yes"],
-                  ["Employment reference drafts", "no", "yes", "yes"],
-                  ["ACS submission guide", "no", "yes", "yes"],
-                  ["Available 24/7", "yes", "no", "yes"],
-                  ["Results in minutes", "no", "no", "yes"],
-                ].map(([feature, diy, mara, imminash], i) => (
+                {COMPARE_ROWS.map(([feature, diy, mara, imminash]) => (
                   <tr
                     key={feature}
-                    className={
-                      i < 5
-                        ? "border-t border-section-alt-foreground/[0.04]"
-                        : "border-t border-section-alt-foreground/[0.04]"
-                    }
+                    className="border-t border-section-alt-foreground/[0.04]"
                   >
                     <td className="p-4 font-premium-body text-section-alt-foreground/70">
                       {feature}
@@ -316,6 +332,29 @@ export default function HomePage() {
                 ))}
               </tbody>
             </table>
+          </div>
+
+          {/* Mobile stacked cards */}
+          <div className="mt-10 grid gap-4 sm:hidden">
+            <CompareCard
+              label="DIY"
+              sub="Free but risky"
+              rows={COMPARE_ROWS.map(([f, s]) => [f, s as string])}
+              idx={1}
+            />
+            <CompareCard
+              label="MARA Agent"
+              sub="$2,000 – $5,000"
+              rows={COMPARE_ROWS.map(([f, , s]) => [f, s as string])}
+              idx={2}
+            />
+            <CompareCard
+              label="Imminash"
+              sub="From $200"
+              rows={COMPARE_ROWS.map(([f, , , s]) => [f, s as string])}
+              idx={3}
+              highlight
+            />
           </div>
 
           <div className="mt-14 text-center">
@@ -502,6 +541,81 @@ function TrustBadge({
         {icon}
       </span>
       {label}
+    </div>
+  );
+}
+
+function CompareCard({
+  label,
+  sub,
+  rows,
+  idx,
+  highlight,
+}: {
+  label: string;
+  sub: string;
+  rows: Array<[string, string]>;
+  idx: number;
+  highlight?: boolean;
+}) {
+  return (
+    <div
+      className={`relative overflow-hidden rounded-2xl border p-5 ${
+        highlight
+          ? "border-primary/30 bg-primary/[0.04]"
+          : "border-section-alt-foreground/[0.08] bg-section-alt-foreground/[0.02]"
+      }`}
+    >
+      {highlight && (
+        <span
+          aria-hidden
+          className="absolute inset-x-0 top-0 h-[3px]"
+          style={{ background: "var(--gold, oklch(0.53 0.14 55))" }}
+        />
+      )}
+      <div className="mb-4 flex items-end justify-between">
+        <div>
+          <span
+            className={`font-premium-body text-[10px] font-semibold uppercase tracking-[0.14em] ${
+              highlight ? "text-primary" : "text-section-alt-foreground/40"
+            }`}
+          >
+            Option {idx}
+          </span>
+          <p
+            className={`mt-0.5 text-lg font-semibold ${
+              highlight ? "text-primary" : "text-section-alt-foreground"
+            }`}
+          >
+            {label}
+          </p>
+        </div>
+        <span
+          className="font-premium-body text-xs font-semibold"
+          style={{
+            color: highlight
+              ? "var(--gold, oklch(0.53 0.14 55))"
+              : undefined,
+          }}
+        >
+          <span
+            className={highlight ? "" : "text-section-alt-foreground/45"}
+          >
+            {sub}
+          </span>
+        </span>
+      </div>
+      <ul className="space-y-2">
+        {rows.map(([feature, state]) => (
+          <li
+            key={feature}
+            className="flex items-center justify-between font-premium-body text-sm"
+          >
+            <span className="text-section-alt-foreground/75">{feature}</span>
+            <CellIcon state={state as "yes" | "no" | "partial"} />
+          </li>
+        ))}
+      </ul>
     </div>
   );
 }

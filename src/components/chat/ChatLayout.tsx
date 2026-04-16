@@ -16,6 +16,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import type { ProjectedConversation } from "@/lib/conversation-state";
 import { AppNav } from "@/components/nav/AppNav";
+import { BottomSheet } from "./BottomSheet";
 import { JourneyStepper } from "./JourneyStepper";
 import { LiveSummaryPanel } from "./LiveSummaryPanel";
 import { ChatPanel } from "./ChatPanel";
@@ -31,7 +32,18 @@ export function ChatLayout({ initialProjection, paidFlag }: ChatLayoutProps) {
   const [leftOpen, setLeftOpen] = useState(true);
   const [rightOpen, setRightOpen] = useState(true);
   const [shouldKickoff, setShouldKickoff] = useState(false);
+  const [mobileLeftSheet, setMobileLeftSheet] = useState(false);
+  const [mobileRightSheet, setMobileRightSheet] = useState(false);
   const kickedOffRef = useRef(false);
+
+  // Detect mobile (same breakpoint as lg: in tailwind = 1024px)
+  const [isMobile, setIsMobile] = useState(false);
+  useEffect(() => {
+    const check = () => setIsMobile(window.innerWidth < 1024);
+    check();
+    window.addEventListener("resize", check);
+    return () => window.removeEventListener("resize", check);
+  }, []);
 
   // Restore panel visibility from localStorage on mount.
   useEffect(() => {
@@ -42,19 +54,27 @@ export function ChatLayout({ initialProjection, paidFlag }: ChatLayoutProps) {
   }, []);
 
   const toggleLeft = useCallback(() => {
+    if (isMobile) {
+      setMobileLeftSheet((v) => !v);
+      return;
+    }
     setLeftOpen((v) => {
       const next = !v;
       localStorage.setItem("imminash_chat_left_panel", next ? "1" : "0");
       return next;
     });
-  }, []);
+  }, [isMobile]);
   const toggleRight = useCallback(() => {
+    if (isMobile) {
+      setMobileRightSheet((v) => !v);
+      return;
+    }
     setRightOpen((v) => {
       const next = !v;
       localStorage.setItem("imminash_chat_right_panel", next ? "1" : "0");
       return next;
     });
-  }, []);
+  }, [isMobile]);
 
   const handleStateUpdate = useCallback((next: ProjectedConversation) => {
     setProjection(next);
@@ -108,17 +128,21 @@ export function ChatLayout({ initialProjection, paidFlag }: ChatLayoutProps) {
     projection.phase === "done" ||
     Boolean(projection.paidAt);
 
+  // On mobile, the toggles open sheets; desktop panel-open state is irrelevant.
+  const navLeftOpen = isMobile ? mobileLeftSheet : leftOpen;
+  const navRightOpen = isMobile ? mobileRightSheet : rightOpen;
+
   return (
     <div
-      className={`flex h-screen w-full flex-col bg-background ${
+      className={`flex h-[100dvh] w-full flex-col bg-background ${
         isPremium ? "premium" : ""
       }`}
       data-testid="chat-layout"
       data-premium={isPremium ? "true" : "false"}
     >
       <AppNav
-        leftPanelOpen={leftOpen}
-        rightPanelOpen={rightOpen}
+        leftPanelOpen={navLeftOpen}
+        rightPanelOpen={navRightOpen}
         onToggleLeft={toggleLeft}
         onToggleRight={toggleRight}
       />
@@ -155,6 +179,27 @@ export function ChatLayout({ initialProjection, paidFlag }: ChatLayoutProps) {
           </aside>
         )}
       </div>
+
+      {/* Mobile bottom sheets (hidden on lg+) */}
+      {isMobile && (
+        <>
+          <BottomSheet
+            open={mobileLeftSheet}
+            onClose={() => setMobileLeftSheet(false)}
+            title="Progress & profile"
+          >
+            <JourneyStepper projection={projection} />
+          </BottomSheet>
+          <BottomSheet
+            open={mobileRightSheet}
+            onClose={() => setMobileRightSheet(false)}
+            title={isPremium ? "Your application pack" : "Summary"}
+            heightFraction={0.92}
+          >
+            <LiveSummaryPanel projection={projection} />
+          </BottomSheet>
+        </>
+      )}
     </div>
   );
 }

@@ -140,12 +140,12 @@ export function DocumentViewer({
 
   return (
     <div
-      className="premium fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4 backdrop-blur-sm"
+      className="premium fixed inset-0 z-50 flex items-stretch justify-center bg-black/60 backdrop-blur-sm sm:items-center sm:p-4"
       onClick={onClose}
       data-testid="document-viewer"
     >
       <div
-        className="premium-stat-reveal relative flex max-h-[92vh] w-full max-w-3xl flex-col overflow-hidden rounded-xl border border-border bg-card shadow-2xl"
+        className="premium-stat-reveal relative flex h-[100dvh] w-full flex-col overflow-hidden border border-border bg-card shadow-2xl sm:h-auto sm:max-h-[92vh] sm:max-w-3xl sm:rounded-xl"
         onClick={(e) => e.stopPropagation()}
         role="dialog"
         aria-modal="true"

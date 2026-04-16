@@ -338,7 +338,10 @@ export function ChatPanel({
         </div>
       </div>
 
-      <div className="border-t border-border/30 p-4 md:p-5">
+      <div
+        className="border-t border-border/30 p-4 md:p-5"
+        style={{ paddingBottom: "max(1rem, env(safe-area-inset-bottom))" }}
+      >
         <div className="glass-card mx-auto flex max-w-2xl items-end gap-2 rounded-xl p-2">
           <input
             ref={fileInputRef}
@@ -351,7 +354,7 @@ export function ChatPanel({
           <button
             onClick={() => fileInputRef.current?.click()}
             disabled={isLoading || isUploading || showPaywall}
-            className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg text-muted-foreground transition-colors hover:bg-secondary hover:text-foreground disabled:opacity-30"
+            className="flex h-11 w-11 shrink-0 items-center justify-center rounded-lg text-muted-foreground transition-colors hover:bg-secondary hover:text-foreground disabled:opacity-30"
             aria-label="Upload CV"
             title="Upload CV (PDF or DOCX)"
             data-testid="cv-upload-button"
@@ -365,7 +368,7 @@ export function ChatPanel({
             onKeyDown={handleKeyDown}
             placeholder={showPaywall ? "Complete payment to continue…" : "Type your message..."}
             rows={1}
-            className="flex-1 resize-none overflow-y-auto bg-transparent px-3 py-2.5 text-sm leading-relaxed text-foreground outline-none placeholder:text-muted-foreground/50"
+            className="flex-1 resize-none overflow-y-auto bg-transparent px-3 py-2.5 text-base leading-relaxed text-foreground outline-none placeholder:text-muted-foreground/50 sm:text-sm"
             style={{ maxHeight: "200px" }}
             disabled={isLoading || isUploading || showPaywall}
             data-testid="chat-input"
@@ -373,7 +376,7 @@ export function ChatPanel({
           <button
             onClick={handleSend}
             disabled={!input.trim() || isLoading || isUploading || showPaywall}
-            className="glow-primary flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-primary text-primary-foreground transition-all hover:brightness-110 disabled:opacity-30 disabled:shadow-none"
+            className="glow-primary flex h-11 w-11 shrink-0 items-center justify-center rounded-lg bg-primary text-primary-foreground transition-all hover:brightness-110 disabled:opacity-30 disabled:shadow-none"
             aria-label="Send message"
             data-testid="send-button"
           >
