@@ -150,7 +150,7 @@ export default function HomePage() {
               className="group relative inline-flex h-[56px] cursor-pointer items-center justify-center gap-2.5 rounded-full px-10 text-base font-semibold tracking-wide transition-all duration-300 hover:-translate-y-0.5 disabled:cursor-not-allowed disabled:opacity-50"
               style={{
                 background: "var(--gold, oklch(0.53 0.14 55))",
-                color: "var(--section-alt, #0a0b0d)",
+                color: "#0a0b0d",
                 boxShadow:
                   "0 0 40px color-mix(in oklch, var(--gold, oklch(0.53 0.14 55)) 35%, transparent), 0 4px 16px rgba(0,0,0,0.3)",
               }}
@@ -325,7 +325,7 @@ export default function HomePage() {
               className="group relative inline-flex h-[52px] cursor-pointer items-center justify-center gap-2.5 rounded-full px-8 text-sm font-semibold tracking-wide transition-all duration-300 hover:-translate-y-0.5 disabled:opacity-50"
               style={{
                 background: "var(--gold, oklch(0.53 0.14 55))",
-                color: "var(--section-alt, #0a0b0d)",
+                color: "#0a0b0d",
                 boxShadow:
                   "0 0 30px color-mix(in oklch, var(--gold, oklch(0.53 0.14 55)) 25%, transparent), 0 4px 12px rgba(0,0,0,0.25)",
               }}
@@ -364,7 +364,7 @@ export default function HomePage() {
             className="group relative inline-flex h-[56px] cursor-pointer items-center justify-center gap-2.5 rounded-full px-10 text-base font-semibold tracking-wide transition-all duration-300 hover:-translate-y-0.5 disabled:opacity-50"
             style={{
               background: "var(--gold, oklch(0.53 0.14 55))",
-              color: "var(--section-alt, #0a0b0d)",
+              color: "#0a0b0d",
               boxShadow:
                 "0 0 40px color-mix(in oklch, var(--gold, oklch(0.53 0.14 55)) 30%, transparent), 0 4px 16px rgba(0,0,0,0.2)",
             }}

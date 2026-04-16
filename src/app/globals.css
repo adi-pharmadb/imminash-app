@@ -112,8 +112,8 @@
   --selection-bg: oklch(0.45 0.31 264 / 0.2);
   --pulse-glow-1: none;
   --pulse-glow-2: none;
-  --section-alt: oklch(0.16 0.005 260);
-  --section-alt-foreground: oklch(0.95 0.005 250);
+  --section-alt: oklch(0.97 0.003 250);
+  --section-alt-foreground: oklch(0.16 0.005 260);
   --sidebar: oklch(1.0 0 0);
   --sidebar-foreground: oklch(0.16 0.005 260);
   --sidebar-primary: oklch(0.45 0.31 264);
