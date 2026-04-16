@@ -1,70 +1,44 @@
 "use client";
 
 /**
- * Landing page — conversion-optimized with Trust & Authority design.
+ * Landing page — Trust & Authority + Hero-Centric design.
  *
- * Nikita Bier growth principles:
- *  - Headline shows the OUTCOME not the tool
- *  - CTA is an action ("Check my eligibility") not a chore ("Sign in")
- *  - Social proof + specificity + urgency above fold
- *  - Comparison table converts fence-sitters (35% higher conversion)
- *  - Remove ALL friction: "Free, No CC, 2 minutes"
- *  - Page loads fast: no images, no heavy deps
+ * Design system: design-system/imminash-landing/
+ * Style: Trust & Authority (UI/UX Pro Max)
+ * Pattern: Hero-Centric + Bento Grid + Comparison
+ * Colors: Navy primary, gold CTA, dark hero bg
+ * Typography: EB Garamond (heading), Lato (body)
+ * Effects: CTA glow, card hover lift, stat reveal, badge pulse
  *
- * Trust & Authority design (UI/UX Pro Max skill):
- *  - Navy bg hero + gold accent CTA
- *  - EB Garamond serif headings for legal authority
- *  - Lato body for clean readability
- *  - Trust signals: metric counters, check badges, comparison proof
- *  - Subtle glow on CTA, stat-reveal on scroll
+ * Pre-delivery checklist:
+ *  [x] No emojis as icons (Lucide SVG only)
+ *  [x] cursor-pointer on all clickable elements
+ *  [x] Hover transitions 150-300ms
+ *  [x] Focus states visible
+ *  [x] prefers-reduced-motion respected
+ *  [x] Responsive 375/768/1024/1440
+ *  [x] Floating navbar with spacing
  */
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import { ArrowRight, Check, ChevronRight, Minus, Shield, X, Zap } from "lucide-react";
+import {
+  ArrowRight,
+  Check,
+  ChevronRight,
+  FileText,
+  Globe,
+  Minus,
+  Scale,
+  Shield,
+  Target,
+  Timer,
+  X,
+  Zap,
+} from "lucide-react";
 import { AuthModal } from "@/components/auth/AuthModal";
 import { createClient } from "@/lib/supabase/client";
 import { ThemeToggle } from "@/components/ui/ThemeToggle";
-
-const STEPS = [
-  {
-    num: "01",
-    title: "Answer 7 quick questions",
-    detail: "Age, visa, education, experience, English, job title, duties. Takes about 2 minutes.",
-  },
-  {
-    num: "02",
-    title: "See your score instantly",
-    detail: "Points breakdown, ANZSCO occupation match, and which visa pathways are open to you.",
-  },
-  {
-    num: "03",
-    title: "Get your application pack",
-    detail: "Employment reference letters drafted to ACS standards, submission guide, and document checklist.",
-  },
-];
-
-const COMPARE_ROWS: Array<{
-  feature: string;
-  diy: "yes" | "no" | "partial";
-  mara: "yes" | "no" | "partial";
-  imminash: "yes" | "no" | "partial";
-}> = [
-  { feature: "Points calculation", diy: "partial", mara: "yes", imminash: "yes" },
-  { feature: "ANZSCO occupation matching", diy: "no", mara: "yes", imminash: "yes" },
-  { feature: "Employment reference drafts", diy: "no", mara: "yes", imminash: "yes" },
-  { feature: "ACS submission guide", diy: "no", mara: "yes", imminash: "yes" },
-  { feature: "Available 24/7", diy: "yes", mara: "no", imminash: "yes" },
-  { feature: "Results in minutes", diy: "no", mara: "no", imminash: "yes" },
-];
-
-function CellIcon({ state }: { state: "yes" | "no" | "partial" }) {
-  if (state === "yes")
-    return <Check className="h-4 w-4 text-emerald-400" strokeWidth={2.5} />;
-  if (state === "partial")
-    return <Minus className="h-4 w-4 text-muted-foreground/50" />;
-  return <X className="h-4 w-4 text-muted-foreground/30" />;
-}
 
 export default function HomePage() {
   const router = useRouter();
@@ -85,24 +59,20 @@ export default function HomePage() {
   const openAuth = () => setAuthOpen(true);
 
   return (
-    <main
-      className="relative flex min-h-screen flex-col bg-background text-foreground"
-      data-testid="home-page"
-    >
-      {/* ════════════════════════════════════════════════════════
-          NAVBAR — minimal: brand left, theme toggle + CTA right
-         ════════════════════════════════════════════════════════ */}
-      <nav className="fixed top-0 inset-x-0 z-40 border-b border-border/30 bg-background/80 backdrop-blur-md">
-        <div className="mx-auto flex h-14 max-w-6xl items-center justify-between px-6">
+    <main className="relative flex min-h-screen flex-col bg-background text-foreground" data-testid="home-page">
+
+      {/* ═══════ FLOATING NAVBAR ═══════ */}
+      <nav className="fixed top-0 inset-x-0 z-40">
+        <div className="mx-auto mt-4 flex h-14 max-w-6xl items-center justify-between rounded-2xl border border-border/30 bg-background/70 px-5 backdrop-blur-xl mx-4 sm:mx-6 lg:mx-auto">
           <span className="font-serif-premium text-lg font-medium tracking-tight text-foreground select-none">
             imminash
           </span>
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-2">
             <ThemeToggle inline />
             <button
               onClick={openAuth}
               disabled={checking}
-              className="hidden cursor-pointer items-center gap-1.5 rounded-full bg-primary px-4 py-2 text-xs font-semibold text-primary-foreground transition-all hover:brightness-110 disabled:opacity-50 sm:inline-flex"
+              className="hidden cursor-pointer items-center gap-1.5 rounded-full bg-primary px-4 py-2 text-xs font-semibold text-primary-foreground transition-all duration-200 hover:brightness-110 disabled:opacity-50 sm:inline-flex"
             >
               Get started
               <ChevronRight className="h-3.5 w-3.5" />
@@ -111,103 +81,118 @@ export default function HomePage() {
         </div>
       </nav>
 
-      {/* ════════════════════════════════════════════════════════
-          [1] HERO — navy bg, gold CTA, authority serif headline
-         ════════════════════════════════════════════════════════ */}
-      <section className="relative overflow-hidden bg-section-alt text-section-alt-foreground">
-        {/* Subtle gradient accent */}
+      {/* ═══════ HERO — full viewport, dramatic ═══════ */}
+      <section className="relative flex min-h-screen items-center justify-center overflow-hidden bg-section-alt text-section-alt-foreground">
+        {/* Ambient glow orbs */}
         <div
           aria-hidden
-          className="pointer-events-none absolute top-[-20%] right-[-10%] h-[500px] w-[500px] rounded-full opacity-10 blur-[100px]"
+          className="pointer-events-none absolute top-[10%] right-[5%] h-[600px] w-[600px] rounded-full opacity-[0.07] blur-[120px]"
           style={{ background: "var(--gold, oklch(0.53 0.14 55))" }}
         />
         <div
           aria-hidden
-          className="pointer-events-none absolute bottom-[-10%] left-[-5%] h-[400px] w-[400px] rounded-full opacity-8 blur-[120px]"
+          className="pointer-events-none absolute bottom-[5%] left-[-5%] h-[500px] w-[500px] rounded-full opacity-[0.05] blur-[100px]"
           style={{ background: "var(--primary)" }}
         />
+        {/* Subtle grid pattern */}
+        <div
+          aria-hidden
+          className="pointer-events-none absolute inset-0 opacity-[0.03]"
+          style={{
+            backgroundImage:
+              "linear-gradient(var(--section-alt-foreground) 1px, transparent 1px), linear-gradient(90deg, var(--section-alt-foreground) 1px, transparent 1px)",
+            backgroundSize: "80px 80px",
+          }}
+        />
 
-        <div className="relative mx-auto max-w-6xl px-6 pt-32 pb-20 sm:pt-40 sm:pb-28">
-          <div className="mx-auto max-w-3xl text-center">
-            {/* Badge */}
-            <div className="animate-reveal-up">
-              <span className="inline-flex items-center gap-1.5 rounded-full border border-section-alt-foreground/10 bg-section-alt-foreground/5 px-3 py-1 text-xs font-medium text-section-alt-foreground/80 backdrop-blur-sm">
-                <Zap className="h-3 w-3" />
-                Free eligibility check
-              </span>
-            </div>
-
-            {/* Headline */}
-            <h1 className="animate-reveal-up delay-100 mt-8 font-serif-premium text-4xl font-medium leading-[1.08] tracking-tight text-section-alt-foreground sm:text-5xl md:text-6xl lg:text-7xl">
-              Find out if you
-              <br className="hidden sm:block" />
-              qualify for
-              <span className="relative ml-3 inline-block">
-                <span className="relative z-10">Australian PR</span>
-                <span
-                  aria-hidden
-                  className="absolute bottom-[0.1em] left-0 right-0 h-[0.12em] rounded-full opacity-60"
-                  style={{ background: "var(--gold, oklch(0.53 0.14 55))" }}
-                />
-              </span>
-            </h1>
-
-            {/* Subheading */}
-            <p className="animate-reveal-up delay-200 mx-auto mt-6 max-w-xl font-premium-body text-base leading-relaxed text-section-alt-foreground/65 sm:text-lg">
-              Answer 7 questions. Get your points score, best occupation match,
-              and visa pathway in under 3 minutes. Completely free.
-            </p>
-
-            {/* CTA */}
-            <div className="animate-reveal-up delay-300 mt-10">
-              <button
-                onClick={openAuth}
-                disabled={checking}
-                className="group relative inline-flex h-14 cursor-pointer items-center justify-center gap-2.5 rounded-full px-9 text-base font-semibold tracking-wide text-section-alt transition-all duration-300 hover:-translate-y-[1px] disabled:cursor-not-allowed disabled:opacity-50"
-                style={{
-                  background: "var(--gold, oklch(0.53 0.14 55))",
-                  boxShadow:
-                    "0 0 30px color-mix(in oklch, var(--gold, oklch(0.53 0.14 55)) 40%, transparent), 0 4px 12px rgba(0,0,0,0.3)",
-                }}
-                data-testid="hero-cta"
-              >
-                Check my eligibility
-                <ArrowRight className="h-5 w-5 transition-transform duration-200 group-hover:translate-x-0.5" />
-              </button>
-            </div>
-
-            {/* Trust bar */}
-            <div className="animate-reveal-up delay-400 mt-8 flex flex-wrap items-center justify-center gap-x-5 gap-y-2 font-premium-body text-xs text-section-alt-foreground/50">
-              <span className="flex items-center gap-1.5">
-                <Check className="h-3 w-3" strokeWidth={2.5} />
-                Free to start
-              </span>
-              <span className="flex items-center gap-1.5">
-                <Check className="h-3 w-3" strokeWidth={2.5} />
-                No credit card
-              </span>
-              <span className="flex items-center gap-1.5">
-                <Check className="h-3 w-3" strokeWidth={2.5} />
-                2-minute assessment
-              </span>
-            </div>
+        <div className="relative mx-auto max-w-4xl px-6 pt-28 pb-20 text-center">
+          {/* Eyebrow */}
+          <div className="animate-reveal-up">
+            <span className="inline-flex items-center gap-2 rounded-full border border-section-alt-foreground/10 bg-section-alt-foreground/[0.04] px-4 py-1.5 text-xs font-medium text-section-alt-foreground/70 backdrop-blur-sm">
+              <span
+                className="h-1.5 w-1.5 rounded-full"
+                style={{ background: "var(--gold, oklch(0.53 0.14 55))" }}
+              />
+              Free eligibility check
+            </span>
           </div>
 
-          {/* Stat counters */}
-          <div className="animate-reveal-up delay-500 mx-auto mt-16 grid max-w-2xl grid-cols-3 gap-6 border-t border-section-alt-foreground/10 pt-10">
-            <StatCounter value="189" label="Visa pathway" />
-            <StatCounter value="65+" label="Min points threshold" />
-            <StatCounter value="3 min" label="To get your score" />
+          {/* Headline */}
+          <h1 className="animate-reveal-up delay-100 mt-8 font-serif-premium text-[clamp(2.5rem,6vw,5rem)] font-medium leading-[1.05] tracking-tight text-section-alt-foreground">
+            Find out if you qualify
+            <br />
+            for{" "}
+            <span className="relative inline-block">
+              <span className="relative z-10">Australian PR</span>
+              <span
+                aria-hidden
+                className="absolute bottom-[0.08em] left-0 right-0 h-[0.14em] rounded-full"
+                style={{
+                  background:
+                    "linear-gradient(90deg, var(--gold, oklch(0.53 0.14 55)), transparent)",
+                  opacity: 0.6,
+                }}
+              />
+            </span>
+          </h1>
+
+          {/* Sub */}
+          <p className="animate-reveal-up delay-200 mx-auto mt-7 max-w-xl font-premium-body text-base leading-relaxed text-section-alt-foreground/55 sm:text-lg">
+            Answer 7 questions. Get your points score, best occupation match,
+            and visa pathway in under 3 minutes. Completely free.
+          </p>
+
+          {/* CTA */}
+          <div className="animate-reveal-up delay-300 mt-10">
+            <button
+              onClick={openAuth}
+              disabled={checking}
+              className="group relative inline-flex h-[56px] cursor-pointer items-center justify-center gap-2.5 rounded-full px-10 text-base font-semibold tracking-wide transition-all duration-300 hover:-translate-y-0.5 disabled:cursor-not-allowed disabled:opacity-50"
+              style={{
+                background: "var(--gold, oklch(0.53 0.14 55))",
+                color: "var(--section-alt, #0a0b0d)",
+                boxShadow:
+                  "0 0 40px color-mix(in oklch, var(--gold, oklch(0.53 0.14 55)) 35%, transparent), 0 4px 16px rgba(0,0,0,0.3)",
+              }}
+              data-testid="hero-cta"
+            >
+              Check my eligibility
+              <ArrowRight className="h-5 w-5 transition-transform duration-200 group-hover:translate-x-0.5" />
+            </button>
+          </div>
+
+          {/* Trust bar */}
+          <div className="animate-reveal-up delay-400 mt-8 flex flex-wrap items-center justify-center gap-x-6 gap-y-2 font-premium-body text-xs text-section-alt-foreground/40">
+            {["Free to start", "No credit card", "2-minute assessment"].map(
+              (t) => (
+                <span key={t} className="flex items-center gap-1.5">
+                  <Check className="h-3 w-3" strokeWidth={2.5} />
+                  {t}
+                </span>
+              ),
+            )}
+          </div>
+
+          {/* Hero stat counters */}
+          <div className="animate-reveal-up delay-500 mx-auto mt-20 grid max-w-md grid-cols-3 border-t border-section-alt-foreground/[0.06] pt-10">
+            <HeroStat value="189" label="Visa pathway" />
+            <HeroStat value="65+" label="Points threshold" />
+            <HeroStat value="<3 min" label="To get your score" />
+          </div>
+        </div>
+
+        {/* Scroll indicator */}
+        <div className="absolute bottom-8 left-1/2 -translate-x-1/2 animate-bounce">
+          <div className="h-8 w-5 rounded-full border-2 border-section-alt-foreground/20 p-1">
+            <div className="mx-auto h-2 w-1 rounded-full bg-section-alt-foreground/30" />
           </div>
         </div>
       </section>
 
-      {/* ════════════════════════════════════════════════════════
-          [2] HOW IT WORKS — 3 steps with visual numbering
-         ════════════════════════════════════════════════════════ */}
-      <section className="mx-auto w-full max-w-6xl px-6 py-20 sm:py-28">
-        <div className="mx-auto max-w-3xl text-center">
-          <span className="font-premium-body text-[10px] font-semibold uppercase tracking-[0.18em] text-primary">
+      {/* ═══════ BENTO GRID — features as visual cards ═══════ */}
+      <section className="mx-auto w-full max-w-6xl px-6 py-24 sm:py-32">
+        <div className="mx-auto max-w-2xl text-center">
+          <span className="font-premium-body text-[10px] font-semibold uppercase tracking-[0.2em] text-primary">
             How it works
           </span>
           <h2 className="mt-3 font-serif-premium text-3xl font-medium tracking-tight text-foreground sm:text-4xl">
@@ -215,31 +200,35 @@ export default function HomePage() {
           </h2>
         </div>
 
-        <div className="mt-14 grid gap-8 sm:grid-cols-3 sm:gap-6">
-          {STEPS.map((s) => (
-            <div
-              key={s.num}
-              className="group relative rounded-xl border border-border bg-card p-6 transition-colors hover:border-primary/30"
-            >
-              <span className="font-serif-premium text-5xl font-medium leading-none text-primary/15 transition-colors group-hover:text-primary/25">
-                {s.num}
-              </span>
-              <h3 className="mt-4 text-lg font-semibold text-foreground">
-                {s.title}
-              </h3>
-              <p className="mt-2 font-premium-body text-sm leading-relaxed text-muted-foreground">
-                {s.detail}
-              </p>
-            </div>
-          ))}
+        <div className="mt-16 grid gap-5 md:grid-cols-3">
+          <BentoCard
+            num="01"
+            icon={<Target className="h-5 w-5" />}
+            title="Answer 7 quick questions"
+            detail="Age, visa, education, experience, English, job title, duties. Our AI asks the right questions to build your profile."
+            accent={false}
+          />
+          <BentoCard
+            num="02"
+            icon={<Zap className="h-5 w-5" />}
+            title="See your score instantly"
+            detail="Points breakdown, ANZSCO occupation match, and which visa pathways (189, 190, 491) are open to you."
+            accent={false}
+          />
+          <BentoCard
+            num="03"
+            icon={<FileText className="h-5 w-5" />}
+            title="Get your application pack"
+            detail="Employment reference letters drafted to ACS standards, submission guide, and document checklist. Download as PDF."
+            accent
+          />
         </div>
 
-        {/* Inline CTA */}
-        <div className="mt-12 text-center">
+        <div className="mt-14 text-center">
           <button
             onClick={openAuth}
             disabled={checking}
-            className="inline-flex h-12 cursor-pointer items-center justify-center gap-2 rounded-full bg-primary px-7 text-sm font-semibold tracking-wide text-primary-foreground shadow-md shadow-primary/20 transition-all duration-200 hover:shadow-lg hover:shadow-primary/30 hover:brightness-110 disabled:opacity-50"
+            className="inline-flex h-12 cursor-pointer items-center justify-center gap-2 rounded-full bg-primary px-7 text-sm font-semibold tracking-wide text-primary-foreground shadow-md shadow-primary/15 transition-all duration-200 hover:shadow-lg hover:shadow-primary/25 hover:brightness-110 disabled:opacity-50"
           >
             Start my free assessment
             <ArrowRight className="h-4 w-4" />
@@ -247,51 +236,33 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* ════════════════════════════════════════════════════════
-          [3] COMPARISON — Imminash vs MARA vs DIY
-         ════════════════════════════════════════════════════════ */}
+      {/* ═══════ COMPARISON TABLE ═══════ */}
       <section className="w-full bg-section-alt text-section-alt-foreground">
-        <div className="mx-auto max-w-4xl px-6 py-20 sm:py-28">
+        <div className="mx-auto max-w-4xl px-6 py-24 sm:py-32">
           <div className="text-center">
-            <span className="font-premium-body text-[10px] font-semibold uppercase tracking-[0.18em] text-primary">
+            <span className="font-premium-body text-[10px] font-semibold uppercase tracking-[0.2em] text-primary">
               Compare
             </span>
             <h2 className="mt-3 font-serif-premium text-3xl font-medium tracking-tight text-section-alt-foreground sm:text-4xl">
               Same output. Fraction of the cost.
             </h2>
-            <p className="mx-auto mt-4 max-w-lg font-premium-body text-sm text-section-alt-foreground/55">
+            <p className="mx-auto mt-4 max-w-lg font-premium-body text-sm leading-relaxed text-section-alt-foreground/50">
               Most MARA agents charge $2,000+. DIY means weeks of guesswork and
               risking rejection. We give you the same deliverables in minutes.
             </p>
           </div>
 
-          <div className="mt-12 overflow-x-auto rounded-xl border border-section-alt-foreground/10">
+          <div className="mt-14 overflow-hidden rounded-2xl border border-section-alt-foreground/[0.06]">
             <table className="w-full border-collapse text-sm">
               <thead>
-                <tr>
-                  <th className="p-4 text-left text-xs font-medium uppercase tracking-wider text-section-alt-foreground/40">
-                    &nbsp;
-                  </th>
-                  <th className="p-4 text-center">
-                    <span className="block text-sm font-medium text-section-alt-foreground/70">
-                      DIY
-                    </span>
-                    <span className="block font-premium-body text-[11px] text-section-alt-foreground/40">
-                      Free but risky
-                    </span>
-                  </th>
-                  <th className="p-4 text-center">
-                    <span className="block text-sm font-medium text-section-alt-foreground/70">
-                      MARA Agent
-                    </span>
-                    <span className="block font-premium-body text-[11px] text-section-alt-foreground/40">
-                      $2,000 - $5,000
-                    </span>
-                  </th>
+                <tr className="border-b border-section-alt-foreground/[0.06]">
+                  <th className="p-4 text-left text-xs font-medium uppercase tracking-wider text-section-alt-foreground/35" />
+                  <ColHeader label="DIY" sub="Free but risky" />
+                  <ColHeader label="MARA Agent" sub="$2,000 - $5,000" />
                   <th className="relative p-4 text-center">
                     <span
                       aria-hidden
-                      className="absolute inset-x-0 top-0 h-1 rounded-t-xl"
+                      className="absolute inset-x-0 top-0 h-[3px]"
                       style={{ background: "var(--gold, oklch(0.53 0.14 55))" }}
                     />
                     <span className="block text-sm font-semibold text-primary">
@@ -301,109 +272,122 @@ export default function HomePage() {
                       className="block font-premium-body text-[11px] font-semibold"
                       style={{ color: "var(--gold, oklch(0.53 0.14 55))" }}
                     >
-                      $200
+                      From $200
                     </span>
                   </th>
                 </tr>
               </thead>
               <tbody>
-                {COMPARE_ROWS.map((row, i) => (
+                {[
+                  ["Points calculation", "partial", "yes", "yes"],
+                  ["ANZSCO occupation matching", "no", "yes", "yes"],
+                  ["Employment reference drafts", "no", "yes", "yes"],
+                  ["ACS submission guide", "no", "yes", "yes"],
+                  ["Available 24/7", "yes", "no", "yes"],
+                  ["Results in minutes", "no", "no", "yes"],
+                ].map(([feature, diy, mara, imminash], i) => (
                   <tr
-                    key={row.feature}
+                    key={feature}
                     className={
-                      i < COMPARE_ROWS.length - 1
-                        ? "border-t border-section-alt-foreground/5"
-                        : "border-t border-section-alt-foreground/5"
+                      i < 5
+                        ? "border-t border-section-alt-foreground/[0.04]"
+                        : "border-t border-section-alt-foreground/[0.04]"
                     }
                   >
-                    <td className="p-4 font-premium-body text-section-alt-foreground/75">
-                      {row.feature}
+                    <td className="p-4 font-premium-body text-section-alt-foreground/70">
+                      {feature}
                     </td>
                     <td className="p-4 text-center">
-                      <span className="inline-flex items-center justify-center">
-                        <CellIcon state={row.diy} />
-                      </span>
+                      <CellIcon state={diy as "yes" | "no" | "partial"} />
                     </td>
                     <td className="p-4 text-center">
-                      <span className="inline-flex items-center justify-center">
-                        <CellIcon state={row.mara} />
-                      </span>
+                      <CellIcon state={mara as "yes" | "no" | "partial"} />
                     </td>
-                    <td className="p-4 text-center bg-primary/[0.03]">
-                      <span className="inline-flex items-center justify-center">
-                        <CellIcon state={row.imminash} />
-                      </span>
+                    <td
+                      className="p-4 text-center"
+                      style={{
+                        background:
+                          "color-mix(in oklch, var(--gold, oklch(0.53 0.14 55)) 4%, transparent)",
+                      }}
+                    >
+                      <CellIcon state={imminash as "yes" | "no" | "partial"} />
                     </td>
                   </tr>
                 ))}
               </tbody>
             </table>
           </div>
+
+          <div className="mt-14 text-center">
+            <button
+              onClick={openAuth}
+              disabled={checking}
+              className="group relative inline-flex h-[52px] cursor-pointer items-center justify-center gap-2.5 rounded-full px-8 text-sm font-semibold tracking-wide transition-all duration-300 hover:-translate-y-0.5 disabled:opacity-50"
+              style={{
+                background: "var(--gold, oklch(0.53 0.14 55))",
+                color: "var(--section-alt, #0a0b0d)",
+                boxShadow:
+                  "0 0 30px color-mix(in oklch, var(--gold, oklch(0.53 0.14 55)) 25%, transparent), 0 4px 12px rgba(0,0,0,0.25)",
+              }}
+            >
+              Check my eligibility
+              <ArrowRight className="h-4 w-4 transition-transform duration-200 group-hover:translate-x-0.5" />
+            </button>
+            <p className="mt-4 font-premium-body text-xs text-section-alt-foreground/40">
+              Free to start. Pay only when you need documents.
+            </p>
+          </div>
         </div>
       </section>
 
-      {/* ════════════════════════════════════════════════════════
-          [4] TRUST + FINAL CTA
-         ════════════════════════════════════════════════════════ */}
-      <section className="mx-auto w-full max-w-3xl px-6 py-20 sm:py-28 text-center">
-        {/* Trust badges */}
-        <div className="mb-12 flex flex-wrap items-center justify-center gap-6 font-premium-body text-xs text-muted-foreground">
-          <span className="flex items-center gap-2">
-            <Shield className="h-4 w-4 text-primary" />
-            DHA rules database
-          </span>
-          <span className="flex items-center gap-2">
-            <Shield className="h-4 w-4 text-primary" />
-            ACS criteria aligned
-          </span>
-          <span className="flex items-center gap-2">
-            <Shield className="h-4 w-4 text-primary" />
-            Data never shared
-          </span>
+      {/* ═══════ TRUST STRIP + FINAL CTA ═══════ */}
+      <section className="mx-auto w-full max-w-4xl px-6 py-24 sm:py-32 text-center">
+        {/* Trust row */}
+        <div className="mb-14 flex flex-wrap items-center justify-center gap-8">
+          <TrustBadge icon={<Scale className="h-5 w-5" />} label="DHA rules database" />
+          <TrustBadge icon={<Shield className="h-5 w-5" />} label="ACS criteria aligned" />
+          <TrustBadge icon={<Globe className="h-5 w-5" />} label="Data never shared" />
+          <TrustBadge icon={<Timer className="h-5 w-5" />} label="Results in minutes" />
         </div>
 
         <h2 className="font-serif-premium text-3xl font-medium tracking-tight text-foreground sm:text-4xl">
           Your PR pathway starts here
         </h2>
-        <p className="mx-auto mt-4 max-w-md font-premium-body text-base leading-relaxed text-muted-foreground">
+        <p className="mx-auto mt-5 max-w-md font-premium-body text-base leading-relaxed text-muted-foreground">
           Join skilled workers worldwide who used Imminash to assess their
           eligibility and prepare their applications.
         </p>
-
         <div className="mt-10">
           <button
             onClick={openAuth}
             disabled={checking}
-            className="group relative inline-flex h-14 cursor-pointer items-center justify-center gap-2.5 rounded-full px-9 text-base font-semibold tracking-wide text-section-alt transition-all duration-300 hover:-translate-y-[1px] disabled:opacity-50"
+            className="group relative inline-flex h-[56px] cursor-pointer items-center justify-center gap-2.5 rounded-full px-10 text-base font-semibold tracking-wide transition-all duration-300 hover:-translate-y-0.5 disabled:opacity-50"
             style={{
               background: "var(--gold, oklch(0.53 0.14 55))",
+              color: "var(--section-alt, #0a0b0d)",
               boxShadow:
-                "0 0 30px color-mix(in oklch, var(--gold, oklch(0.53 0.14 55)) 30%, transparent), 0 4px 12px rgba(0,0,0,0.2)",
+                "0 0 40px color-mix(in oklch, var(--gold, oklch(0.53 0.14 55)) 30%, transparent), 0 4px 16px rgba(0,0,0,0.2)",
             }}
           >
             Check my eligibility
             <ArrowRight className="h-5 w-5 transition-transform duration-200 group-hover:translate-x-0.5" />
           </button>
         </div>
-        <p className="mt-4 font-premium-body text-xs text-muted-foreground/50">
-          Free to start. Pay only when you need documents.
-        </p>
       </section>
 
-      {/* ════════════════════════════════════════════════════════
-          [5] FOOTER
-         ════════════════════════════════════════════════════════ */}
-      <footer className="w-full border-t border-border px-6 py-10 bg-background">
+      {/* ═══════ FOOTER ═══════ */}
+      <footer className="w-full border-t border-border/60 bg-background px-6 py-10">
         <div className="mx-auto max-w-3xl text-center">
-          <span className="font-serif-premium text-lg font-medium tracking-tight text-foreground/90">
+          <span className="font-serif-premium text-lg font-medium tracking-tight text-foreground/80">
             imminash
           </span>
-          <p className="mx-auto mt-4 max-w-lg font-premium-body text-xs leading-relaxed text-muted-foreground/60">
+          <p className="mx-auto mt-4 max-w-lg font-premium-body text-xs leading-relaxed text-muted-foreground/50">
             Imminash provides general information only and does not constitute
             migration advice. It does not guarantee visa or assessment outcomes.
-            Always consult a registered migration agent (MARA) for professional advice.
+            Always consult a registered migration agent (MARA) for professional
+            advice.
           </p>
-          <p className="mt-4 font-premium-body text-[11px] text-muted-foreground/40">
+          <p className="mt-4 font-premium-body text-[11px] text-muted-foreground/35">
             &copy; {new Date().getFullYear()} Imminash. All rights reserved.
           </p>
         </div>
@@ -414,15 +398,110 @@ export default function HomePage() {
   );
 }
 
-function StatCounter({ value, label }: { value: string; label: string }) {
+/* ════════════════════════════════════════════════════════════
+   Sub-components (co-located, not worth separate files)
+   ════════════════════════════════════════════════════════════ */
+
+function HeroStat({ value, label }: { value: string; label: string }) {
   return (
     <div className="text-center">
-      <span className="font-serif-premium text-3xl font-medium text-section-alt-foreground sm:text-4xl">
+      <span className="font-serif-premium text-2xl font-medium text-section-alt-foreground sm:text-3xl">
         {value}
       </span>
-      <span className="mt-1 block font-premium-body text-xs text-section-alt-foreground/50">
+      <span className="mt-1 block font-premium-body text-[11px] text-section-alt-foreground/40">
         {label}
       </span>
+    </div>
+  );
+}
+
+function BentoCard({
+  num,
+  icon,
+  title,
+  detail,
+  accent,
+}: {
+  num: string;
+  icon: React.ReactNode;
+  title: string;
+  detail: string;
+  accent?: boolean;
+}) {
+  return (
+    <div
+      className={`group relative cursor-default overflow-hidden rounded-2xl border p-7 transition-all duration-300 hover:-translate-y-1 hover:shadow-xl ${
+        accent
+          ? "border-primary/20 bg-primary/[0.03] hover:border-primary/40 hover:shadow-primary/10"
+          : "border-border bg-card hover:border-primary/20 hover:shadow-lg"
+      }`}
+    >
+      <span className="pointer-events-none absolute right-5 top-4 font-serif-premium text-6xl font-medium leading-none text-foreground/[0.04] transition-colors group-hover:text-primary/[0.08]">
+        {num}
+      </span>
+      <div
+        className={`mb-5 inline-flex h-11 w-11 items-center justify-center rounded-xl transition-colors duration-200 ${
+          accent
+            ? "bg-primary/10 text-primary group-hover:bg-primary/15"
+            : "bg-muted text-muted-foreground group-hover:bg-primary/10 group-hover:text-primary"
+        }`}
+      >
+        {icon}
+      </div>
+      <h3 className="text-lg font-semibold text-foreground">{title}</h3>
+      <p className="mt-2 font-premium-body text-sm leading-relaxed text-muted-foreground">
+        {detail}
+      </p>
+    </div>
+  );
+}
+
+function ColHeader({ label, sub }: { label: string; sub: string }) {
+  return (
+    <th className="p-4 text-center">
+      <span className="block text-sm font-medium text-section-alt-foreground/65">
+        {label}
+      </span>
+      <span className="block font-premium-body text-[11px] text-section-alt-foreground/35">
+        {sub}
+      </span>
+    </th>
+  );
+}
+
+function CellIcon({ state }: { state: "yes" | "no" | "partial" }) {
+  if (state === "yes")
+    return (
+      <span className="inline-flex items-center justify-center">
+        <Check className="h-4 w-4 text-emerald-400" strokeWidth={2.5} />
+      </span>
+    );
+  if (state === "partial")
+    return (
+      <span className="inline-flex items-center justify-center">
+        <Minus className="h-4 w-4 text-section-alt-foreground/30" />
+      </span>
+    );
+  return (
+    <span className="inline-flex items-center justify-center">
+      <X className="h-4 w-4 text-section-alt-foreground/15" />
+    </span>
+  );
+}
+
+function TrustBadge({
+  icon,
+  label,
+}: {
+  icon: React.ReactNode;
+  label: string;
+}) {
+  return (
+    <div className="flex items-center gap-2.5 font-premium-body text-sm text-muted-foreground">
+      <span className="flex h-10 w-10 items-center justify-center rounded-xl border border-border bg-card text-primary transition-colors hover:border-primary/30">
+        {icon}
+      </span>
+      {label}
     </div>
   );
 }
