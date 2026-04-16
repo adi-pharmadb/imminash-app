@@ -25,10 +25,11 @@ export function MessageBubble({ role, content, isStreaming }: MessageBubbleProps
 
   if (isUser) {
     return (
-      <div className="mb-4 flex justify-end" data-testid="message-user">
-        <div className="max-w-[85%] rounded-xl border border-border bg-muted px-4 py-2.5 text-sm leading-relaxed text-foreground">
-          <p className="whitespace-pre-wrap">{content}</p>
-        </div>
+      <div
+        className="mb-5 w-full rounded-xl border border-border bg-muted/60 px-4 py-3 text-sm leading-relaxed text-foreground"
+        data-testid="message-user"
+      >
+        <p className="whitespace-pre-wrap break-words">{content}</p>
       </div>
     );
   }
