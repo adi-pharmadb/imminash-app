@@ -341,7 +341,7 @@ export function ChatPanel({
       </div>
 
       <div
-        className="border-t border-border/30 bg-background p-3"
+        className="bg-background p-3"
         style={{ paddingBottom: "max(0.75rem, env(safe-area-inset-bottom))" }}
       >
         <div className="mx-auto max-w-2xl">
