@@ -39,6 +39,8 @@ export interface ConversationRow {
   cv_data: Record<string, unknown> | null;
   paid_at: string | null;
   messages: ChatMessage[] | null;
+  submission_guide_data?: Record<string, unknown> | null;
+  submission_guide_generated_at?: string | null;
   created_at?: string;
   updated_at?: string;
 }

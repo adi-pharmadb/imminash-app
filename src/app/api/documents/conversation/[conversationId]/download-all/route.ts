@@ -141,13 +141,15 @@ export async function GET(
     }
 
     const zipBuffer = await zip.generateAsync({ type: "nodebuffer" });
-    const packName = `Application Pack — ${applicantName}.zip`;
+    // RFC 5987: ASCII-safe filename fallback + utf-8 filename* for modern browsers.
+    const asciiSafe = `Application Pack - ${applicantName.replace(/[^A-Za-z0-9 _-]/g, "")}.zip`;
+    const utf8Full = encodeURIComponent(`Application Pack — ${applicantName}.zip`);
 
     return new Response(new Uint8Array(zipBuffer), {
       status: 200,
       headers: {
         "Content-Type": "application/zip",
-        "Content-Disposition": `attachment; filename="${packName}"`,
+        "Content-Disposition": `attachment; filename="${asciiSafe}"; filename*=UTF-8''${utf8Full}`,
         "Content-Length": String(zipBuffer.length),
       },
     });

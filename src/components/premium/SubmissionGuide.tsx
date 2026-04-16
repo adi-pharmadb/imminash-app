@@ -1,21 +1,17 @@
 "use client";
 
 /**
- * SubmissionGuide — premium dedicated route for the Phase 2+ deliverable.
+ * SubmissionGuide — premium printable page at /chat/submission-guide/[id].
  *
- * Replaces the disposable chat-message version of the submission guide.
- * Renders as a full-page printable artefact with:
- *  - Hero strip (navy bg, serif headline, gold CTAs)
- *  - Applicant snapshot card
- *  - Document manifest (3-column grid) with download links
- *  - Step-by-step submission timeline
- *  - Strengths / watchpoints callouts
- *  - MARA disclaimer + consultation upsell
+ * Content is AI-generated server-side (see /api/conversations/[id]/
+ * submission-guide) using real data from assessing_body_requirements,
+ * agent_knowledge, the user's profile, points, and drafted documents.
  *
- * Print styles in globals.css strip chrome and produce a clean handout.
+ * The page never hardcodes specific fees/URLs/timeframes — it either
+ * renders what the generator produced or prompts the user to generate.
  */
 
-import { useCallback, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import Link from "next/link";
 import {
   ArrowLeft,
@@ -26,213 +22,206 @@ import {
   ExternalLink,
   Loader2,
   Printer,
+  RefreshCw,
   ShieldCheck,
+  Sparkles,
 } from "lucide-react";
 import type { ProjectedConversation } from "@/lib/conversation-state";
+import type { SubmissionGuideData } from "@/lib/submission-guide-generator";
 
-interface Match {
-  title?: string;
-  anzsco_code?: string;
-  anzscoCode?: string;
-  assessing_authority?: string;
-  assessingAuthority?: string;
-  confidence?: number | string;
-}
-
-function firstMatch(projection: ProjectedConversation): Match | null {
-  const raw = projection.matches;
-  if (!raw) return null;
-  if (Array.isArray(raw)) return (raw[0] as Match) ?? null;
-  if (typeof raw === "object") {
-    const r = raw as Record<string, unknown>;
-    const arr =
-      (Array.isArray(r.matches) && (r.matches as Match[])) ||
-      (Array.isArray(r.skillsMatches) && (r.skillsMatches as Match[])) ||
-      null;
-    return arr?.[0] ?? null;
-  }
-  return null;
-}
-
-function formatDate(): string {
-  return new Date().toLocaleDateString("en-AU", {
-    day: "numeric",
-    month: "long",
-    year: "numeric",
-  });
+function firstMatchTitle(projection: ProjectedConversation): string {
+  const raw = projection.matches as unknown;
+  if (!raw) return "Your nominated occupation";
+  const arr = Array.isArray(raw)
+    ? raw
+    : typeof raw === "object" && raw
+      ? (raw as { matches?: unknown[] }).matches ?? []
+      : [];
+  const first = (arr[0] ?? {}) as Record<string, unknown>;
+  return typeof first.title === "string" ? first.title : "Your nominated occupation";
 }
 
 export function SubmissionGuide({
   projection,
+  initialGuide,
 }: {
   projection: ProjectedConversation;
+  initialGuide?: SubmissionGuideData | null;
 }) {
+  const [guide, setGuide] = useState<SubmissionGuideData | null>(
+    initialGuide ?? null,
+  );
+  const [loading, setLoading] = useState(false);
   const [downloading, setDownloading] = useState(false);
-  const topMatch = firstMatch(projection);
-  const profile = projection.profile ?? {};
-  const applicantName =
-    typeof profile.firstName === "string" && profile.firstName.trim().length > 0
-      ? (profile.firstName as string)
-      : "Applicant";
-  const occupationTitle = topMatch?.title ?? "Your nominated occupation";
-  const anzscoCode =
-    topMatch?.anzsco_code ?? topMatch?.anzscoCode ?? projection.selectedAnzscoCode ?? "";
-  const assessingBody =
-    topMatch?.assessing_authority ?? topMatch?.assessingAuthority ?? "ACS";
+  const [error, setError] = useState<string | null>(null);
 
-  const points = projection.points as Record<string, unknown> | null;
-  const totalPoints =
-    (points && typeof points.total === "number" && (points.total as number)) ||
-    (points && typeof points.totalPoints === "number" && (points.totalPoints as number)) ||
-    null;
+  // Attempt to hydrate from server cache on mount if nothing in props.
+  useEffect(() => {
+    if (guide) return;
+    let cancelled = false;
+    (async () => {
+      try {
+        const res = await fetch(
+          `/api/conversations/${projection.id}/submission-guide`,
+          { cache: "no-store" },
+        );
+        if (cancelled) return;
+        if (res.ok) {
+          const body = await res.json();
+          if (body?.guide) setGuide(body.guide as SubmissionGuideData);
+        }
+        // 404 is expected when no guide generated yet — no-op.
+      } catch {
+        // ignore
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [projection.id]);
 
-  const refDocs = projection.documents.filter(
-    (d) => d.document_type === "employment_reference",
+  const generate = useCallback(
+    async (opts: { regenerate?: boolean } = {}) => {
+      if (loading) return;
+      setLoading(true);
+      setError(null);
+      try {
+        const res = await fetch(
+          `/api/conversations/${projection.id}/submission-guide`,
+          { method: "POST" },
+        );
+        if (!res.ok) {
+          const body = await res.json().catch(() => ({}));
+          throw new Error(
+            (body as { error?: string })?.error ?? `Generation failed (${res.status})`,
+          );
+        }
+        const body = await res.json();
+        if (body?.guide) setGuide(body.guide as SubmissionGuideData);
+      } catch (err) {
+        const msg =
+          err instanceof Error ? err.message : "Failed to generate submission guide";
+        setError(msg);
+      } finally {
+        setLoading(false);
+      }
+      void opts;
+    },
+    [loading, projection.id],
   );
 
-  const acsPortalUrl = anzscoCode
-    ? `https://www.acs.org.au/mra?anzsco=${encodeURIComponent(anzscoCode)}`
-    : "https://www.acs.org.au/mra";
-
-  const handleDownloadAll = useCallback(async () => {
+  const downloadPack = useCallback(async () => {
     if (downloading) return;
     setDownloading(true);
     try {
       const res = await fetch(
         `/api/documents/conversation/${projection.id}/download-all`,
       );
-      if (!res.ok) throw new Error(`download failed: ${res.status}`);
+      if (!res.ok) throw new Error(`download failed (${res.status})`);
       const blob = await res.blob();
       const url = URL.createObjectURL(blob);
-      const a = window.document.createElement("a");
+      const name =
+        (guide?.applicantName ?? "Application Pack").replace(
+          /[^A-Za-z0-9 _-]/g,
+          "",
+        ) || "Application Pack";
+      const a = document.createElement("a");
       a.href = url;
-      a.download = `Application Pack — ${applicantName}.zip`;
-      window.document.body.appendChild(a);
+      a.download = `Application Pack - ${name}.zip`;
+      a.style.display = "none";
+      document.body.appendChild(a);
       a.click();
-      a.remove();
-      URL.revokeObjectURL(url);
+      setTimeout(() => {
+        a.remove();
+        URL.revokeObjectURL(url);
+      }, 100);
     } catch (err) {
-      console.error("download all failed:", err);
+      setError(err instanceof Error ? err.message : "Download failed");
     } finally {
       setDownloading(false);
     }
-  }, [applicantName, downloading, projection.id]);
+  }, [downloading, guide, projection.id]);
 
   const handlePrint = () => window.print();
 
-  // Strengths / watchpoints heuristics
-  const strengths: string[] = [];
-  const watchpoints: string[] = [];
-  if (totalPoints !== null) {
-    if (totalPoints >= 65) {
-      strengths.push(`Your ${totalPoints} points exceeds the 65-point minimum for the 189 visa.`);
-    } else {
-      watchpoints.push(
-        `Your ${totalPoints} points is below the 65-point minimum. State sponsorship (190) or regional (491) options remain open.`,
-      );
-    }
-    if (totalPoints < 80) {
-      watchpoints.push(
-        "Lifting your English from Proficient to Superior would add up to 20 points.",
-      );
-    }
-  }
-  const conf = topMatch?.confidence;
-  if (typeof conf === "string" && conf.toLowerCase().includes("strong")) {
-    strengths.push(
-      `Your ANZSCO ${anzscoCode} match confidence is "${conf}" — your CV and duties closely align.`,
-    );
-  }
-  if (refDocs.length > 0) {
-    strengths.push(
-      `${refDocs.length} employment reference letter${refDocs.length === 1 ? " has" : "s have"} been drafted against ANZSCO criteria.`,
+  // ── Empty state: nothing generated yet ────────────────────────
+  if (!guide) {
+    const occTitle = firstMatchTitle(projection);
+    return (
+      <div className="premium min-h-screen bg-background text-foreground">
+        <header className="no-print border-b border-border/40 bg-background/80 backdrop-blur-md">
+          <div className="mx-auto flex max-w-6xl items-center justify-between px-6 py-4">
+            <Link
+              href="/chat"
+              className="inline-flex items-center gap-1.5 font-premium-body text-xs font-semibold uppercase tracking-[0.14em] text-muted-foreground transition-colors hover:text-foreground"
+            >
+              <ArrowLeft className="h-3.5 w-3.5" />
+              Back to chat
+            </Link>
+            <span className="font-premium-body text-[10px] font-semibold uppercase tracking-[0.14em] text-gold">
+              Submission guide
+            </span>
+          </div>
+        </header>
+
+        <main className="mx-auto flex min-h-[70vh] max-w-3xl flex-col items-center justify-center px-6 py-16 text-center">
+          <span className="premium-seal mb-5 h-14 w-14">
+            <ShieldCheck className="h-6 w-6" />
+          </span>
+          <h1 className="font-serif-premium text-3xl font-medium text-foreground md:text-4xl">
+            Generate your submission guide
+          </h1>
+          <p className="mt-4 max-w-xl font-premium-body text-sm leading-relaxed text-muted-foreground">
+            A tailored step-by-step plan for {occTitle}, drawn from your profile, points,
+            drafted reference letters, and the latest assessing body requirements on file.
+            Not a template; a personalised guide.
+          </p>
+
+          {error && (
+            <p
+              className="mt-6 rounded-md border border-destructive/30 bg-destructive/10 px-4 py-2 font-premium-body text-xs text-destructive"
+              role="alert"
+            >
+              {error}
+            </p>
+          )}
+
+          <button
+            type="button"
+            onClick={() => generate()}
+            disabled={loading}
+            className="mt-8 inline-flex items-center justify-center gap-2 rounded-full bg-gold px-6 py-3 font-premium-body text-sm font-semibold uppercase tracking-[0.08em] text-gold-foreground transition-[filter,transform] duration-200 hover:brightness-110 hover:-translate-y-[1px] disabled:cursor-not-allowed disabled:opacity-50"
+          >
+            {loading ? (
+              <>
+                <Loader2 className="h-4 w-4 animate-spin" />
+                Drafting your guide...
+              </>
+            ) : (
+              <>
+                <Sparkles className="h-4 w-4" />
+                Generate submission guide
+              </>
+            )}
+          </button>
+          <p className="mt-4 font-premium-body text-[11px] text-muted-foreground/70">
+            Usually takes 10 - 20 seconds.
+          </p>
+        </main>
+      </div>
     );
   }
 
-  const manifestItems: Array<{
-    title: string;
-    detail: string;
-    state: "ready" | "needs-action";
-    actionLabel?: string;
-    onAction?: () => void;
-  }> = [
-    {
-      title: `Employment reference letters (${refDocs.length})`,
-      detail: refDocs
-        .map((d) => d.title.replace(/^Employment Reference — /, ""))
-        .join(", ") || "Generated from your conversation",
-      state: refDocs.length > 0 ? "ready" : "needs-action",
-      actionLabel: refDocs.length > 0 ? "Download" : "Continue chat",
-      onAction:
-        refDocs.length > 0
-          ? () => handleDownloadAll()
-          : undefined,
-    },
-    {
-      title: "Structured CV",
-      detail: projection.cvData
-        ? "Parsed and stored against your conversation"
-        : "Upload required to complete the pack",
-      state: projection.cvData ? "ready" : "needs-action",
-    },
-    {
-      title: "Academic transcripts & testamur",
-      detail: "Required by ACS — obtain from your university",
-      state: "needs-action",
-    },
-    {
-      title: "Passport bio page",
-      detail: "Colour scan; ensure expiry > 6 months",
-      state: "needs-action",
-    },
-    {
-      title: "English test score report",
-      detail: "IELTS/PTE/TOEFL — original report from the test provider",
-      state: "needs-action",
-    },
-    {
-      title: "Professional headshot photo",
-      detail: "Required for some assessing bodies; check ACS guidance",
-      state: "needs-action",
-    },
-  ];
-
-  const timeline: Array<{ title: string; detail: string }> = [
-    {
-      title: "1. Print, sign, and scan your reference letters",
-      detail:
-        "Use company letterhead. Ask each supervisor to sign and date in ink. Scan as PDF.",
-    },
-    {
-      title: `2. Create or sign in to your ${assessingBody} portal`,
-      detail: `Open ${acsPortalUrl} and start a new Skills Assessment for ANZSCO ${anzscoCode}.`,
-    },
-    {
-      title: "3. Upload your documents in this exact order",
-      detail:
-        "CV, transcripts, testamur, passport, English test report, employment reference letters per role, headshot.",
-    },
-    {
-      title: `4. Pay the ${assessingBody} assessment fee`,
-      detail:
-        "ACS fee is currently A$500 (subject to change). Payment is by credit card.",
-    },
-    {
-      title: "5. Wait for your assessment outcome",
-      detail:
-        "Typical turnaround: 4-6 weeks. ACS may request additional evidence — respond promptly.",
-    },
-    {
-      title: "6. Once positive, lodge your EOI via SkillSelect",
-      detail:
-        "Submit at https://immi.homeaffairs.gov.au/visas/working-in-australia/skillselect with your assessment outcome.",
-    },
-  ];
+  // ── Rendered guide ───────────────────────────────────────────
+  const refDocs = projection.documents.filter(
+    (d) => d.document_type === "employment_reference",
+  );
 
   return (
     <div className="premium min-h-screen bg-background text-foreground" data-testid="submission-guide">
       {/* ── Hero strip ───────────────────────────────────────── */}
-      <header className="relative overflow-hidden bg-primary text-primary-foreground no-print">
+      <header className="no-print relative overflow-hidden bg-primary text-primary-foreground">
         <div
           aria-hidden
           className="pointer-events-none absolute inset-0 opacity-20"
@@ -265,15 +254,19 @@ export function SubmissionGuide({
             ready to submit.
           </h1>
           <p className="mt-4 max-w-2xl font-premium-body text-base leading-relaxed text-primary-foreground/85">
-            Prepared for {applicantName} — {occupationTitle}
-            {anzscoCode ? ` (ANZSCO ${anzscoCode})` : ""} via {assessingBody}.
-            Generated {formatDate()}.
+            Prepared for {guide.applicantName} — {guide.occupationTitle}
+            {guide.anzscoCode ? ` (ANZSCO ${guide.anzscoCode})` : ""} via {guide.assessingBody}.
+            Generated {new Date(guide.generatedAt).toLocaleDateString("en-AU", {
+              day: "numeric",
+              month: "long",
+              year: "numeric",
+            })}.
           </p>
 
           <div className="mt-8 flex flex-wrap gap-3">
             <button
               type="button"
-              onClick={handleDownloadAll}
+              onClick={downloadPack}
               disabled={downloading}
               className="inline-flex items-center justify-center gap-2 rounded-full bg-gold px-5 py-3 font-premium-body text-sm font-semibold uppercase tracking-[0.08em] text-gold-foreground transition-[filter,transform] duration-200 hover:brightness-110 hover:-translate-y-[1px] disabled:opacity-50"
             >
@@ -297,15 +290,42 @@ export function SubmissionGuide({
               <Printer className="h-4 w-4" />
               Print or save as PDF
             </button>
+            <button
+              type="button"
+              onClick={() => generate({ regenerate: true })}
+              disabled={loading}
+              className="inline-flex items-center gap-2 rounded-full border border-primary-foreground/30 px-4 py-3 font-premium-body text-xs font-semibold uppercase tracking-[0.08em] text-primary-foreground/80 transition-colors hover:bg-primary-foreground/10 disabled:opacity-50"
+              title="Regenerate with latest data"
+            >
+              {loading ? (
+                <Loader2 className="h-3.5 w-3.5 animate-spin" />
+              ) : (
+                <RefreshCw className="h-3.5 w-3.5" />
+              )}
+              Regenerate
+            </button>
           </div>
+
+          {error && (
+            <p
+              className="mt-4 rounded-md border border-destructive/30 bg-destructive/20 px-3 py-2 font-premium-body text-xs text-destructive-foreground"
+              role="alert"
+            >
+              {error}
+            </p>
+          )}
         </div>
       </header>
 
-      {/* Print-only header */}
+      {/* Print header */}
       <header className="hidden print:block px-10 py-8">
-        <h1 className="font-serif-premium text-3xl">Submission Guide — {applicantName}</h1>
+        <h1 className="font-serif-premium text-3xl">
+          Submission Guide — {guide.applicantName}
+        </h1>
         <p className="mt-1 text-sm text-muted-foreground">
-          {occupationTitle} (ANZSCO {anzscoCode}) via {assessingBody}. Generated {formatDate()}.
+          {guide.occupationTitle}
+          {guide.anzscoCode ? ` (ANZSCO ${guide.anzscoCode})` : ""} via{" "}
+          {guide.assessingBody}.
         </p>
       </header>
 
@@ -313,82 +333,86 @@ export function SubmissionGuide({
         {/* Snapshot */}
         <section className="mb-12 rounded-[var(--radius-premium)] border border-border bg-card p-6 md:p-8">
           <div className="grid gap-6 md:grid-cols-3">
-            <SnapshotItem label="Applicant" value={applicantName} />
+            <SnapshotItem label="Applicant" value={guide.applicantName} />
             <SnapshotItem
               label="Occupation"
-              value={`${occupationTitle}${anzscoCode ? ` • ${anzscoCode}` : ""}`}
+              value={`${guide.occupationTitle}${guide.anzscoCode ? ` • ${guide.anzscoCode}` : ""}`}
             />
-            <SnapshotItem label="Assessing body" value={assessingBody} />
+            <SnapshotItem label="Assessing body" value={guide.assessingBody} />
+            <SnapshotItem label="Fees" value={guide.feeNote} />
+            <SnapshotItem label="Turnaround" value={guide.turnaround} />
             <SnapshotItem
-              label="Points total"
-              value={totalPoints !== null ? `${totalPoints} points` : "Pending"}
+              label="References drafted"
+              value={`${refDocs.length} letter${refDocs.length === 1 ? "" : "s"}`}
             />
-            <SnapshotItem
-              label="Match confidence"
-              value={typeof conf === "string" ? conf : "—"}
-            />
-            <SnapshotItem label="Estimated turnaround" value="4 – 6 weeks (ACS)" />
           </div>
         </section>
 
         {/* Manifest */}
-        <section className="mb-12">
-          <SectionTitle eyebrow="Document manifest" title="Pack contents" />
-          <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-            {manifestItems.map((item) => (
-              <ManifestCard key={item.title} item={item} />
-            ))}
-          </div>
-        </section>
+        {guide.manifest.length > 0 && (
+          <section className="mb-12">
+            <SectionTitle eyebrow="Document manifest" title="Pack contents" />
+            <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+              {guide.manifest.map((item, i) => (
+                <ManifestCard
+                  key={i}
+                  item={item}
+                  onAction={
+                    item.reference === "employment_references"
+                      ? downloadPack
+                      : undefined
+                  }
+                />
+              ))}
+            </div>
+          </section>
+        )}
 
         {/* Timeline */}
-        <section className="mb-12">
-          <SectionTitle eyebrow="Step-by-step" title="Submission timeline" />
-          <ol className="space-y-5">
-            {timeline.map((step, i) => (
-              <li
-                key={step.title}
-                className="relative rounded-[var(--radius-premium)] border border-border bg-card p-5 pl-14"
-              >
-                <span className="absolute left-5 top-5 flex h-6 w-6 items-center justify-center rounded-full bg-primary text-[11px] font-semibold text-primary-foreground">
-                  {i + 1}
-                </span>
-                <h3 className="font-serif-premium text-lg font-medium text-foreground">
-                  {step.title}
-                </h3>
-                <p className="mt-1 font-premium-body text-sm leading-relaxed text-muted-foreground">
-                  {step.detail}
-                </p>
-              </li>
-            ))}
-          </ol>
-        </section>
+        {guide.timeline.length > 0 && (
+          <section className="mb-12">
+            <SectionTitle eyebrow="Step-by-step" title="Submission timeline" />
+            <ol className="space-y-5">
+              {guide.timeline.map((step, i) => (
+                <li
+                  key={i}
+                  className="relative rounded-[var(--radius-premium)] border border-border bg-card p-5 pl-14"
+                >
+                  <span className="absolute left-5 top-5 flex h-6 w-6 items-center justify-center rounded-full bg-primary text-[11px] font-semibold text-primary-foreground">
+                    {i + 1}
+                  </span>
+                  <h3 className="font-serif-premium text-lg font-medium text-foreground">
+                    {step.title}
+                  </h3>
+                  <p className="mt-1 font-premium-body text-sm leading-relaxed text-muted-foreground">
+                    {step.detail}
+                  </p>
+                </li>
+              ))}
+            </ol>
+          </section>
+        )}
 
-        {/* External CTAs */}
-        <section className="mb-12 grid gap-4 md:grid-cols-2">
-          <ExternalCard
-            title={`Open the ${assessingBody} portal`}
-            detail={`Pre-filled for ANZSCO ${anzscoCode}`}
-            href={acsPortalUrl}
-          />
-          <ExternalCard
-            title="SkillSelect EOI portal"
-            detail="Lodge your EOI once your assessment is positive"
-            href="https://immi.homeaffairs.gov.au/visas/working-in-australia/skillselect"
-          />
-        </section>
+        {/* External links */}
+        {guide.links.length > 0 && (
+          <section className="mb-12 grid gap-4 md:grid-cols-2">
+            {guide.links.map((l, i) => (
+              <ExternalCard key={i} title={l.title} detail={l.detail} href={l.href} />
+            ))}
+          </section>
+        )}
 
         {/* Strengths + watchpoints */}
-        {(strengths.length > 0 || watchpoints.length > 0) && (
+        {(guide.strengths.length > 0 || guide.watchpoints.length > 0) && (
           <section className="mb-12 grid gap-4 md:grid-cols-2">
-            {strengths.length > 0 && (
+            {guide.strengths.length > 0 && (
               <div className="rounded-[var(--radius-premium)] border border-gold/40 bg-gold-soft p-5">
                 <h3 className="mb-3 flex items-center gap-2 font-premium-body text-[10px] font-semibold uppercase tracking-[0.14em] text-gold">
                   <CheckCircle2 className="h-3.5 w-3.5" />
                   Strengths
                 </h3>
                 <ul className="space-y-2 font-premium-body text-sm leading-relaxed text-foreground/90">
-                  {strengths.map((s, i) => (
+                  {guide.strengths.map((s, i) => (
                     <li key={i} className="flex gap-2">
                       <span className="mt-1.5 h-1 w-1 shrink-0 rounded-full bg-gold" />
                       {s}
@@ -397,14 +421,14 @@ export function SubmissionGuide({
                 </ul>
               </div>
             )}
-            {watchpoints.length > 0 && (
+            {guide.watchpoints.length > 0 && (
               <div className="rounded-[var(--radius-premium)] border border-border bg-card p-5">
                 <h3 className="mb-3 flex items-center gap-2 font-premium-body text-[10px] font-semibold uppercase tracking-[0.14em] text-primary">
                   <Circle className="h-3.5 w-3.5" />
                   Watchpoints
                 </h3>
                 <ul className="space-y-2 font-premium-body text-sm leading-relaxed text-foreground/90">
-                  {watchpoints.map((w, i) => (
+                  {guide.watchpoints.map((w, i) => (
                     <li key={i} className="flex gap-2">
                       <span className="mt-1.5 h-1 w-1 shrink-0 rounded-full bg-primary" />
                       {w}
@@ -445,9 +469,9 @@ export function SubmissionGuide({
             imminash provides general information only. It does not constitute
             migration advice and does not guarantee visa or assessment outcomes.
             Always consult a registered migration agent (MARA) for personalised
-            legal advice. Generated automatically from your conversation on
-            {" "}
-            {formatDate()}.
+            legal advice. Content generated automatically from your profile and the
+            latest assessing body requirements on file. Always verify fees,
+            turnaround times, and URLs against the official portal before submitting.
           </p>
         </footer>
       </main>
@@ -489,14 +513,15 @@ function SectionTitle({
 
 function ManifestCard({
   item,
+  onAction,
 }: {
   item: {
     title: string;
     detail: string;
     state: "ready" | "needs-action";
-    actionLabel?: string;
-    onAction?: () => void;
+    reference?: "employment_references" | "cv" | null;
   };
+  onAction?: () => void;
 }) {
   const isReady = item.state === "ready";
   return (
@@ -525,13 +550,13 @@ function ManifestCard({
       <p className="font-premium-body text-sm leading-relaxed text-muted-foreground">
         {item.detail}
       </p>
-      {item.actionLabel && item.onAction && (
+      {onAction && (
         <button
           type="button"
-          onClick={item.onAction}
+          onClick={onAction}
           className="mt-4 inline-flex items-center gap-1.5 self-start rounded-full border border-primary/30 px-3 py-1.5 font-premium-body text-[11px] font-semibold uppercase tracking-[0.08em] text-primary transition-colors hover:bg-primary/5 no-print"
         >
-          {item.actionLabel}
+          Download
         </button>
       )}
     </div>

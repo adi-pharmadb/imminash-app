@@ -44,6 +44,13 @@ export default async function SubmissionGuidePage({
     row as unknown as ConversationRow,
     (docs ?? []) as ConversationDocument[],
   );
+  const submissionGuideData = (row as unknown as { submission_guide_data?: unknown })
+    .submission_guide_data ?? null;
 
-  return <SubmissionGuide projection={projection} />;
+  return (
+    <SubmissionGuide
+      projection={projection}
+      initialGuide={submissionGuideData as never}
+    />
+  );
 }

@@ -108,26 +108,47 @@ export function ApplicationPackPanel({
   const EXPECTED_PACK_SIZE = 6; // references + cv + checklist + submission guide + transcripts + passport
   const docsReady = projection.documents.length;
 
+  const [downloadError, setDownloadError] = useState<string | null>(null);
+
   const handleDownloadAll = useCallback(async () => {
     if (downloading) return;
     setDownloading(true);
+    setDownloadError(null);
     try {
       const res = await fetch(
         `/api/documents/conversation/${projection.id}/download-all`,
         { method: "GET" },
       );
-      if (!res.ok) throw new Error(`download failed: ${res.status}`);
+      if (!res.ok) {
+        let detail = `${res.status}`;
+        try {
+          const body = await res.json();
+          if (body?.error) detail = body.error as string;
+        } catch {
+          // not json; leave as status
+        }
+        throw new Error(detail);
+      }
       const blob = await res.blob();
+      if (blob.size === 0) throw new Error("empty response");
+
       const url = URL.createObjectURL(blob);
+      const safeName = applicantName.replace(/[^A-Za-z0-9 _-]/g, "");
       const a = document.createElement("a");
       a.href = url;
-      a.download = `Application Pack — ${applicantName}.zip`;
+      a.download = `Application Pack - ${safeName}.zip`;
+      a.rel = "noopener";
+      a.style.display = "none";
       document.body.appendChild(a);
       a.click();
-      a.remove();
-      URL.revokeObjectURL(url);
+      setTimeout(() => {
+        a.remove();
+        URL.revokeObjectURL(url);
+      }, 100);
     } catch (err) {
-      console.error("download all failed:", err);
+      const msg = err instanceof Error ? err.message : "Download failed";
+      console.error("[download-all] failed:", msg);
+      setDownloadError(msg);
     } finally {
       setDownloading(false);
     }
@@ -329,6 +350,14 @@ export function ApplicationPackPanel({
           </>
         )}
       </button>
+      {downloadError && (
+        <p
+          className="mb-3 rounded-md border border-destructive/30 bg-destructive/10 px-3 py-2 font-premium-body text-[11px] text-destructive"
+          role="alert"
+        >
+          Download failed: {downloadError}. Try again or download individual documents.
+        </p>
+      )}
       {projection.phase === "done" && (
         <a
           href={`/chat/submission-guide/${projection.id}`}
