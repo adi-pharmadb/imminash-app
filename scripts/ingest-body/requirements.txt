@@ -1,0 +1,5 @@
+scrapling>=0.2
+browser-use>=0.1
+supabase>=2.0
+pydantic>=2.0
+python-dotenv>=1.0

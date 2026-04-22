@@ -52,6 +52,7 @@ export function buildUnifiedChatPrompt(
   conversation: ProjectedConversation,
   assessingBody?: AssessingBodyRequirement,
   occupationDescriptors?: unknown,
+  knowledgeIndex?: string | null,
 ): UnifiedSystemBlock[] {
   const paid = Boolean(conversation.paidAt) || conversation.phase === "paid" || conversation.phase === "phase2" || conversation.phase === "done";
 
@@ -60,7 +61,7 @@ export function buildUnifiedChatPrompt(
     assessingBody?.eligibility_rules ?? null,
   );
 
-  const header = [
+  const headerLines = [
     `CURRENT_PHASE: ${conversation.phase}`,
     `PAID: ${paid ? "true" : "false"}`,
     `ASSESSING_BODY: ${assessingBody?.body_name ?? "unknown"}`,
@@ -74,7 +75,15 @@ export function buildUnifiedChatPrompt(
     }`,
     `KNOWN_CV: ${conversation.cvData ? dumpJson(conversation.cvData) : "not uploaded"}`,
     `ALLOWED_NEXT_ACTIONS: ${ALLOWED_ACTIONS[conversation.phase].join("; ")}`,
-  ].join("\n");
+  ];
+
+  if (knowledgeIndex) {
+    headerLines.push(
+      `KNOWLEDGE_INDEX (call lookup_knowledge before answering body-specific questions):\n${knowledgeIndex}`,
+    );
+  }
+
+  const header = headerLines.join("\n");
 
   const descriptorsBlock = occupationDescriptors
     ? `\n\nANZSCO DUTY DESCRIPTORS (for selected occupation):\n${dumpJson(occupationDescriptors)}`
@@ -228,6 +237,19 @@ After the tool returns:
   b. Emit [POINTS_UPDATE] with total + breakdown.
   c. Read ELIGIBILITY_DECISION from the per-turn header and emit EITHER [PAYWALL] OR [CALENDLY], never both. This decision is computed server-side from the selected assessing body's rules; do NOT re-evaluate eligibility yourself.
   d. End Phase 1 with a short MARA disclaimer: "imminash is not a registered migration agent. For personalised legal advice, consult a MARA-registered agent."
+
+===== KNOWLEDGE BASE (only when KNOWLEDGE_INDEX is present in the header) =====
+When the per-turn header contains KNOWLEDGE_INDEX, the active assessing body has a structured knowledge base available via the \`lookup_knowledge\` tool. Before stating ANY body-specific fact (eligibility thresholds, pathway names, fee amounts, required documents, letter structure rules, timelines, portal URLs, rejection risks), you MUST:
+
+1. Pick the H2 section that most likely contains the fact, from the KNOWLEDGE_INDEX list.
+2. Call \`lookup_knowledge({"section": "<exact heading>"})\`. Headings are case-sensitive.
+3. Read the returned content and base your answer ONLY on what the section says.
+
+If the section you called does not contain the fact, try a different section before falling back to general knowledge. Never guess body-specific numbers (fees, thresholds, durations) or invent document names.
+
+If \`lookup_knowledge\` returns \`error: section_not_found\`, it will include an \`available_sections\` list. Retry with a correct section name. If no section contains the information, say so to the user (e.g. "I don't have a documented answer for that in our ACS knowledge base, let me note it as a gap"); do not invent an answer.
+
+This retrieval rule applies in BOTH Phase 1 and Phase 2. In Phase 2 you'll lean heavily on the "Letter Template", "Duty Descriptors", and "Common Risks & Watchpoints" sections while drafting references.
 
 ===== ELIGIBILITY DECISION =====
 The server computes per-body eligibility on every turn and exposes the result as ELIGIBILITY_DECISION in the header. It will be one of:

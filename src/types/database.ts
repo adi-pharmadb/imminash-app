@@ -118,8 +118,24 @@ export interface AssessingBodyRequirement {
   conversation_template: Record<string, unknown> | null;
   ui_config?: BodyUiConfig | null;
   eligibility_rules?: EligibilityRules | null;
+  knowledge_md?: string | null;
+  knowledge_scraped_at?: string | null;
+  knowledge_sources?: Array<{ url: string; scraped_at: string; status?: string }> | null;
+  active_revision_id?: string | null;
   created_at: string;
   updated_at: string;
+}
+
+export interface AssessingBodyKnowledgeRevision {
+  id: string;
+  body_id: string;
+  knowledge_md: string;
+  scraped_at: string;
+  sources: Array<{ url: string; scraped_at: string; status?: string }> | null;
+  diff_summary: string | null;
+  promoted_at: string | null;
+  promoted_by: string | null;
+  created_at: string;
 }
 
 export interface Document {

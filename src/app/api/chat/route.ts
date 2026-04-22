@@ -56,6 +56,23 @@ const MATCH_OCCUPATIONS_TOOL = {
   },
 };
 
+const LOOKUP_KNOWLEDGE_TOOL = {
+  name: "lookup_knowledge",
+  description:
+    "Fetch the full body of a named H2 section from the active assessing body's knowledge base (e.g. 'Eligibility Rules', 'Required Documents', 'Letter Template', 'Fees & Submission Mechanics'). Use this BEFORE answering any body-specific question (eligibility, fees, documents, timelines, letter structure). Never answer from memory on body-specific facts; always retrieve first.",
+  input_schema: {
+    type: "object" as const,
+    properties: {
+      section: {
+        type: "string",
+        description:
+          "The H2 section heading to retrieve. Must match exactly (case-sensitive). See the KNOWLEDGE_INDEX in the system header for the full list of available sections for the current body.",
+      },
+    },
+    required: ["section"],
+  },
+};
+
 type SupabaseAuthed = Awaited<ReturnType<typeof createClient>>;
 
 export async function POST(request: Request) {
@@ -107,9 +124,14 @@ export async function POST(request: Request) {
     // Look up assessing body + descriptors for the primary matched ANZSCO.
     const assessingBody = await loadAssessingBody(supabase, projection);
 
+    const knowledgeIndex = buildKnowledgeIndex(assessingBody?.knowledge_md);
+    const hasKnowledge = !!(assessingBody?.knowledge_md && knowledgeIndex);
+
     const systemBlocks = buildUnifiedChatPrompt(
       projection,
       assessingBody ?? undefined,
+      undefined,
+      knowledgeIndex,
     );
 
     // Build the message history sent to Claude.
@@ -142,15 +164,22 @@ export async function POST(request: Request) {
           let turnMessages = history.slice();
           let safety = 0;
 
-          // Loop to handle tool_use turns. Max 2 iterations (initial + 1 tool).
-          while (safety < 3) {
+          // Loop to handle tool_use turns. With knowledge lookup enabled the
+          // agent may call lookup_knowledge several times per turn, so allow
+          // up to 8 iterations. Without knowledge, 3 is enough.
+          const maxIter = hasKnowledge ? 8 : 3;
+          const tools = hasKnowledge
+            ? [MATCH_OCCUPATIONS_TOOL, LOOKUP_KNOWLEDGE_TOOL]
+            : [MATCH_OCCUPATIONS_TOOL];
+
+          while (safety < maxIter) {
             safety += 1;
 
             const stream = anthropic.messages.stream({
               model: AI_MODEL,
               max_tokens: 8192,
               system: systemBlocks,
-              tools: [MATCH_OCCUPATIONS_TOOL],
+              tools,
               messages: turnMessages,
             });
 
@@ -185,8 +214,7 @@ export async function POST(request: Request) {
 
             const finalMessage = await stream.finalMessage();
 
-            if (finalMessage.stop_reason === "tool_use" && toolUseId && toolName === "match_occupations") {
-              // Run the tool, append tool_result, loop.
+            if (finalMessage.stop_reason === "tool_use" && toolUseId && toolName) {
               let toolInput: Record<string, unknown> = {};
               try {
                 toolInput = toolInputRaw ? JSON.parse(toolInputRaw) : {};
@@ -194,10 +222,23 @@ export async function POST(request: Request) {
                 toolInput = {};
               }
 
-              const toolResult = await runMatchOccupationsTool(
-                supabase,
-                toolInput,
-              );
+              let toolResult: unknown = { error: "unknown_tool", tool: toolName };
+              if (toolName === "match_occupations") {
+                toolResult = await runMatchOccupationsTool(supabase, toolInput);
+              } else if (toolName === "lookup_knowledge" && assessingBody?.knowledge_md) {
+                const section = String(toolInput.section ?? "").trim();
+                const content = sliceH2Section(assessingBody.knowledge_md, section);
+                toolResult = content
+                  ? { section, content }
+                  : {
+                      section,
+                      error: "section_not_found",
+                      available_sections: (buildKnowledgeIndex(assessingBody.knowledge_md) ?? "")
+                        .split("\n")
+                        .map((l) => l.replace(/^\s*-\s*/, "").split(" — ")[0])
+                        .filter(Boolean),
+                    };
+              }
 
               turnMessages = [
                 ...turnMessages,
@@ -328,6 +369,62 @@ function jsonError(error: string, status: number, details?: unknown) {
     JSON.stringify(details ? { error, details } : { error }),
     { status, headers: { "Content-Type": "application/json" } },
   );
+}
+
+/**
+ * Extract a single H2 section (and its body, up to the next H2 or EOF) from
+ * a markdown document. Returns null if the section heading is not present.
+ * Heading match is case-sensitive and exact after stripping the "## " prefix.
+ */
+function sliceH2Section(markdown: string, section: string): string | null {
+  const target = section.trim();
+  const lines = markdown.split("\n");
+  let startIdx = -1;
+  for (let i = 0; i < lines.length; i++) {
+    const line = lines[i];
+    if (line.startsWith("## ") && line.slice(3).trim() === target) {
+      startIdx = i;
+      break;
+    }
+  }
+  if (startIdx === -1) return null;
+  let endIdx = lines.length;
+  for (let i = startIdx + 1; i < lines.length; i++) {
+    if (lines[i].startsWith("## ")) {
+      endIdx = i;
+      break;
+    }
+  }
+  return lines.slice(startIdx, endIdx).join("\n").trim();
+}
+
+/**
+ * Build the KNOWLEDGE_INDEX block for the per-turn system header: a list of
+ * H2 section headings available for lookup, each with the first non-empty
+ * line of the section as a preview. Returns null if the body has no
+ * knowledge_md populated.
+ */
+function buildKnowledgeIndex(md: string | null | undefined): string | null {
+  if (!md) return null;
+  const lines = md.split("\n");
+  const entries: Array<{ heading: string; preview: string }> = [];
+  for (let i = 0; i < lines.length; i++) {
+    if (!lines[i].startsWith("## ")) continue;
+    const heading = lines[i].slice(3).trim();
+    let preview = "";
+    for (let j = i + 1; j < lines.length; j++) {
+      if (lines[j].startsWith("## ")) break;
+      const trimmed = lines[j].trim();
+      if (trimmed && !trimmed.startsWith("#")) {
+        preview = trimmed.replace(/^-\s*/, "").replace(/\*\*/g, "");
+        if (preview.length > 140) preview = preview.slice(0, 137) + "…";
+        break;
+      }
+    }
+    entries.push({ heading, preview });
+  }
+  if (entries.length === 0) return null;
+  return entries.map((e) => `  - ${e.heading}${e.preview ? " — " + e.preview : ""}`).join("\n");
 }
 
 async function backfillAssessingAuthority(
