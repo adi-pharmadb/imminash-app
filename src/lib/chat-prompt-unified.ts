@@ -122,8 +122,9 @@ Emit these markers inline in your responses. The client parses them out and they
 2. [POINTS_UPDATE]{"total": 75, "breakdown": {...}}[/POINTS_UPDATE]
    - Emit once after match_occupations tool returns.
 
-3. [MATCH_UPDATE]{"matches": [{"anzsco_code": "261313", "title": "Software Engineer", "confidence": "Strong"}, ...]}[/MATCH_UPDATE]
+3. [MATCH_UPDATE]{"matches": [{"anzsco_code": "261313", "title": "Software Engineer", "confidence": "Strong", "assessing_authority": "ACS"}, ...]}[/MATCH_UPDATE]
    - Emit once after match_occupations tool returns.
+   - Each match object MUST include \`assessing_authority\` copied verbatim from the tool result (e.g. "ACS", "VETASSESS", "Engineers Australia", "TRA"). Downstream UI (paywall copy, workspace layout) depends on this field, so never omit it.
 
 4. [PAYWALL]
    - Inline tag (no body). Triggers the paywall UI. Emit when Phase 1 is complete AND the user is ACS-eligible.

@@ -330,6 +330,56 @@ function jsonError(error: string, status: number, details?: unknown) {
   );
 }
 
+async function backfillAssessingAuthority(
+  supabase: SupabaseAuthed,
+  raw: unknown,
+): Promise<unknown> {
+  const matchArray = Array.isArray(raw)
+    ? raw
+    : raw && typeof raw === "object" && Array.isArray((raw as { matches?: unknown }).matches)
+      ? ((raw as { matches: unknown[] }).matches)
+      : null;
+  if (!matchArray || matchArray.length === 0) return raw;
+
+  const missingCodes = new Set<string>();
+  for (const m of matchArray) {
+    if (!m || typeof m !== "object") continue;
+    const obj = m as Record<string, unknown>;
+    const hasAuth = !!(obj.assessing_authority || obj.assessingAuthority);
+    const code = (obj.anzsco_code as string) || (obj.anzscoCode as string);
+    if (!hasAuth && code) missingCodes.add(code);
+  }
+  if (missingCodes.size === 0) return raw;
+
+  const { data: occs } = await supabase
+    .from("occupations")
+    .select("anzsco_code, assessing_authority")
+    .in("anzsco_code", Array.from(missingCodes));
+  const byCode = new Map<string, string | null>();
+  for (const o of occs ?? []) {
+    byCode.set(o.anzsco_code as string, (o.assessing_authority as string) ?? null);
+  }
+
+  const enrich = (m: unknown) => {
+    if (!m || typeof m !== "object") return m;
+    const obj = m as Record<string, unknown>;
+    if (obj.assessing_authority || obj.assessingAuthority) return obj;
+    const code = (obj.anzsco_code as string) || (obj.anzscoCode as string);
+    if (!code) return obj;
+    const auth = byCode.get(code);
+    if (!auth) return obj;
+    return { ...obj, assessing_authority: auth };
+  };
+
+  if (Array.isArray(raw)) {
+    return raw.map(enrich);
+  }
+  return {
+    ...(raw as Record<string, unknown>),
+    matches: matchArray.map(enrich),
+  };
+}
+
 async function loadAssessingBody(
   supabase: SupabaseAuthed,
   projection: ReturnType<typeof projectConversation>,
@@ -486,6 +536,11 @@ async function persistTurn(args: PersistArgs) {
   if (parsed.matchUpdate) {
     newMatches = parsed.matchUpdate;
   }
+
+  // Backfill assessing_authority on each match if the agent forgot to include
+  // it in the [MATCH_UPDATE] marker. The occupations table is the source of
+  // truth; downstream UI (paywall copy, workspace layout) reads this field.
+  newMatches = await backfillAssessingAuthority(supabase, newMatches);
 
   // Phase transitions.
   let newStatus = row.status;
