@@ -11,6 +11,7 @@
 
 import type { ProjectedConversation } from "./conversation-state";
 import type { AssessingBodyRequirement } from "@/types/database";
+import { evaluateEligibility } from "./eligibility-check";
 
 export interface UnifiedSystemBlock {
   type: "text";
@@ -24,7 +25,7 @@ const ALLOWED_ACTIONS: Record<ProjectedConversation["phase"], string[]> = {
     "emit [PROFILE_UPDATE] after each answer",
     "call match_occupations tool when all required fields present",
     "emit [MATCH_UPDATE] and [POINTS_UPDATE] after tool returns",
-    "emit [PAYWALL] or [CALENDLY] based on ACS eligibility",
+    "emit [PAYWALL] or [CALENDLY] based on ELIGIBILITY_DECISION in the header",
   ],
   awaiting_payment: [
     "reiterate value, answer questions, do NOT start phase 2 doc generation",
@@ -54,9 +55,16 @@ export function buildUnifiedChatPrompt(
 ): UnifiedSystemBlock[] {
   const paid = Boolean(conversation.paidAt) || conversation.phase === "paid" || conversation.phase === "phase2" || conversation.phase === "done";
 
+  const eligibilityDecision = evaluateEligibility(
+    conversation.profile as Record<string, unknown> | null,
+    assessingBody?.eligibility_rules ?? null,
+  );
+
   const header = [
     `CURRENT_PHASE: ${conversation.phase}`,
     `PAID: ${paid ? "true" : "false"}`,
+    `ASSESSING_BODY: ${assessingBody?.body_name ?? "unknown"}`,
+    `ELIGIBILITY_DECISION: ${eligibilityDecision}`,
     `KNOWN_PROFILE: ${dumpJson(conversation.profile)}`,
     `KNOWN_MATCHES: ${conversation.matches.length ? dumpJson(conversation.matches) : "none"}`,
     `KNOWN_POINTS_TOTAL: ${
@@ -217,17 +225,15 @@ Once all eleven answers are captured in KNOWN_PROFILE, call the \`match_occupati
 After the tool returns:
   a. Emit [MATCH_UPDATE] with the returned matches.
   b. Emit [POINTS_UPDATE] with total + breakdown.
-  c. Decide ACS eligibility (see rule below) and emit EITHER [PAYWALL] OR [CALENDLY] — never both.
+  c. Read ELIGIBILITY_DECISION from the per-turn header and emit EITHER [PAYWALL] OR [CALENDLY], never both. This decision is computed server-side from the selected assessing body's rules; do NOT re-evaluate eligibility yourself.
   d. End Phase 1 with a short MARA disclaimer: "imminash is not a registered migration agent. For personalised legal advice, consult a MARA-registered agent."
 
-===== ACS ELIGIBILITY RULE (source of truth: src/lib/eligibility-check.ts) =====
-User is ACS-eligible for the paid doc-gen path if ANY of:
-  - Professional Year completed, OR
-  - >= 1 year of ONSHORE Australian experience (any band from "1 to less than 3 years" upward), OR
-  - >= 3 years of OFFSHORE experience (any band from "3 to less than 5 years" upward).
+===== ELIGIBILITY DECISION =====
+The server computes per-body eligibility on every turn and exposes the result as ELIGIBILITY_DECISION in the header. It will be one of:
+  - "paywall" -> emit [PAYWALL] to drive the user to payment.
+  - "calendly" -> emit [CALENDLY] to refer the user to a consultation instead.
 
-If eligible -> emit [PAYWALL].
-If NOT eligible -> emit [CALENDLY] (refer to consultation, NOT the paywall).
+Do not guess, reason about, or override this decision. If ELIGIBILITY_DECISION is "calendly", do not emit [PAYWALL] even if the user explicitly asks to pay; redirect them to the consultation instead.
 
 ===== PHASE 2 FLOW (paid only) =====
 Only run this when PAID=true in the header. The VERY FIRST Phase 2 message must include this disclaimer verbatim:

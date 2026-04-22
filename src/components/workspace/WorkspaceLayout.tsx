@@ -32,7 +32,7 @@ import {
 import { FactCheckDeclaration } from "@/components/workspace/FactCheckDeclaration";
 import { CompletionDashboard } from "@/components/workspace/CompletionDashboard";
 import { ReferralPrompt } from "@/components/workspace/ReferralPrompt";
-import { isACSBody, formatDocumentType } from "@/lib/workspace-helpers";
+import { hasAcsFormSidebar, formatDocumentType } from "@/lib/workspace-helpers";
 import type { ChatMessage } from "@/lib/workspace-helpers";
 import type { DocumentUpdate, ACSFormUpdate } from "@/lib/duty-alignment";
 import { extractEmployersFromMessages } from "@/lib/duty-alignment";
@@ -82,7 +82,7 @@ export function WorkspaceLayout({
   firstName = "",
   onMessagesChange,
 }: WorkspaceLayoutProps) {
-  const isACS = isACSBody(assessingAuthority);
+  const isACS = hasAcsFormSidebar(assessingAuthority);
 
   const [messages, setMessages] = useState<ChatMessage[]>(initialMessages);
   const [documents, setDocuments] = useState<DbDocument[]>(initialDocuments);

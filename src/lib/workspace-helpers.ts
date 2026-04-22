@@ -3,7 +3,25 @@
  * extracting document tab labels, and managing workspace state.
  */
 
-import type { AssessingBodyRequirement } from "@/types/database";
+import type { AssessingBodyRequirement, BodyUiConfig } from "@/types/database";
+
+/**
+ * Bodies onboarded to the paid document workspace. Soft gate for the
+ * occupation picker / results page — non-supported bodies are greyed
+ * out with a "coming soon" affordance.
+ *
+ * Source of truth is `assessing_body_requirements.ui_config` in DB;
+ * this list mirrors the bodies that have a non-null ui_config row.
+ * When onboarding a new body: seed ui_config in a migration, then add
+ * its body_name here.
+ */
+const SUPPORTED_BODY_NAMES = ["ACS", "VETASSESS"] as const;
+
+const DEFAULT_UI_CONFIG: BodyUiConfig = {
+  pathway_label: "Skills Assessment",
+  sidebar_layout: "chat-only",
+  primary_document_types: ["employment_reference"],
+};
 
 export interface WorkspaceAssessmentData {
   assessmentId: string;
@@ -20,12 +38,45 @@ export interface ChatMessage {
   content: string;
 }
 
+function normalizeAuthority(authority: string): string {
+  const trimmed = authority.toUpperCase().trim();
+  if (trimmed === "ACS" || trimmed.includes("AUSTRALIAN COMPUTER SOCIETY")) {
+    return "ACS";
+  }
+  if (trimmed.startsWith("VETASSESS")) return "VETASSESS";
+  if (trimmed === "TRA" || trimmed.includes("TRADES RECOGNITION")) return "TRA";
+  if (trimmed.includes("ENGINEERS AUSTRALIA")) return "Engineers Australia";
+  return authority.trim();
+}
+
 /**
- * Check if the assessing authority is ACS.
+ * Returns true when the body has been onboarded to the paid document
+ * workspace. Used for soft-gating the occupation picker / results page.
  */
-export function isACSBody(authority: string): boolean {
-  const normalized = authority.toUpperCase().trim();
-  return normalized === "ACS" || normalized.includes("AUSTRALIAN COMPUTER SOCIETY");
+export function isSupportedBody(authority: string): boolean {
+  const normalized = normalizeAuthority(authority);
+  return (SUPPORTED_BODY_NAMES as readonly string[]).includes(normalized);
+}
+
+/**
+ * Returns true when the body uses the ACS-style form sidebar in the
+ * workspace. Today this is ACS-only; other bodies use `chat-only`.
+ * Kept narrow (separate from isSupportedBody) so widening the supported
+ * list doesn't accidentally activate the ACS form for other bodies.
+ */
+export function hasAcsFormSidebar(authority: string): boolean {
+  return normalizeAuthority(authority) === "ACS";
+}
+
+/**
+ * Merge a body's ui_config with sensible defaults. Accepts the full
+ * assessing_body_requirements row (nullable — older rows may not have
+ * ui_config populated yet).
+ */
+export function getBodyUiConfig(
+  assessingBody: AssessingBodyRequirement | null | undefined,
+): BodyUiConfig {
+  return { ...DEFAULT_UI_CONFIG, ...(assessingBody?.ui_config ?? {}) };
 }
 
 /**

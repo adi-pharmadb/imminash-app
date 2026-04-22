@@ -15,7 +15,7 @@ import { WorkspaceLayout } from "@/components/workspace/WorkspaceLayout";
 import {
   generateFirstMessage,
   getDocumentTabs,
-  isACSBody,
+  hasAcsFormSidebar,
   type WorkspaceAssessmentData,
   type ChatMessage,
 } from "@/lib/workspace-helpers";
@@ -241,8 +241,9 @@ export default function WorkspacePage() {
         // Determine document tabs from assessing body
         const tabs = getDocumentTabs(body);
 
-        // For ACS bodies, reconstruct ACS form data from persisted documents
-        if (isACSBody(assessingAuthority)) {
+        // Bodies with the ACS-form sidebar layout reconstruct ACS form
+        // data from persisted documents; chat-only bodies skip this.
+        if (hasAcsFormSidebar(assessingAuthority)) {
           const acsData = loadACSDataFromDocuments(existingDocs);
 
           // Pre-fill ANZSCO code from the assessment match

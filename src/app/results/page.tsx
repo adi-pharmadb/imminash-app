@@ -22,7 +22,7 @@ import { ReassessmentTrigger } from "@/components/results/ReassessmentTrigger";
 import { AuthModal } from "@/components/auth/AuthModal";
 import { OccupationPicker } from "@/components/results/OccupationPicker";
 import { createClient } from "@/lib/supabase/client";
-import { isACSBody } from "@/lib/workspace-helpers";
+import { isSupportedBody } from "@/lib/workspace-helpers";
 import { checkEligibility } from "@/lib/eligibility-check";
 import type { StateNomination } from "@/types/database";
 
@@ -120,22 +120,20 @@ export default function ResultsPage() {
 
   /**
    * Handle "Prepare my skill assessment documents" click.
-   * Shows picker with ALL occupations (non-ACS greyed out).
-   * If only one ACS match, proceeds directly.
+   * Shows picker with ALL occupations (unsupported bodies greyed out).
+   * If only one supported match, proceeds directly.
    */
   const handleStartDocPrep = useCallback(() => {
     if (!data) return;
 
-    const acsMatches = data.skillsMatches.filter(
-      (occ) => occ.assessing_authority && isACSBody(occ.assessing_authority),
+    const supportedMatches = data.skillsMatches.filter(
+      (occ) => occ.assessing_authority && isSupportedBody(occ.assessing_authority),
     );
 
-    if (acsMatches.length > 1 || data.skillsMatches.length > 1) {
-      // Multiple occupations: show picker with all (non-ACS greyed out)
+    if (supportedMatches.length > 1 || data.skillsMatches.length > 1) {
       setPickerOpen(true);
-    } else if (acsMatches.length === 1) {
-      // Single ACS occupation: select it automatically and proceed
-      handleOccupationSelected(acsMatches[0]);
+    } else if (supportedMatches.length === 1) {
+      handleOccupationSelected(supportedMatches[0]);
     }
   }, [data]);
 
@@ -189,9 +187,8 @@ export default function ResultsPage() {
 
   const isEligible = checkEligibility(formData);
 
-  // Check if any matched occupation has an ACS assessing body
   const hasACSMatch = skillsMatches.some(
-    (occ) => occ.assessing_authority && isACSBody(occ.assessing_authority),
+    (occ) => occ.assessing_authority && isSupportedBody(occ.assessing_authority),
   );
 
   // Compute top match possibility for dual CTA secondary copy

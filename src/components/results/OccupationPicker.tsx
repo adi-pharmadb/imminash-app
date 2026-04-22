@@ -11,7 +11,7 @@ import {
 import { Button } from "@/components/ui/button";
 import type { MatchResult } from "@/types/assessment";
 import { getConfidenceColor } from "@/lib/occupation-matching";
-import { isACSBody } from "@/lib/workspace-helpers";
+import { isSupportedBody } from "@/lib/workspace-helpers";
 
 interface OccupationPickerProps {
   open: boolean;
@@ -28,8 +28,8 @@ function getConfidenceLabel(confidence: number): string {
 
 /**
  * Modal for selecting which matched occupation to proceed with.
- * Shows ALL occupations. Non-ACS bodies are greyed out with "Coming soon".
- * Pre-selects the highest confidence ACS match. CTO Brief v2 section 4.1
+ * Shows ALL occupations. Unsupported bodies are greyed out with "Coming soon".
+ * Pre-selects the highest confidence supported match.
  */
 export function OccupationPicker({
   open,
@@ -37,12 +37,11 @@ export function OccupationPicker({
   occupations,
   onSelect,
 }: OccupationPickerProps) {
-  // Pre-select the best ACS match
-  const bestACS = occupations.find(
-    (o) => o.assessing_authority && isACSBody(o.assessing_authority),
+  const bestSupported = occupations.find(
+    (o) => o.assessing_authority && isSupportedBody(o.assessing_authority),
   );
   const [selected, setSelected] = useState<string | null>(
-    bestACS?.anzsco_code || null,
+    bestSupported?.anzsco_code || null,
   );
 
   function handleConfirm() {
@@ -65,7 +64,7 @@ export function OccupationPicker({
         <div className="space-y-3 pt-2">
           {occupations.map((occ) => {
             const isSupported =
-              occ.assessing_authority && isACSBody(occ.assessing_authority);
+              occ.assessing_authority && isSupportedBody(occ.assessing_authority);
             const isSelected = selected === occ.anzsco_code;
             const colors = getConfidenceColor(occ.confidence);
 
@@ -92,7 +91,7 @@ export function OccupationPicker({
                       <p className="font-semibold text-foreground truncate">
                         {occ.title}
                       </p>
-                      {isSupported && bestACS?.anzsco_code === occ.anzsco_code && (
+                      {isSupported && bestSupported?.anzsco_code === occ.anzsco_code && (
                         <span
                           className="shrink-0 rounded-md px-1.5 py-0.5 text-[9px] font-bold uppercase tracking-wider"
                           style={{
@@ -117,7 +116,7 @@ export function OccupationPicker({
                         className="text-[10px] mt-1 font-medium"
                         style={{ color: "var(--primary)" }}
                       >
-                        Coming soon - we currently support ACS assessments only
+                        Coming soon, not yet supported for document drafting
                       </p>
                     )}
                   </div>

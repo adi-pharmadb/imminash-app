@@ -269,7 +269,15 @@ export function ChatPanel({
             );
           })}
 
-          {showPaywall && <PaywallMessage conversationId={projection.id} />}
+          {showPaywall && (
+            <PaywallMessage
+              conversationId={projection.id}
+              assessingAuthority={
+                (projection.matches[0] as { assessing_authority?: string } | undefined)
+                  ?.assessing_authority ?? null
+              }
+            />
+          )}
 
           {isLoading && streamingText && (
             <MessageBubble role="assistant" content={streamingText} isStreaming />

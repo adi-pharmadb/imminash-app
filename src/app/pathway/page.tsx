@@ -6,7 +6,7 @@ import { ArrowLeft, AlertCircle, Search } from "lucide-react";
 import type { MatchResult, PointsBreakdown, StepperFormData, UserProfile } from "@/types/assessment";
 import type { StateNomination } from "@/types/database";
 import { analyzePathways, detectEdgeCases, type PathwayAnalysis } from "@/lib/visa-pathway-engine";
-import { isACSBody } from "@/lib/workspace-helpers";
+import { hasAcsFormSidebar } from "@/lib/workspace-helpers";
 import { PathwayCard } from "@/components/pathway/PathwayCard";
 import { RecommendedBanner } from "@/components/pathway/RecommendedBanner";
 import { PointsGapAnalysis } from "@/components/pathway/PointsGapAnalysis";
@@ -290,7 +290,7 @@ export default function PathwayPage() {
 
   // Determine primary assessing body
   const primaryAssessingBody = data.skillsMatches[0]?.assessing_authority ?? null;
-  const isACS = primaryAssessingBody ? isACSBody(primaryAssessingBody) : false;
+  const isACS = primaryAssessingBody ? hasAcsFormSidebar(primaryAssessingBody) : false;
 
   // Find the first pathway with a gap analysis
   const gapPathway = primaryAnalysis?.pathways.find(

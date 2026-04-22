@@ -86,6 +86,27 @@ export interface Assessment {
   updated_at: string;
 }
 
+export interface BodyUiConfig {
+  pathway_label?: string;
+  sidebar_layout?: "acs-form" | "chat-only";
+  primary_document_types?: string[];
+  paywall?: {
+    title?: string;
+    value_prop?: string;
+    cta_label?: string;
+  };
+}
+
+export type EligibilityPredicate =
+  | { field: string; equals: string | number | boolean }
+  | { field: string; in: Array<string | number> }
+  | { field: string; band_min: string };
+
+export interface EligibilityRules {
+  paid_path_requires_any_of: EligibilityPredicate[];
+  else_action: "paywall" | "calendly";
+}
+
 export interface AssessingBodyRequirement {
   id: string;
   body_name: string;
@@ -95,6 +116,8 @@ export interface AssessingBodyRequirement {
   experience_requirements: Record<string, unknown> | null;
   formatting_notes: string | null;
   conversation_template: Record<string, unknown> | null;
+  ui_config?: BodyUiConfig | null;
+  eligibility_rules?: EligibilityRules | null;
   created_at: string;
   updated_at: string;
 }
