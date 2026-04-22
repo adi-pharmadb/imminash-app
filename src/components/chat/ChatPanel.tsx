@@ -8,12 +8,13 @@
  */
 
 import { useCallback, useEffect, useRef, useState } from "react";
-import Link from "next/link";
-import { ArrowUpRight, Paperclip, Send } from "lucide-react";
+import { BookOpenCheck, Paperclip, Send } from "lucide-react";
 import { MessageBubble } from "@/components/workspace/MessageBubble";
 import { PaywallMessage } from "./PaywallMessage";
 import { ChatForm } from "./ChatForm";
 import { ChatFileDrop } from "./ChatFileDrop";
+import { BottomSheet } from "./BottomSheet";
+import { SubmissionGuide } from "@/components/premium/SubmissionGuide";
 import {
   parseMarkers,
   stripInFlightMarkers,
@@ -51,7 +52,8 @@ export function ChatPanel({
   const [form, setForm] = useState<AskForm | null>(null);
   const [fileAsk, setFileAsk] = useState<AskFile | null>(null);
   const [isUploading, setIsUploading] = useState(false);
-  const [submissionLink, setSubmissionLink] = useState<string | null>(null);
+  const [submissionGuideAvailable, setSubmissionGuideAvailable] = useState(false);
+  const [submissionSheetOpen, setSubmissionSheetOpen] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLTextAreaElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -125,9 +127,8 @@ export function ChatPanel({
               } else if (data.type === "file") {
                 setFileAsk(data.file as AskFile);
               } else if (data.type === "submission_guide_link") {
-                setSubmissionLink(
-                  `/chat/submission-guide/${(data.conversationId as string) ?? projection.id}`,
-                );
+                setSubmissionGuideAvailable(true);
+                setSubmissionSheetOpen(true);
               }
             } catch {
               // skip malformed events
@@ -324,15 +325,16 @@ export function ChatPanel({
             </div>
           )}
 
-          {submissionLink && !isLoading && (
+          {submissionGuideAvailable && !isLoading && (
             <div className="mb-3 mt-3 flex justify-start" data-testid="submission-guide-cta">
-              <Link
-                href={submissionLink}
+              <button
+                type="button"
+                onClick={() => setSubmissionSheetOpen(true)}
                 className="inline-flex items-center gap-2 rounded-full bg-gold px-4 py-2.5 font-premium-body text-xs font-semibold uppercase tracking-[0.08em] text-gold-foreground shadow-sm transition-[filter,transform] duration-200 hover:brightness-110 hover:-translate-y-[1px]"
               >
                 Open your submission guide
-                <ArrowUpRight className="h-3.5 w-3.5" />
-              </Link>
+                <BookOpenCheck className="h-3.5 w-3.5" />
+              </button>
             </div>
           )}
 
@@ -405,6 +407,15 @@ export function ChatPanel({
           </p>
         </div>
       </div>
+
+      <BottomSheet
+        open={submissionSheetOpen}
+        onClose={() => setSubmissionSheetOpen(false)}
+        title="Submission Guide"
+        heightFraction={0.92}
+      >
+        <SubmissionGuide projection={projection} />
+      </BottomSheet>
     </div>
   );
 }

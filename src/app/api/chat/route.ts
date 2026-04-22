@@ -41,7 +41,7 @@ const requestSchema = z.object({
 const MATCH_OCCUPATIONS_TOOL = {
   name: "match_occupations",
   description:
-    "Match the user's profile to ANZSCO occupations. Call exactly once after all profile fields (age, visa status, qualification, onshore exp, offshore exp, english, job title + duties) are captured.",
+    "Match the user's profile to ANZSCO occupations. Call exactly once after the full Phase 1 flow is captured (age, visa status, qualification, onshore exp, offshore exp, english, job title + duties, professional year, australian study + regional study, NAATI/CCL, partner status).",
   input_schema: {
     type: "object" as const,
     properties: {

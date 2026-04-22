@@ -18,15 +18,40 @@ import type { ProjectedConversation } from "@/lib/conversation-state";
 interface StepDef {
   key: string;
   label: string;
+  hint: string;
 }
 
 const STEPS: StepDef[] = [
-  { key: "personal", label: "Personal details" },
-  { key: "occupation", label: "Suggested occupation" },
-  { key: "cv", label: "CV" },
-  { key: "reference", label: "Employer reference" },
-  { key: "documents", label: "Document checklist" },
-  { key: "submission", label: "Submission guide" },
+  {
+    key: "personal",
+    label: "Personal details",
+    hint: "A few quick questions to understand your profile and points.",
+  },
+  {
+    key: "occupation",
+    label: "Suggested occupation",
+    hint: "We match you to ANZSCO occupations and show visa pathways.",
+  },
+  {
+    key: "cv",
+    label: "CV",
+    hint: "Upload your resume so we can pre-fill employer and duty details.",
+  },
+  {
+    key: "reference",
+    label: "Employer reference",
+    hint: "We draft compliant reference letters for each employer.",
+  },
+  {
+    key: "documents",
+    label: "Document checklist",
+    hint: "A tailored checklist of everything your assessing body needs.",
+  },
+  {
+    key: "submission",
+    label: "Submission guide",
+    hint: "A printable step-by-step guide for filing your application.",
+  },
 ];
 
 function deriveStepIndex(projection: ProjectedConversation): number {
@@ -108,9 +133,6 @@ export function JourneyStepper({ projection }: { projection: ProjectedConversati
     (d) => d.document_type === "employment_reference",
   );
 
-  const currentStep = STEPS[current]?.label ?? STEPS[0].label;
-  const progressPct = ((current + 1) / STEPS.length) * 100;
-
   const pointsTotal = useMemo(() => {
     const pts = projection.points as Record<string, unknown> | null;
     if (!pts) return null;
@@ -168,15 +190,61 @@ export function JourneyStepper({ projection }: { projection: ProjectedConversati
           })}
         </div>
 
-        <p
-          className={`mt-3 text-sm ${
-            isPremium
-              ? "font-serif-premium text-foreground"
-              : "font-medium text-foreground"
-          }`}
-        >
-          {currentStep}
-        </p>
+        <ol className="mt-3 space-y-2" data-testid="journey-steps-list">
+          {STEPS.map((step, i) => {
+            const done = i < current;
+            const cur = i === current;
+            return (
+              <li
+                key={step.key}
+                className={`flex gap-2.5 rounded-md px-2 py-1.5 transition-colors ${
+                  cur
+                    ? isPremium
+                      ? "bg-gold/10"
+                      : "bg-primary/5"
+                    : ""
+                }`}
+                aria-current={cur ? "step" : undefined}
+              >
+                <span
+                  className={`mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-full text-[10px] font-semibold ${
+                    done
+                      ? isPremium
+                        ? "bg-gold text-gold-foreground"
+                        : "bg-primary text-primary-foreground"
+                      : cur
+                        ? isPremium
+                          ? "bg-gold text-gold-foreground"
+                          : "bg-primary text-primary-foreground"
+                        : "bg-muted text-muted-foreground"
+                  }`}
+                >
+                  {done ? <Check className="h-3 w-3" /> : i + 1}
+                </span>
+                <div className="min-w-0 flex-1">
+                  <p
+                    className={`text-[13px] leading-tight ${
+                      cur
+                        ? isPremium
+                          ? "font-serif-premium font-medium text-foreground"
+                          : "font-medium text-foreground"
+                        : done
+                          ? "text-foreground/80"
+                          : "text-muted-foreground"
+                    }`}
+                  >
+                    {step.label}
+                  </p>
+                  {cur && (
+                    <p className="mt-0.5 font-premium-body text-[11px] leading-snug text-muted-foreground">
+                      {step.hint}
+                    </p>
+                  )}
+                </div>
+              </li>
+            );
+          })}
+        </ol>
       </section>
 
       {/* ── Context: matched occupation ───────────────────────── */}
