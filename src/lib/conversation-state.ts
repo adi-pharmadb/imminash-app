@@ -41,6 +41,7 @@ export interface ConversationRow {
   messages: ChatMessage[] | null;
   submission_guide_data?: Record<string, unknown> | null;
   submission_guide_generated_at?: string | null;
+  readiness_verdict?: Record<string, unknown> | null;
   created_at?: string;
   updated_at?: string;
 }
@@ -57,6 +58,7 @@ export interface ProjectedConversation {
   paidAt: string | null;
   messages: ChatMessage[];
   documents: ConversationDocument[];
+  readinessVerdict: Record<string, unknown> | null;
 }
 
 export function projectConversation(
@@ -92,5 +94,6 @@ export function projectConversation(
     paidAt: row.paid_at,
     messages: Array.isArray(row.messages) ? row.messages : [],
     documents,
+    readinessVerdict: row.readiness_verdict ?? null,
   };
 }

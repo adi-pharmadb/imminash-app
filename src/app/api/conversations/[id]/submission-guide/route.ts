@@ -10,7 +10,15 @@
 
 import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
-import { generateSubmissionGuide } from "@/lib/submission-guide-generator";
+import {
+  generateSubmissionGuide,
+  buildSubmissionPlaybook,
+} from "@/lib/submission-guide-generator";
+import {
+  projectConversation,
+  type ConversationRow,
+  type ConversationDocument,
+} from "@/lib/conversation-state";
 import type {
   AgentKnowledge,
   AssessingBodyRequirement,
@@ -68,12 +76,43 @@ export async function GET(
   if (!loaded) {
     return NextResponse.json({ error: "Not found" }, { status: 404 });
   }
-  const guide = (loaded.data as { submission_guide_data?: unknown })
-    .submission_guide_data;
-  if (!guide) {
+  const row = loaded.data as ConversationRow & {
+    submission_guide_data?: unknown;
+  };
+  const guide = row.submission_guide_data ?? null;
+
+  // Try to build the deterministic playbook from portal_schema.
+  let playbook: unknown = null;
+  const topMatch = firstMatch(row.matched_occupations);
+  const assessingBody =
+    (topMatch?.assessing_authority as string | undefined) ??
+    (topMatch?.assessingAuthority as string | undefined) ??
+    null;
+  if (assessingBody) {
+    const { data: bodyRow } = await loaded.supabase
+      .from("assessing_body_requirements")
+      .select("*")
+      .eq("body_name", assessingBody)
+      .maybeSingle();
+    const body = (bodyRow as AssessingBodyRequirement | null) ?? null;
+    if (body?.portal_schema) {
+      const { data: docs } = await loaded.supabase
+        .from("documents")
+        .select("id, document_type, title, status, content, created_at, updated_at")
+        .eq("conversation_id", id)
+        .order("created_at", { ascending: false });
+      const projection = projectConversation(
+        row as unknown as ConversationRow,
+        (docs ?? []) as ConversationDocument[],
+      );
+      playbook = buildSubmissionPlaybook(projection, body);
+    }
+  }
+
+  if (!guide && !playbook) {
     return NextResponse.json({ error: "No guide generated yet" }, { status: 404 });
   }
-  return NextResponse.json({ guide });
+  return NextResponse.json({ guide, playbook });
 }
 
 export async function POST(

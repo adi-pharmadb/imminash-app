@@ -67,6 +67,7 @@ export interface ParsedMarkers {
   profileUpdates: Record<string, unknown>[];
   pointsUpdate: Record<string, unknown> | null;
   matchUpdate: Record<string, unknown> | null;
+  readinessUpdate: Record<string, unknown> | null;
   hasPaywall: boolean;
   hasCalendly: boolean;
   docUpdates: DocUpdate[];
@@ -110,7 +111,7 @@ export function stripInFlightMarkers(text: string): string {
   const cleaned = parseMarkers(text).cleanText;
   // Then drop anything from an unclosed opening tag onward.
   const trimmed = cleaned
-    .replace(/\[(PROFILE_UPDATE|POINTS_UPDATE|MATCH_UPDATE|DOC_UPDATE(?::[^\]]*)?|ASK_CHOICE|ASK_FORM|ASK_FILE)\][\s\S]*$/, "")
+    .replace(/\[(PROFILE_UPDATE|POINTS_UPDATE|MATCH_UPDATE|READINESS_UPDATE|DOC_UPDATE(?::[^\]]*)?|ASK_CHOICE|ASK_FORM|ASK_FILE)\][\s\S]*$/, "")
     .replace(/\[CONVERSATION_DONE\]/g, "")
     .replace(/\[SUBMISSION_GUIDE_LINK\]/g, "");
   return trimmed;
@@ -123,6 +124,7 @@ export function parseMarkers(text: string): ParsedMarkers {
   const docUpdates: DocUpdate[] = [];
   let pointsUpdate: Record<string, unknown> | null = null;
   let matchUpdate: Record<string, unknown> | null = null;
+  let readinessUpdate: Record<string, unknown> | null = null;
   let askChoice: AskChoice | null = null;
   let askForm: AskForm | null = null;
   let askFile: AskFile | null = null;
@@ -159,6 +161,18 @@ export function parseMarkers(text: string): ParsedMarkers {
       const parsed = safeJson(b);
       if (parsed && typeof parsed === "object") {
         matchUpdate = parsed as Record<string, unknown>;
+      }
+    }
+  }
+
+  // READINESS_UPDATE (last one wins)
+  {
+    const { bodies, stripped } = collectBlock(working, "READINESS_UPDATE");
+    working = stripped;
+    for (const b of bodies) {
+      const parsed = safeJson(b);
+      if (parsed && typeof parsed === "object") {
+        readinessUpdate = parsed as Record<string, unknown>;
       }
     }
   }
@@ -313,6 +327,7 @@ export function parseMarkers(text: string): ParsedMarkers {
     profileUpdates,
     pointsUpdate,
     matchUpdate,
+    readinessUpdate,
     hasPaywall,
     hasCalendly,
     docUpdates,

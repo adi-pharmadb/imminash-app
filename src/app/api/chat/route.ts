@@ -14,6 +14,7 @@ import { z } from "zod";
 import { anthropic, AI_MODEL } from "@/lib/anthropic";
 import { createClient } from "@/lib/supabase/server";
 import { buildUnifiedChatPrompt } from "@/lib/chat-prompt-unified";
+import { runReadinessAudit } from "@/lib/readiness-audit";
 import {
   projectConversation,
   type ConversationRow,
@@ -53,6 +54,16 @@ const MATCH_OCCUPATIONS_TOOL = {
       additionalDegreeCountry: { type: "string", description: "Optional additional qualification country" },
     },
     required: ["fieldOfStudy", "jobTitle", "jobDuties"],
+  },
+};
+
+const RUN_READINESS_AUDIT_TOOL = {
+  name: "run_readiness_audit",
+  description:
+    "Run a server-side audit of the applicant's current state against the assessing body's rules + required documents. Returns a structured ReadinessVerdict with blockers (must fix) and warnings (should fix). Call this in Phase 2 BEFORE emitting [SUBMISSION_GUIDE_LINK]. If the verdict is not ready, address blockers first; never hand over the submission playbook with blockers present.",
+  input_schema: {
+    type: "object" as const,
+    properties: {},
   },
 };
 
@@ -167,10 +178,10 @@ export async function POST(request: Request) {
           // Loop to handle tool_use turns. With knowledge lookup enabled the
           // agent may call lookup_knowledge several times per turn, so allow
           // up to 8 iterations. Without knowledge, 3 is enough.
-          const maxIter = hasKnowledge ? 8 : 3;
+          const maxIter = hasKnowledge ? 10 : 4;
           const tools = hasKnowledge
-            ? [MATCH_OCCUPATIONS_TOOL, LOOKUP_KNOWLEDGE_TOOL]
-            : [MATCH_OCCUPATIONS_TOOL];
+            ? [MATCH_OCCUPATIONS_TOOL, LOOKUP_KNOWLEDGE_TOOL, RUN_READINESS_AUDIT_TOOL]
+            : [MATCH_OCCUPATIONS_TOOL, RUN_READINESS_AUDIT_TOOL];
 
           while (safety < maxIter) {
             safety += 1;
@@ -225,6 +236,11 @@ export async function POST(request: Request) {
               let toolResult: unknown = { error: "unknown_tool", tool: toolName };
               if (toolName === "match_occupations") {
                 toolResult = await runMatchOccupationsTool(supabase, toolInput);
+              } else if (toolName === "run_readiness_audit") {
+                toolResult = runReadinessAudit({
+                  projection,
+                  body: assessingBody ?? null,
+                });
               } else if (toolName === "lookup_knowledge" && assessingBody?.knowledge_md) {
                 const section = String(toolInput.section ?? "").trim();
                 const content = sliceH2Section(assessingBody.knowledge_md, section);
@@ -739,12 +755,21 @@ async function persistTurn(args: PersistArgs) {
     createdAt: new Date().toISOString(),
   });
 
+  // Readiness verdict: persist whenever the agent emits a fresh
+  // [READINESS_UPDATE] marker. Last one in the turn wins.
+  let newReadinessVerdict: Record<string, unknown> | null =
+    (row.readiness_verdict as Record<string, unknown> | null) ?? null;
+  if (parsed.readinessUpdate) {
+    newReadinessVerdict = parsed.readinessUpdate;
+  }
+
   const updatePayload: Record<string, unknown> = {
     messages: nextMessages,
     profile_data: mergedProfile,
     points_breakdown: newPoints,
     matched_occupations: newMatches,
     status: newStatus,
+    readiness_verdict: newReadinessVerdict,
     updated_at: new Date().toISOString(),
   };
 
@@ -809,6 +834,7 @@ async function persistTurn(args: PersistArgs) {
     points_breakdown: newPoints,
     matched_occupations: newMatches,
     status: newStatus,
+    readiness_verdict: newReadinessVerdict,
   };
 
   // Fetch latest documents so the LiveSummaryPanel can render them.

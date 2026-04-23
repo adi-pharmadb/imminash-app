@@ -37,7 +37,7 @@ steps:
         label: "Application Type"
         type: radio
         options: ["Skills (Qualification and Experience required)", "Skills (Post-Australian Qualification)", "Review of Application", "Review of Evidence", "Appeal", "RPL Report"]
-        source: literal: "Skills (Qualification and Experience required)"
+        source: "literal:Skills (Qualification and Experience required)"
         required: true
     uploads: []
     payment_step: true
@@ -239,7 +239,7 @@ steps:
       - key: course_duration
         label: "Course duration"
         type: text
-        format: "N years" or "N months"
+        format: "N years (or N months)"
         source: cv.qualifications[i].duration
         required: true
       - key: completion_date

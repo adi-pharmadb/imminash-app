@@ -27,7 +27,14 @@ import {
   Sparkles,
 } from "lucide-react";
 import type { ProjectedConversation } from "@/lib/conversation-state";
-import type { SubmissionGuideData } from "@/lib/submission-guide-generator";
+import type {
+  SubmissionGuideData,
+  SubmissionPlaybook,
+  PlaybookStep,
+  PlaybookField,
+  PlaybookUpload,
+} from "@/lib/submission-guide-generator";
+import { Check, Copy, FileDown } from "lucide-react";
 
 function firstMatchTitle(projection: ProjectedConversation): string {
   const raw = projection.matches as unknown;
@@ -51,13 +58,13 @@ export function SubmissionGuide({
   const [guide, setGuide] = useState<SubmissionGuideData | null>(
     initialGuide ?? null,
   );
+  const [playbook, setPlaybook] = useState<SubmissionPlaybook | null>(null);
   const [loading, setLoading] = useState(false);
   const [downloading, setDownloading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  // Attempt to hydrate from server cache on mount if nothing in props.
+  // Attempt to hydrate from server cache on mount.
   useEffect(() => {
-    if (guide) return;
     let cancelled = false;
     (async () => {
       try {
@@ -68,9 +75,9 @@ export function SubmissionGuide({
         if (cancelled) return;
         if (res.ok) {
           const body = await res.json();
+          if (body?.playbook) setPlaybook(body.playbook as SubmissionPlaybook);
           if (body?.guide) setGuide(body.guide as SubmissionGuideData);
         }
-        // 404 is expected when no guide generated yet — no-op.
       } catch {
         // ignore
       }
@@ -144,6 +151,11 @@ export function SubmissionGuide({
   }, [downloading, guide, projection.id]);
 
   const handlePrint = () => window.print();
+
+  // ── Playbook takes precedence when portal_schema is available ───
+  if (playbook) {
+    return <PlaybookView playbook={playbook} conversationId={projection.id} />;
+  }
 
   // ── Empty state: nothing generated yet ────────────────────────
   if (!guide) {
@@ -589,5 +601,302 @@ function ExternalCard({
       </div>
       <ExternalLink className="h-4 w-4 shrink-0 text-muted-foreground transition-colors group-hover:text-gold" />
     </a>
+  );
+}
+
+function CopyButton({ value, label = "Copy" }: { value: string; label?: string }) {
+  const [copied, setCopied] = useState(false);
+  if (!value) return null;
+  return (
+    <button
+      type="button"
+      onClick={async () => {
+        try {
+          await navigator.clipboard.writeText(value);
+          setCopied(true);
+          setTimeout(() => setCopied(false), 1500);
+        } catch {
+          // ignore
+        }
+      }}
+      className="inline-flex h-7 items-center gap-1 rounded-md border border-border bg-card px-2 text-[11px] font-premium-body font-semibold uppercase tracking-wider text-muted-foreground transition-colors hover:border-gold hover:text-gold no-print"
+      aria-label={`${label} ${value.slice(0, 30)}`}
+    >
+      {copied ? <Check className="h-3 w-3 text-gold" /> : <Copy className="h-3 w-3" />}
+      {copied ? "Copied" : label}
+    </button>
+  );
+}
+
+function PlaybookFieldRow({ field }: { field: PlaybookField }) {
+  return (
+    <div className="grid grid-cols-[220px_1fr_auto] items-start gap-3 border-b border-border/40 py-2.5 last:border-b-0">
+      <div>
+        <p className="font-premium-body text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
+          {field.label}
+        </p>
+        {field.notes && (
+          <p className="mt-0.5 font-premium-body text-[10px] italic leading-snug text-muted-foreground/70">
+            {field.notes}
+          </p>
+        )}
+      </div>
+      <div className="font-serif-premium text-[13px] leading-snug text-foreground">
+        {field.value ? (
+          <span>{field.value}</span>
+        ) : (
+          <span className="font-premium-body text-[11px] italic text-destructive">Missing</span>
+        )}
+        {field.type === "dropdown" && field.options && field.options.length > 0 && (
+          <p className="mt-0.5 font-premium-body text-[10px] text-muted-foreground">
+            Select from portal dropdown.
+          </p>
+        )}
+      </div>
+      <div>
+        {field.copyable && field.value ? (
+          <CopyButton value={field.value} />
+        ) : (
+          <span className="font-premium-body text-[10px] uppercase tracking-wider text-muted-foreground/50">
+            {field.type === "display_only" ? "Display" : field.type}
+          </span>
+        )}
+      </div>
+    </div>
+  );
+}
+
+function PlaybookUploadRow({
+  upload,
+  conversationId,
+}: {
+  upload: PlaybookUpload;
+  conversationId: string;
+}) {
+  return (
+    <div className="grid grid-cols-[220px_1fr_auto] items-start gap-3 border-b border-border/40 py-2.5 last:border-b-0">
+      <div>
+        <p className="font-premium-body text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
+          {upload.label}
+        </p>
+        {upload.notes && (
+          <p className="mt-0.5 font-premium-body text-[10px] italic leading-snug text-muted-foreground/70">
+            {upload.notes}
+          </p>
+        )}
+        {upload.conditional && (
+          <p className="mt-0.5 font-premium-body text-[10px] uppercase tracking-wider text-muted-foreground/60">
+            Required if: {upload.conditional}
+          </p>
+        )}
+      </div>
+      <div className="font-mono text-[12px] text-foreground">
+        {upload.filename}
+      </div>
+      <div>
+        {upload.documentId ? (
+          <a
+            href={`/api/documents/conversation/${conversationId}/${upload.documentId}?format=pdf`}
+            className="inline-flex h-7 items-center gap-1 rounded-md bg-gold px-2 font-premium-body text-[11px] font-semibold uppercase tracking-wider text-gold-foreground transition-[filter] hover:brightness-110 no-print"
+          >
+            <FileDown className="h-3 w-3" />
+            PDF
+          </a>
+        ) : (
+          <span className="font-premium-body text-[10px] uppercase tracking-wider text-muted-foreground/60">
+            You provide
+          </span>
+        )}
+      </div>
+    </div>
+  );
+}
+
+function PlaybookStepSection({
+  step,
+  conversationId,
+}: {
+  step: PlaybookStep;
+  conversationId: string;
+}) {
+  return (
+    <section className="mb-10">
+      <div className="mb-3 flex items-baseline gap-3">
+        <span className="inline-flex h-8 w-8 items-center justify-center rounded-full bg-gold/15 font-serif-premium text-base font-medium text-gold">
+          {step.stepNumber}
+        </span>
+        <h2 className="font-serif-premium text-xl font-medium text-foreground md:text-2xl">
+          {step.title}
+        </h2>
+      </div>
+      {step.helper && (
+        <p className="mb-4 font-premium-body text-sm leading-relaxed text-muted-foreground">
+          {step.helper}
+        </p>
+      )}
+      {step.displayOnly && (
+        <p className="rounded-md border border-border/60 bg-card p-3 font-premium-body text-xs italic text-muted-foreground">
+          Populated by the assessing body after submission. No input required here.
+        </p>
+      )}
+      {step.fields && step.fields.length > 0 && (
+        <div className="mb-4 rounded-[var(--radius-premium)] border border-border bg-card p-4">
+          {step.fields.map((f) => (
+            <PlaybookFieldRow key={f.key} field={f} />
+          ))}
+        </div>
+      )}
+      {step.uploads && step.uploads.length > 0 && (
+        <div className="mb-4 rounded-[var(--radius-premium)] border border-border bg-card p-4">
+          <p className="mb-2 font-premium-body text-[11px] font-semibold uppercase tracking-wider text-gold">
+            Upload files
+          </p>
+          {step.uploads.map((u) => (
+            <PlaybookUploadRow key={u.slot} upload={u} conversationId={conversationId} />
+          ))}
+        </div>
+      )}
+      {step.instances && step.instances.length > 0 && (
+        <div className="space-y-4">
+          {step.instances.map((inst) => (
+            <div
+              key={inst.key}
+              className="rounded-[var(--radius-premium)] border border-border bg-card p-4"
+            >
+              <h3 className="mb-3 font-serif-premium text-base font-medium text-foreground">
+                {inst.label}
+              </h3>
+              {inst.fields.length > 0 && inst.fields.map((f) => (
+                <PlaybookFieldRow key={f.key} field={f} />
+              ))}
+              {inst.uploads.length > 0 && (
+                <>
+                  <p className="mb-2 mt-4 font-premium-body text-[11px] font-semibold uppercase tracking-wider text-gold">
+                    Upload files for {inst.label}
+                  </p>
+                  {inst.uploads.map((u) => (
+                    <PlaybookUploadRow key={u.slot} upload={u} conversationId={conversationId} />
+                  ))}
+                </>
+              )}
+            </div>
+          ))}
+        </div>
+      )}
+      {step.instances && step.instances.length === 0 && (
+        <p className="rounded-md border border-border/60 bg-card p-3 font-premium-body text-xs italic text-muted-foreground">
+          No entries yet. Add them via chat before filing.
+        </p>
+      )}
+    </section>
+  );
+}
+
+function PlaybookView({
+  playbook,
+  conversationId,
+}: {
+  playbook: SubmissionPlaybook;
+  conversationId: string;
+}) {
+  return (
+    <div className="premium min-h-screen bg-background text-foreground" data-testid="submission-playbook">
+      <header className="no-print border-b border-border/40 bg-background/80 backdrop-blur-md">
+        <div className="mx-auto flex max-w-6xl items-center justify-between px-6 py-4">
+          <Link
+            href="/chat"
+            className="inline-flex items-center gap-1.5 font-premium-body text-xs font-semibold uppercase tracking-[0.14em] text-muted-foreground transition-colors hover:text-foreground"
+          >
+            <ArrowLeft className="h-3.5 w-3.5" />
+            Back to chat
+          </Link>
+          <div className="flex items-center gap-3">
+            <span className="font-premium-body text-[10px] font-semibold uppercase tracking-[0.14em] text-gold">
+              {playbook.assessingBody} submission playbook
+            </span>
+            <button
+              type="button"
+              onClick={() => window.print()}
+              className="inline-flex items-center gap-1.5 rounded-full border border-border px-3 py-1.5 font-premium-body text-xs font-semibold uppercase tracking-wider text-muted-foreground hover:border-gold hover:text-gold"
+            >
+              <Printer className="h-3.5 w-3.5" />
+              Print
+            </button>
+          </div>
+        </div>
+      </header>
+
+      <main className="mx-auto max-w-4xl px-6 py-10">
+        <div className="mb-10">
+          <p className="font-premium-body text-[11px] font-semibold uppercase tracking-[0.14em] text-gold">
+            Prepared for {playbook.applicantName}
+          </p>
+          <h1 className="mt-2 font-serif-premium text-3xl font-medium text-foreground md:text-4xl">
+            {playbook.occupationTitle}
+            {playbook.anzscoCode && (
+              <span className="ml-2 font-premium-body text-lg text-muted-foreground">
+                ANZSCO {playbook.anzscoCode}
+              </span>
+            )}
+          </h1>
+
+          <div className="mt-5 grid grid-cols-1 gap-3 md:grid-cols-3">
+            <div className="rounded-md border border-border bg-card p-3">
+              <p className="font-premium-body text-[10px] uppercase tracking-wider text-muted-foreground">Portal</p>
+              <a
+                href={playbook.portalUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="mt-1 block truncate font-premium-body text-xs text-gold hover:underline"
+              >
+                {playbook.portalUrl}
+              </a>
+            </div>
+            <div className="rounded-md border border-border bg-card p-3">
+              <p className="font-premium-body text-[10px] uppercase tracking-wider text-muted-foreground">Fee</p>
+              <p className="mt-1 font-serif-premium text-sm text-foreground">
+                {playbook.fee.amount ? `${playbook.fee.currency} ${playbook.fee.amount.toLocaleString()}` : "See portal"}
+                {playbook.fee.asOf && (
+                  <span className="ml-1 font-premium-body text-[10px] text-muted-foreground">
+                    as of {playbook.fee.asOf}
+                  </span>
+                )}
+              </p>
+            </div>
+            <div className="rounded-md border border-border bg-card p-3">
+              <p className="font-premium-body text-[10px] uppercase tracking-wider text-muted-foreground">Typical wait</p>
+              <p className="mt-1 font-serif-premium text-sm text-foreground">
+                {playbook.postSubmission.typicalWait || "See portal"}
+              </p>
+            </div>
+          </div>
+
+          <p className="mt-5 rounded-md border border-gold/30 bg-gold-soft/20 p-3 font-premium-body text-xs leading-relaxed text-foreground">
+            Log into the portal and walk these steps top to bottom. Copy the value
+            next to each field, pick the dropdown match where applicable, and
+            upload the files with the exact filenames shown. When you hit
+            declarations, read each one before ticking. Don&apos;t submit
+            until every required field and file is in place.
+          </p>
+        </div>
+
+        {playbook.steps.map((step) => (
+          <PlaybookStepSection
+            key={step.id}
+            step={step}
+            conversationId={conversationId}
+          />
+        ))}
+
+        <footer className="mt-14 border-t border-border/60 pt-6">
+          <p className="font-premium-body text-[11px] italic leading-relaxed text-muted-foreground">
+            Playbook generated from the live application form schema and your
+            drafted documents on {new Date(playbook.generatedAt).toLocaleString()}.
+            Fee and processing time may change; confirm on the portal before paying.
+            Imminash is not a registered migration agent.
+          </p>
+        </footer>
+      </main>
+    </div>
   );
 }

@@ -38,6 +38,8 @@ const ALLOWED_ACTIONS: Record<ProjectedConversation["phase"], string[]> = {
     "collect CV, elicit ANZSCO-aligned duties",
     "draft the body-specific document set (see PHASE 2 FLOW for the list per body)",
     "emit [DOC_UPDATE:<type>:<subject>] for every draft or refinement",
+    "call run_readiness_audit once all docs are drafted; emit [READINESS_UPDATE] with the verdict",
+    "ONLY emit [SUBMISSION_GUIDE_LINK] when the readiness verdict is ready:true",
   ],
   done: ["summarise package, answer follow-up questions"],
 };
@@ -315,9 +317,18 @@ Compliant duty examples (target quality):
   - "Led a team of 5 engineers to deliver a mobile banking feature that reduced customer support tickets by 35% over 6 months."
 
 ===== PHASE 2 WRAP-UP =====
-Don't leave the user hanging once all letters are drafted. Drive the conversation to a clean close:
+Don't leave the user hanging once all documents are drafted. Drive the conversation to a clean close, gated by the readiness audit:
 
-1. After the last employment reference draft, proactively summarise what's done in 2-3 sentences (NOT a long submission guide — the dedicated route handles that). Then emit [SUBMISSION_GUIDE_LINK] to render a gold button linking the user to their printable submission guide.
+1. Once all body-specific documents are drafted (see the per-body list above), call the \`run_readiness_audit\` tool. It returns a structured ReadinessVerdict with {ready, confidence, blockers, warnings, estimatedOutcome}.
+
+2. Emit [READINESS_UPDATE] with the verdict JSON so the client can display it in the left panel:
+   [READINESS_UPDATE]{"ready":true,"confidence":"High","blockers":[],"warnings":[{"field":"cv","reason":"No CV uploaded..."}],"estimatedOutcome":"Positive","checkedAt":"..."}[/READINESS_UPDATE]
+
+3. Branch on the verdict:
+   - **ready: true** -> proceed to step 4.
+   - **ready: false** -> DO NOT emit [SUBMISSION_GUIDE_LINK]. Instead, walk the user through the blockers one at a time (each blocker has a field + reason). Help them resolve each blocker. Re-run \`run_readiness_audit\` after each major fix. Only when ready: true do you move on.
+
+4. When ready: true, proactively summarise what's done in 2-3 sentences (NOT a long submission guide). Then emit [SUBMISSION_GUIDE_LINK] to render a gold button linking the user to their printable submission playbook.
 
 2. End that turn with a wrap-up ASK_CHOICE so the user picks the next action:
    [ASK_CHOICE]{"options":["All done, wrap this up","Want to refine something"]}[/ASK_CHOICE]

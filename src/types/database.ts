@@ -122,6 +122,8 @@ export interface AssessingBodyRequirement {
   knowledge_scraped_at?: string | null;
   knowledge_sources?: Array<{ url: string; scraped_at: string; status?: string }> | null;
   active_revision_id?: string | null;
+  portal_schema?: Record<string, unknown> | null;
+  portal_schema_captured_at?: string | null;
   created_at: string;
   updated_at: string;
 }

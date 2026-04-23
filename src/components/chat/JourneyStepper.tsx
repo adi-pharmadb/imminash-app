@@ -12,7 +12,7 @@
  */
 
 import { useMemo } from "react";
-import { Briefcase, Check, FileText, User } from "lucide-react";
+import { AlertTriangle, Briefcase, Check, CheckCircle2, FileText, ShieldCheck, User } from "lucide-react";
 import type { ProjectedConversation } from "@/lib/conversation-state";
 
 interface StepDef {
@@ -342,7 +342,68 @@ export function JourneyStepper({ projection }: { projection: ProjectedConversati
         </section>
       )}
 
+      {/* ── Readiness verdict (Phase 2+) ──────────────────────── */}
+      {isPremium && projection.readinessVerdict && (
+        <ReadinessCard verdict={projection.readinessVerdict} />
+      )}
+
     </div>
+  );
+}
+
+function ReadinessCard({ verdict }: { verdict: Record<string, unknown> }) {
+  const ready = Boolean(verdict.ready);
+  const confidence = (verdict.confidence as string) || "Medium";
+  const blockers = Array.isArray(verdict.blockers) ? (verdict.blockers as Array<Record<string, unknown>>) : [];
+  const warnings = Array.isArray(verdict.warnings) ? (verdict.warnings as Array<Record<string, unknown>>) : [];
+  const outcome = (verdict.estimatedOutcome as string) || "";
+  const Icon = ready ? CheckCircle2 : ShieldCheck;
+  const tone = ready ? "text-success" : "text-destructive";
+  return (
+    <section className="mb-4">
+      <ContextLabel>
+        <span className="inline-flex items-center gap-1.5">
+          <ShieldCheck className="h-3 w-3" />
+          Readiness
+        </span>
+      </ContextLabel>
+      <div className="mt-2 rounded-md border border-border bg-card p-3">
+        <div className="flex items-start gap-2">
+          <Icon className={`h-4 w-4 shrink-0 ${tone}`} />
+          <div className="min-w-0 flex-1">
+            <p className="text-[13px] font-medium text-foreground">
+              {ready ? "Ready to submit" : "Not ready yet"}
+            </p>
+            <p className="font-premium-body text-[11px] text-muted-foreground">
+              Confidence: {confidence}{outcome ? ` · ${outcome}` : ""}
+            </p>
+          </div>
+        </div>
+        {blockers.length > 0 && (
+          <ul className="mt-2.5 space-y-1.5 border-t border-border/60 pt-2">
+            {blockers.map((b, i) => (
+              <li key={i} className="flex gap-1.5 text-[11px] text-destructive">
+                <AlertTriangle className="h-3 w-3 shrink-0 mt-0.5" />
+                <span className="font-premium-body leading-snug">{(b.reason as string) ?? ""}</span>
+              </li>
+            ))}
+          </ul>
+        )}
+        {warnings.length > 0 && (
+          <ul className="mt-2 space-y-1 border-t border-border/60 pt-2">
+            {warnings.slice(0, 3).map((w, i) => (
+              <li key={i} className="flex gap-1.5 text-[11px] text-muted-foreground">
+                <span className="shrink-0">·</span>
+                <span className="font-premium-body leading-snug">{(w.reason as string) ?? ""}</span>
+              </li>
+            ))}
+            {warnings.length > 3 && (
+              <li className="text-[10px] italic text-muted-foreground/70">+{warnings.length - 3} more</li>
+            )}
+          </ul>
+        )}
+      </div>
+    </section>
   );
 }
 
