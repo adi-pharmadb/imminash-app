@@ -117,8 +117,10 @@ export function generateFirstMessage(
 }
 
 /**
- * Extract the list of document tab labels from an assessing body's
- * required_documents field. Falls back to a default set if missing.
+ * Extract the list of document tab labels from an assessing body. Prefers
+ * the body's `ui_config.primary_document_types` (the canonical Wave 2/3
+ * source of truth) and falls back to legacy `required_documents.types` /
+ * array shapes for backward compatibility on un-upgraded rows.
  */
 export function getDocumentTabs(
   assessingBody: AssessingBodyRequirement | null,
@@ -132,20 +134,23 @@ export function getDocumentTabs(
     "Submission Guide",
   ];
 
+  const primary = assessingBody?.ui_config?.primary_document_types;
+  if (Array.isArray(primary) && primary.length > 0) {
+    return primary.map(formatDocumentType);
+  }
+
   if (!assessingBody?.required_documents) {
     return defaults;
   }
 
   const docs = assessingBody.required_documents;
 
-  // Handle array of type strings (e.g., { types: ["employment_reference", ...] })
   if (Array.isArray((docs as Record<string, unknown>).types)) {
     return ((docs as Record<string, unknown>).types as string[]).map(
       formatDocumentType,
     );
   }
 
-  // Handle direct array
   if (Array.isArray(docs)) {
     return (docs as string[]).map(formatDocumentType);
   }

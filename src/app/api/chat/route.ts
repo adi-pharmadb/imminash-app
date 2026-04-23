@@ -372,6 +372,58 @@ function jsonError(error: string, status: number, details?: unknown) {
 }
 
 /**
+ * Documents the agent is allowed to persist via [DOC_UPDATE:<type>:...].
+ * Add new types here to enable them. Anything outside this set is dropped
+ * with a warn so stray markers can't smuggle bad rows into `documents`.
+ */
+const ALLOWED_DOC_TYPES = new Set([
+  "employment_reference",
+  "statement_of_service",
+  "career_episode",
+  "summary_statement",
+  "cpd_log",
+  "statutory_declaration",
+  "msa_employer_template",
+  "evidence_bundle",
+  "rpl_report",
+  "cv_structured",
+]);
+
+/**
+ * Title conventions per doc type. Per-employer docs carry the employer
+ * suffix; global docs (per-application singletons like summary_statement)
+ * do not. Career episodes use the "subject" slot as a 1-indexed number
+ * (e.g. [DOC_UPDATE:career_episode:1]...).
+ */
+function buildDocTitle(type: string, subject: string | undefined): string {
+  const s = subject?.trim();
+  switch (type) {
+    case "employment_reference":
+      return s ? `Employment Reference — ${s}` : "Employment Reference";
+    case "statement_of_service":
+      return s ? `Statement of Service — ${s}` : "Statement of Service";
+    case "career_episode":
+      return s ? `Career Episode ${s}` : "Career Episode";
+    case "summary_statement":
+      return "Summary Statement";
+    case "cpd_log":
+      return "CPD Log";
+    case "statutory_declaration":
+      return s ? `Statutory Declaration — ${s}` : "Statutory Declaration";
+    case "msa_employer_template":
+      return s ? `MSA Employer Template — ${s}` : "MSA Employer Template";
+    case "evidence_bundle":
+      return s ? `Evidence Bundle — ${s}` : "Evidence Bundle";
+    case "rpl_report":
+      return "RPL Report";
+    case "cv_structured":
+      return "CV (structured)";
+    default:
+      return s ? `${type} — ${s}` : type;
+  }
+}
+
+/**
  * Extract a single H2 section (and its body, up to the next H2 or EOF) from
  * a markdown document. Returns null if the section heading is not present.
  * Heading match is case-sensitive and exact after stripping the "## " prefix.
@@ -701,15 +753,16 @@ async function persistTurn(args: PersistArgs) {
     .update(updatePayload)
     .eq("id", row.id);
 
-  // Doc updates -> documents table (employment_reference only).
-  // Chat-first flow: documents are keyed by conversation_id (assessment_id
-  // is nullable for conversations not yet linked to a legacy assessment).
+  // Doc updates -> documents table. Every body-specific deliverable the
+  // agent drafts flows through [DOC_UPDATE:<type>:<subject>]...[/DOC_UPDATE].
+  // Documents are keyed by conversation_id (assessment_id is nullable).
   if (parsed.docUpdates.length > 0) {
     for (const doc of parsed.docUpdates) {
-      if (doc.type !== "employment_reference") continue;
-      const title = doc.employer
-        ? `Employment Reference — ${doc.employer}`
-        : "Employment Reference";
+      if (!ALLOWED_DOC_TYPES.has(doc.type)) {
+        console.warn("[chat] ignoring unknown doc type", doc.type);
+        continue;
+      }
+      const title = buildDocTitle(doc.type, doc.employer);
       const content =
         typeof doc.content === "object" && doc.content !== null
           ? (doc.content as Record<string, unknown>)
@@ -719,7 +772,7 @@ async function persistTurn(args: PersistArgs) {
         .from("documents")
         .select("id")
         .eq("conversation_id", row.id)
-        .eq("document_type", "employment_reference")
+        .eq("document_type", doc.type)
         .eq("title", title)
         .maybeSingle();
 
@@ -738,7 +791,7 @@ async function persistTurn(args: PersistArgs) {
           conversation_id: row.id,
           assessment_id: row.assessment_id,
           user_id: row.user_id,
-          document_type: "employment_reference",
+          document_type: doc.type,
           title,
           content,
           status: "draft",
