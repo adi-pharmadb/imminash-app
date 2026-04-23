@@ -1,0 +1,403 @@
+body: ACS
+portal_url: https://www.acs.org.au/msa/online-application.html
+login_url: https://www.acs.org.au/my-account/login
+as_of: 2026-04-23
+captured_from: real-submitted-application-2024-06-22 (Aishwarya Tayade, ACS-0004147)
+notes: |
+  Captured by reverse-engineering a real submitted application. The portal
+  walks you through 7 numbered sections sequentially; section 7 (Outcome)
+  is display-only, populated after ACS makes a decision. Submission
+  date on this reference app was 2024-06-26; outcome 2024-08-01 (36 days).
+
+fee:
+  category: skills_qualification_and_experience
+  amount_aud: 1450
+  inc_gst: true
+  payment_methods: [credit_card, debit_card]
+  as_of: 2024-06-22
+  category_reference: |
+    ACS prices vary by assessment type. $1450 covers "Qualification and
+    Experience required" (the standard path). Other categories (post-
+    Australian-qualification, RPL, review) have different fees; confirm
+    via ACS fee schedule before filing.
+
+post_submission:
+  confirmation_format: "Reference number starts with 'ACS-' followed by 7 digits (e.g. ACS-0004147). Delivered to portal inbox + email."
+  typical_wait: "Reference case: 36 days from submission to outcome. ACS publishes current averages on their site."
+  communication_channels: [portal_inbox, email]
+  rfmi_window_days: 28
+
+steps:
+  - id: application_type_and_payment
+    step_number: 1
+    title: "Application Type and payment"
+    helper: "Pick the skills-assessment category that matches your profile. 'Qualification and Experience required' is the standard path for applicants with a relevant ICT qualification + matching work experience."
+    fields:
+      - key: application_type
+        label: "Application Type"
+        type: radio
+        options: ["Skills (Qualification and Experience required)", "Skills (Post-Australian Qualification)", "Review of Application", "Review of Evidence", "Appeal", "RPL Report"]
+        source: literal: "Skills (Qualification and Experience required)"
+        required: true
+    uploads: []
+    payment_step: true
+
+  - id: personal_details
+    step_number: 2
+    title: "Personal details"
+    fields:
+      - key: title
+        label: "Title"
+        type: dropdown
+        options: [Mr, Mrs, Ms, Miss, Dr, Prof]
+        source: profile.title
+        required: true
+      - key: first_name
+        label: "First name"
+        type: text
+        source: profile.firstName
+        required: true
+        notes: "Must match passport exactly. UPPERCASE in ACS system."
+      - key: middle_name
+        label: "Middle name"
+        type: text
+        source: profile.middleName
+        required: false
+      - key: last_name
+        label: "Last name"
+        type: text
+        source: profile.lastName
+        required: true
+      - key: date_of_birth
+        label: "Date of birth"
+        type: date
+        format: "DD MMM YYYY"
+        source: profile.dateOfBirth
+        required: true
+      - key: country_of_birth
+        label: "Country of birth"
+        type: dropdown
+        source: profile.countryOfBirth
+        options_hint: "ISO-style country list, alphabetical. 'India', 'Australia', 'United States', etc."
+        required: true
+      - key: phone_number
+        label: "Phone number"
+        type: phone
+        format: "+<country_code><number>"
+        source: profile.phoneNumber
+        required: true
+        notes: "E.164 format. Australian mobiles: +61 4XX XXX XXX."
+      - key: email
+        label: "Email"
+        type: email
+        source: profile.email
+        required: true
+      - key: address
+        label: "Address"
+        type: text
+        source: profile.address
+        required: true
+        notes: "Street address, one line. Unit and street on same line (e.g. 'U2203, 9 Power Street')."
+      - key: suburb_town_city
+        label: "Suburb / Town / City"
+        type: text
+        source: profile.city
+        required: true
+      - key: country
+        label: "Country"
+        type: dropdown
+        source: profile.countryOfResidence
+        required: true
+      - key: state
+        label: "State"
+        type: dropdown
+        source: profile.state
+        required: true
+        dependent_on: country
+        notes: "Dropdown options depend on the selected country."
+      - key: postal_code
+        label: "Postal code"
+        type: text
+        source: profile.postalCode
+        required: true
+      - key: passport_number
+        label: "Passport number"
+        type: text
+        source: profile.passportNumber
+        required: true
+      - key: passport_country_of_issue
+        label: "Passport country of issue"
+        type: dropdown
+        source: profile.passportCountry
+        required: true
+    uploads: []
+
+  - id: skills_and_anzsco_codes
+    step_number: 3
+    title: "Skills and ANZSCO codes"
+    helper: "Self-rate each of the 16 ACS Core IT skills on A/B/C. A = excellent/advanced, B = above average, C = average. Then pick the ANZSCO occupation codes you want to be assessed against (up to 3)."
+    fields:
+      - key: skills
+        label: "Core IT Skills (self-rating)"
+        type: grid
+        grid_shape: "skill_name -> one of [A, B, C]"
+        skill_names:
+          - "Strategic planning"
+          - "Quality management"
+          - "Quality assurance"
+          - "Project management"
+          - "Business situation analysis"
+          - "Feasibility assessment"
+          - "Requirements definition and management"
+          - "Acceptance testing"
+          - "Organisational change management"
+          - "Programming / software development"
+          - "Testing"
+          - "User research"
+          - "Systems design"
+          - "Release and deployment"
+          - "Organisational facilitation"
+          - "Stakeholder relationship management"
+        source: computed.acs_skill_grades
+        required: true
+        notes: |
+          Grades should reflect the applicant's demonstrable experience level,
+          not aspirational. Agent should pre-populate grades based on the
+          duty list across all employers and mark gaps (skills with no
+          supporting duty) as C by default.
+      - key: anzsco_codes
+        label: "ANZSCO codes"
+        type: multi_select
+        max_selections: 3
+        source: computed.anzsco_primary_plus_alternates
+        required: true
+        options_hint: "Full ACS ANZSCO code list. Common ICT codes: 261111 ICT Business Analyst, 261112 Systems Analyst, 261311 Analyst Programmer, 261312 Developer Programmer, 261313 Software Engineer, 263111 Computer Network and Systems Engineer, 262112 ICT Security Specialist."
+        notes: "Pick the code that best matches the user's duties as primary; optionally add 1-2 alternates ACS may assess against."
+    uploads: []
+
+  - id: name_history
+    step_number: 4
+    title: "Name history"
+    fields:
+      - key: verified_name
+        label: "Verified name for Migration Skills Assessment"
+        type: display_only
+        source: computed.full_name_uppercase
+        notes: "Auto-populated from Section 2. Display only."
+      - key: name_change_evidence_required
+        label: "Do you need to give evidence of name change?"
+        type: radio
+        options: [Yes, No]
+        source: computed.has_name_change
+        required: true
+        default: "No"
+        notes: "Yes if the name on any qualification/employment evidence differs from the applicant's current legal name (e.g. post-marriage change, transliteration variant). Requires marriage cert / deed poll upload."
+    uploads:
+      - slot: name_change_evidence
+        label: "Name change evidence"
+        accept: pdf
+        conditional_on: "name_change_evidence_required == Yes"
+        source: documents.name_change_evidence
+        required: false
+
+  - id: qualification
+    step_number: 5
+    title: "Qualification"
+    helper: "List every tertiary qualification. Include bachelor's, master's, diplomas. PhD is separate. Each is a repeating sub-block."
+    fields:
+      - key: py_program_completed
+        label: "Have you completed the ACS Professional Year Program?"
+        type: radio
+        options: [Yes, No]
+        source: profile.professionalYear
+        required: true
+    iterable: per-qualification
+    iterable_helper: "Add one block per qualification. Use 'QUALIFICATION 1' for the most senior (master's > bachelor's > diploma)."
+    iterable_fields:
+      - key: degree_title
+        label: "Title of degree or award"
+        type: text
+        source: cv.qualifications[i].title
+        required: true
+        notes: "Exact title on the certificate. Example: 'Bachelor of Technology in Information Technology'."
+      - key: institution_name
+        label: "Name of university or awarding institution"
+        type: text
+        source: cv.qualifications[i].institution
+        required: true
+      - key: course_load
+        label: "Course load"
+        type: dropdown
+        options: ["Full Time", "Part Time", "Distance / Online"]
+        source: cv.qualifications[i].courseLoad
+        required: true
+      - key: country_of_study
+        label: "Country of study"
+        type: dropdown
+        source: cv.qualifications[i].country
+        required: true
+      - key: course_duration
+        label: "Course duration"
+        type: text
+        format: "N years" or "N months"
+        source: cv.qualifications[i].duration
+        required: true
+      - key: completion_date
+        label: "Completion date"
+        type: date
+        format: "DD MMM YYYY"
+        source: cv.qualifications[i].completionDate
+        required: true
+        notes: "Date on the certificate. If only month/year known, use the 7th of the month as a placeholder (per observed ACS data)."
+      - key: research_based
+        label: "Is this a research-based qualification?"
+        type: radio
+        options: [Yes, No]
+        source: cv.qualifications[i].researchBased
+        default: "No"
+        required: true
+    iterable_uploads:
+      - slot: award_certificate
+        label: "Award Certificate"
+        accept: pdf
+        required: true
+        source: documents.award_certificate[i]
+        filename_template: "{institution_slug}_Award_Certificate.pdf"
+      - slot: transcript
+        label: "Transcript"
+        accept: pdf
+        required: true
+        source: documents.transcript[i]
+        filename_template: "{institution_slug}_Transcript.pdf"
+      - slot: semester_marksheets
+        label: "Per-semester marksheets (if applicable)"
+        accept: pdf
+        required: false
+        source: documents.semester_marksheets[i]
+        filename_template: "{institution_slug}_Semester_Marksheets.pdf"
+        notes: "Mostly required for Indian qualifications. Combine all semesters into one PDF."
+      - slot: completion_letter
+        label: "Completion letter (if transcript undated)"
+        accept: pdf
+        required: false
+        source: documents.completion_letter[i]
+        filename_template: "{institution_slug}_Completion_Letter.pdf"
+
+  - id: experience
+    step_number: 6
+    title: "Experience"
+    helper: "One block per employer. List every role separately, including short contracts. ACS counts from the first 'closely related' role; roles before that are recorded but do not count."
+    iterable: per-employer
+    iterable_fields:
+      - key: employer_name
+        label: "Employer name"
+        type: text
+        source: documents.employment_reference[i].employer
+        required: true
+      - key: position_title
+        label: "Position or role title"
+        type: text
+        source: documents.employment_reference[i].position
+        required: true
+      - key: hours_per_week
+        label: "Hours worked per week"
+        type: number
+        min: 1
+        max: 80
+        source: documents.employment_reference[i].hoursPerWeek
+        required: true
+        notes: "Must be >= 20 for ACS to count the role. Full-time = 35+."
+      - key: location_of_employment
+        label: "Location of employment"
+        type: radio
+        options: ["Outside Australia", "Australia"]
+        source: documents.employment_reference[i].locationClass
+        required: true
+      - key: is_current
+        label: "Is this employment current and ongoing?"
+        type: radio
+        options: [Yes, No]
+        source: documents.employment_reference[i].isCurrent
+        required: true
+      - key: start_date
+        label: "Employment start date"
+        type: date
+        format: "DD MMM YYYY"
+        source: documents.employment_reference[i].startDate
+        required: true
+      - key: end_date
+        label: "Employment end date"
+        type: date
+        format: "DD MMM YYYY"
+        source: documents.employment_reference[i].endDate
+        required: true
+        conditional_on: "is_current == No"
+    iterable_uploads:
+      - slot: reference_letter
+        label: "Employment reference letter / statutory declaration"
+        accept: pdf
+        required: true
+        source: documents.employment_reference[i]
+        filename_template: "{employer_slug}_Reference_Letter.pdf"
+        notes: "Signed, on company letterhead, with duties list. If unavailable, upload a statutory declaration in this slot."
+      - slot: statutory_declaration
+        label: "Statutory declaration (if employer reference unavailable)"
+        accept: pdf
+        required: false
+        source: documents.statutory_declaration[i]
+        filename_template: "{employer_slug}_Statutory_Declaration.pdf"
+      - slot: payslips
+        label: "Payslips (all available)"
+        accept: pdf
+        required: true
+        source: documents.payslips[i]
+        filename_template: "{employer_slug}_All_Payslips.pdf"
+        notes: "Combined PDF of every payslip from that employer. Or a representative sample (first month, last month, one per year)."
+      - slot: bank_statements
+        label: "Bank statements / evidence of payments"
+        accept: pdf
+        required: true
+        source: documents.bank_statements[i]
+        filename_template: "{employer_slug}_Bank_Statements_Salary.pdf"
+        notes: "Bank statements showing salary deposits from the employer. Highlight / annotate the salary lines."
+      - slot: tax_documents
+        label: "Tax documents (Form 16 for India / ATO for Australia / equivalent)"
+        accept: pdf
+        required: true
+        source: documents.tax_documents[i]
+        filename_template: "{employer_slug}_Tax_Form.pdf"
+      - slot: offer_letter_or_contract
+        label: "Employment offer letter or contract"
+        accept: pdf
+        required: true
+        source: documents.offer_letter[i]
+        filename_template: "{employer_slug}_Offer_Letter.pdf"
+      - slot: relieving_or_service_certificate
+        label: "Relieving letter / Service certificate (for past employers)"
+        accept: pdf
+        required: false
+        conditional_on: "is_current == No"
+        source: documents.relieving_letter[i]
+        filename_template: "{employer_slug}_Relieving_Letter.pdf"
+      - slot: superannuation
+        label: "Superannuation statement (Australia employment only)"
+        accept: pdf
+        required: false
+        conditional_on: "location_of_employment == Australia"
+        source: documents.superannuation[i]
+        filename_template: "{employer_slug}_Superannuation_Statement.pdf"
+      - slot: cover_letter_if_gaps
+        label: "Cover letter explaining any gaps or missing evidence"
+        accept: pdf
+        required: false
+        source: documents.cover_letter[i]
+        filename_template: "{employer_slug}_Cover_Letter.pdf"
+
+  - id: outcome
+    step_number: 7
+    title: "Outcome"
+    display_only: true
+    notes: |
+      Populated by ACS after assessment. Not user-editable. Contains:
+      Status (Outcome Sent), Submission date, Outcome date, Result letter(s)
+      per ANZSCO code (one PDF per code).
