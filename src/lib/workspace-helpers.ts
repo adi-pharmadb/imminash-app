@@ -15,7 +15,12 @@ import type { AssessingBodyRequirement, BodyUiConfig } from "@/types/database";
  * When onboarding a new body: seed ui_config in a migration, then add
  * its body_name here.
  */
-const SUPPORTED_BODY_NAMES = ["ACS", "VETASSESS"] as const;
+const SUPPORTED_BODY_NAMES = [
+  "ACS",
+  "Engineers Australia",
+  "TRA",
+  "VETASSESS",
+] as const;
 
 const DEFAULT_UI_CONFIG: BodyUiConfig = {
   pathway_label: "Skills Assessment",
